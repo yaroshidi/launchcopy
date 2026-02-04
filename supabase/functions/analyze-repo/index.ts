@@ -222,6 +222,7 @@ Guidelines:
           { role: 'user', content: `Analyze this GitHub repository and generate marketing content:\n\n${repoContext}` }
         ],
         temperature: 0.7,
+        max_tokens: 8000,
       }),
     });
 
