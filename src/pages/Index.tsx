@@ -2,23 +2,31 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { Dashboard } from "@/components/Dashboard";
-import { generateMockAnalysis } from "@/lib/mockAnalysis";
+import { analyzeRepository } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import type { RepoAnalysis } from "@/types/analysis";
 
 const Index = () => {
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleAnalyze = async (url: string) => {
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-    
-    // Generate mock analysis (in real app, this would call backend AI)
-    const result = generateMockAnalysis(url);
-    setAnalysis(result);
-    setIsLoading(false);
+    try {
+      const result = await analyzeRepository(url);
+      setAnalysis(result);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze repository. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBack = () => {
