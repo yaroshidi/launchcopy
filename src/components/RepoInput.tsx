@@ -33,7 +33,7 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
           placeholder="https://github.com/owner/repository"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground/60"
+          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground placeholder:text-muted-foreground/60"
           disabled={isLoading}
         />
         <Button
