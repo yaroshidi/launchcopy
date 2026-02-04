@@ -11,11 +11,11 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleAnalyze = async (url: string) => {
+  const handleAnalyze = async (url: string, githubToken?: string) => {
     setIsLoading(true);
     
     try {
-      const result = await analyzeRepository(url);
+      const result = await analyzeRepository(url, githubToken);
       setAnalysis(result);
     } catch (error) {
       console.error('Analysis failed:', error);

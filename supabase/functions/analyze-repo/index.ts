@@ -12,18 +12,29 @@ interface GitHubFile {
   download_url?: string;
 }
 
-async function fetchGitHubContent(owner: string, repo: string, path: string = ""): Promise<string> {
+async function fetchGitHubContent(owner: string, repo: string, path: string = "", githubToken?: string): Promise<string> {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
   console.log(`Fetching GitHub content from: ${url}`);
   
-  const response = await fetch(url, {
-    headers: {
-      'Accept': 'application/vnd.github.v3+json',
-      'User-Agent': 'RepoToContent-AI'
-    }
-  });
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json',
+    'User-Agent': 'RepoToContent-AI'
+  };
+  
+  if (githubToken) {
+    headers['Authorization'] = `Bearer ${githubToken}`;
+    console.log('Using GitHub token for authentication');
+  }
+  
+  const response = await fetch(url, { headers });
 
   if (!response.ok) {
+    if (response.status === 404 && !githubToken) {
+      throw new Error('Repository not found. If this is a private repo, please provide a GitHub token.');
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('GitHub authentication failed. Please check your token has repo access.');
+    }
     console.error(`GitHub API error: ${response.status}`);
     throw new Error(`GitHub API error: ${response.status}`);
   }
@@ -31,18 +42,22 @@ async function fetchGitHubContent(owner: string, repo: string, path: string = ""
   return response.text();
 }
 
-async function fetchFileContent(downloadUrl: string): Promise<string> {
-  const response = await fetch(downloadUrl);
+async function fetchFileContent(downloadUrl: string, githubToken?: string): Promise<string> {
+  const headers: Record<string, string> = {};
+  if (githubToken) {
+    headers['Authorization'] = `Bearer ${githubToken}`;
+  }
+  const response = await fetch(downloadUrl, { headers });
   if (!response.ok) return "";
   return response.text();
 }
 
-async function gatherRepoContext(owner: string, repo: string): Promise<string> {
+async function gatherRepoContext(owner: string, repo: string, githubToken?: string): Promise<string> {
   let context = `Repository: ${owner}/${repo}\n\n`;
 
   try {
     // Get root contents
-    const rootContents = await fetchGitHubContent(owner, repo);
+    const rootContents = await fetchGitHubContent(owner, repo, "", githubToken);
     const files: GitHubFile[] = JSON.parse(rootContents);
     
     // Prioritize key files
@@ -51,7 +66,7 @@ async function gatherRepoContext(owner: string, repo: string): Promise<string> {
     for (const priorityFile of priorityFiles) {
       const file = files.find(f => f.name.toLowerCase() === priorityFile.toLowerCase());
       if (file && file.download_url) {
-        const content = await fetchFileContent(file.download_url);
+        const content = await fetchFileContent(file.download_url, githubToken);
         if (content) {
           context += `=== ${file.name} ===\n${content.slice(0, 8000)}\n\n`;
         }
@@ -68,7 +83,7 @@ async function gatherRepoContext(owner: string, repo: string): Promise<string> {
     const srcDir = files.find(f => f.name === 'src' || f.name === 'lib' || f.name === 'app');
     if (srcDir && srcDir.type === 'dir') {
       try {
-        const srcContents = await fetchGitHubContent(owner, repo, srcDir.name);
+        const srcContents = await fetchGitHubContent(owner, repo, srcDir.name, githubToken);
         const srcFiles: GitHubFile[] = JSON.parse(srcContents);
         context += `\n=== ${srcDir.name}/ Structure ===\n`;
         for (const file of srcFiles.slice(0, 20)) {
@@ -93,7 +108,7 @@ serve(async (req) => {
   }
 
   try {
-    const { repoUrl } = await req.json();
+    const { repoUrl, githubToken } = await req.json();
     
     if (!repoUrl) {
       return new Response(
@@ -103,6 +118,9 @@ serve(async (req) => {
     }
 
     console.log(`Analyzing repository: ${repoUrl}`);
+    if (githubToken) {
+      console.log('GitHub token provided for private repo access');
+    }
 
     // Parse GitHub URL
     const urlMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
@@ -117,7 +135,7 @@ serve(async (req) => {
     const repoName = repo.replace(/\.git$/, '');
 
     // Gather repository context
-    const repoContext = await gatherRepoContext(owner, repoName);
+    const repoContext = await gatherRepoContext(owner, repoName, githubToken);
     console.log(`Gathered ${repoContext.length} characters of context`);
 
     // Call Lovable AI for analysis
