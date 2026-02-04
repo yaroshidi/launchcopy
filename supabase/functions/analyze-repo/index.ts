@@ -144,7 +144,11 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are an expert product analyst and content marketer. Analyze the provided GitHub repository and generate comprehensive marketing content.
+    const systemPrompt = `You are an expert product analyst and content marketer.
+
+IMPORTANT: You MUST return your result by calling the provided tool (function) and passing arguments that match the required schema. Do not output raw JSON in plain text.
+
+Analyze the provided GitHub repository and generate comprehensive marketing content.
 
 You MUST respond with valid JSON matching this exact structure:
 {
@@ -217,6 +221,95 @@ Guidelines:
       },
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'generate_repo_marketing',
+              description: 'Generate structured marketing content for a GitHub repository analysis.',
+              parameters: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['summary', 'scenarios', 'content'],
+                properties: {
+                  summary: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: [
+                      'name',
+                      'whatItDoes',
+                      'targetUsers',
+                      'keyFeatures',
+                      'valueProps',
+                      'useCases',
+                      'techStack',
+                    ],
+                    properties: {
+                      name: { type: 'string' },
+                      whatItDoes: { type: 'string' },
+                      targetUsers: { type: 'array', items: { type: 'string' } },
+                      keyFeatures: { type: 'array', items: { type: 'string' } },
+                      valueProps: { type: 'array', items: { type: 'string' } },
+                      useCases: { type: 'array', items: { type: 'string' } },
+                      techStack: { type: 'array', items: { type: 'string' } },
+                    },
+                  },
+                  scenarios: { type: 'array', items: { type: 'string' } },
+                  content: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['socialPosts', 'blogArticles', 'caseStudies'],
+                    properties: {
+                      socialPosts: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          additionalProperties: false,
+                          required: ['platform', 'content'],
+                          properties: {
+                            platform: { type: 'string' },
+                            content: { type: 'string' },
+                          },
+                        },
+                      },
+                      blogArticles: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          additionalProperties: false,
+                          required: ['title', 'content'],
+                          properties: {
+                            title: { type: 'string' },
+                            content: { type: 'string' },
+                            sections: { type: 'array', items: { type: 'string' } },
+                          },
+                        },
+                      },
+                      caseStudies: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          additionalProperties: false,
+                          required: ['title', 'client', 'industry', 'problem', 'solution', 'outcomes', 'content'],
+                          properties: {
+                            title: { type: 'string' },
+                            client: { type: 'string' },
+                            industry: { type: 'string' },
+                            problem: { type: 'string' },
+                            solution: { type: 'string' },
+                            outcomes: { type: 'array', items: { type: 'string' } },
+                            content: { type: 'string' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
+        tool_choice: { type: 'function', function: { name: 'generate_repo_marketing' } },
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this GitHub repository and generate marketing content:\n\n${repoContext}` }
@@ -247,25 +340,42 @@ Guidelines:
     }
 
     const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
-    
-    if (!content) {
-      throw new Error('No content in AI response');
+    const message = aiResponse.choices?.[0]?.message;
+
+    console.log('AI response received, parsing structured output...');
+
+    let analysis: any | undefined;
+
+    // Prefer tool/function call output to guarantee valid JSON
+    const toolArgs =
+      message?.tool_calls?.[0]?.function?.arguments ??
+      (message as any)?.function_call?.arguments;
+
+    if (toolArgs) {
+      try {
+        const argsStr = typeof toolArgs === 'string' ? toolArgs : JSON.stringify(toolArgs);
+        analysis = JSON.parse(argsStr);
+      } catch (parseError) {
+        console.error('Tool args JSON parse error:', parseError);
+      }
     }
 
-    console.log('AI response received, parsing JSON...');
+    // Fallback: try to parse JSON from message content (legacy)
+    if (!analysis) {
+      const content = message?.content;
+      if (!content) {
+        throw new Error('No content in AI response');
+      }
 
-    // Parse the JSON response
-    let analysis;
-    try {
-      // Extract JSON from potential markdown code blocks
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      const jsonStr = jsonMatch[1].trim();
-      analysis = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Raw content:', content.slice(0, 500));
-      throw new Error('Failed to parse AI response as JSON');
+      try {
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+        const jsonStr = jsonMatch[1].trim();
+        analysis = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Raw content:', content.slice(0, 500));
+        throw new Error('Failed to parse AI response as JSON');
+      }
     }
 
     // Return the analysis with metadata
