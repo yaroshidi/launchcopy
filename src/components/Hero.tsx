@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { RepoInput } from "@/components/RepoInput";
 
 interface HeroProps {
-  onAnalyze: (url: string) => void;
+  onAnalyze: (url: string, githubToken?: string) => void;
   isLoading: boolean;
 }
 

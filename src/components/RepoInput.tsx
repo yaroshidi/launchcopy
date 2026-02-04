@@ -1,20 +1,28 @@
 import { useState } from "react";
-import { Github, ArrowRight, Loader2 } from "lucide-react";
+import { Github, ArrowRight, Loader2, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface RepoInputProps {
-  onAnalyze: (url: string) => void;
+  onAnalyze: (url: string, githubToken?: string) => void;
   isLoading: boolean;
 }
 
 export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
   const [url, setUrl] = useState("");
+  const [githubToken, setGithubToken] = useState(() => {
+    return localStorage.getItem("github_token") || "";
+  });
+  const [showToken, setShowToken] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
-      onAnalyze(url.trim());
+      // Save token to localStorage for convenience
+      if (githubToken) {
+        localStorage.setItem("github_token", githubToken);
+      }
+      onAnalyze(url.trim(), githubToken || undefined);
     }
   };
 
@@ -23,7 +31,7 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleSubmit} className="w-full space-y-3">
       <div className="relative flex items-center gap-2 p-2 rounded-2xl glass-card border border-border/50 focus-within:border-primary/50 focus-within:shadow-glow transition-all duration-300">
         <div className="flex items-center gap-3 pl-4">
           <Github className="w-5 h-5 text-muted-foreground" />
@@ -56,8 +64,54 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
           )}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground mt-3 text-center">
-        Paste any public GitHub repository URL to get started
+
+      {/* Token toggle */}
+      <button
+        type="button"
+        onClick={() => setShowToken(!showToken)}
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
+      >
+        <Key className="w-3 h-3" />
+        {showToken ? "Hide" : "Have a private repo?"}
+        {showToken ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
+
+      {/* Token input */}
+      {showToken && (
+        <div className="flex items-center gap-2 p-2 rounded-xl glass-card border border-border/50">
+          <div className="flex items-center gap-3 pl-4">
+            <Key className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <Input
+            type="password"
+            placeholder="GitHub Personal Access Token (optional)"
+            value={githubToken}
+            onChange={(e) => setGithubToken(e.target.value)}
+            className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-foreground placeholder:text-muted-foreground/60"
+            disabled={isLoading}
+          />
+          {githubToken && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setGithubToken("");
+                localStorage.removeItem("github_token");
+              }}
+              className="text-xs text-muted-foreground"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
+
+      <p className="text-xs text-muted-foreground text-center">
+        {showToken 
+          ? "Token is stored locally & sent securely. Create one at GitHub → Settings → Developer settings → Personal access tokens"
+          : "Paste any public GitHub repository URL to get started"
+        }
       </p>
     </form>
   );
