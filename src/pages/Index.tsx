@@ -1,7 +1,8 @@
-import { useState } from "react";
+ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { Dashboard } from "@/components/Dashboard";
+ import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { analyzeRepository } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { RepoAnalysis } from "@/types/analysis";
@@ -9,10 +10,12 @@ import type { RepoAnalysis } from "@/types/analysis";
 const Index = () => {
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+   const [currentRepoUrl, setCurrentRepoUrl] = useState("");
   const { toast } = useToast();
 
   const handleAnalyze = async (url: string, githubToken?: string) => {
     setIsLoading(true);
+     setCurrentRepoUrl(url);
     
     try {
       const result = await analyzeRepository(url, githubToken);
@@ -45,6 +48,7 @@ const Index = () => {
             transition={{ duration: 0.3 }}
           >
             <Hero onAnalyze={handleAnalyze} isLoading={isLoading} />
+           {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
           </motion.div>
         ) : (
           <motion.div
