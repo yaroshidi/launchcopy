@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { RepoInput } from "@/components/RepoInput";
 import { ContentShowcase } from "@/components/ContentShowcase";
-import { CodeTransformBg } from "@/components/CodeTransformBg";
+
 import { Code2, FileText, Sparkles } from "lucide-react";
 import type { ContentPreferences } from "@/types/analysis";
 
@@ -13,8 +13,6 @@ interface HeroProps {
 export function Hero({ onAnalyze, isLoading }: HeroProps) {
   return (
     <section className="relative min-h-screen pt-20 pb-12 px-6 md:px-10 flex items-center overflow-hidden">
-      {/* Animated code→content background */}
-      <CodeTransformBg />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
         {/* Left — copy + input */}
