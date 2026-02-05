@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Repeat2, Clock, Building2, ArrowUpRight, Code2, ArrowRight } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Clock, Building2, ArrowUpRight } from "lucide-react";
 
 const TABS = ["Social Posts", "Blog", "Case Studies"] as const;
 type TabType = (typeof TABS)[number];
@@ -134,12 +134,6 @@ export function ContentShowcase() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Transformation label */}
-      <div className="flex items-center gap-2 mb-4">
-        <Code2 className="w-3.5 h-3.5 text-muted-foreground/50" />
-        <ArrowRight className="w-3 h-3 text-muted-foreground/30" />
-        <span className="text-[11px] font-mono text-muted-foreground/60 tracking-wide">generated output</span>
-      </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-3">
