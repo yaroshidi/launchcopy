@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Repeat2, Clock, Building2, ArrowUpRight } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Clock, Building2, ArrowUpRight, Code2, ArrowRight } from "lucide-react";
 
 const TABS = ["Social Posts", "Blog", "Case Studies"] as const;
 type TabType = (typeof TABS)[number];
+
+/* ---- Individual content cards ---- */
 
 function TweetCard() {
   return (
@@ -104,6 +106,8 @@ const CONTENT: Record<TabType, React.ReactNode> = {
   "Case Studies": <CaseStudyCard />,
 };
 
+/* ---- Main showcase ---- */
+
 export function ContentShowcase() {
   const [activeTab, setActiveTab] = useState<TabType>("Social Posts");
   const [isPaused, setIsPaused] = useState(false);
@@ -130,8 +134,15 @@ export function ContentShowcase() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      {/* Transformation label */}
+      <div className="flex items-center gap-2 mb-4">
+        <Code2 className="w-3.5 h-3.5 text-muted-foreground/50" />
+        <ArrowRight className="w-3 h-3 text-muted-foreground/30" />
+        <span className="text-[11px] font-mono text-muted-foreground/60 tracking-wide">generated output</span>
+      </div>
+
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-4">
+      <div className="flex items-center gap-1 mb-3">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -155,9 +166,20 @@ export function ContentShowcase() {
       </div>
 
       {/* Card */}
-      <div className="relative rounded-xl border border-border/60 bg-card overflow-hidden min-h-[260px]">
+      <div className="relative rounded-xl border border-border/60 bg-card overflow-hidden min-h-[280px]">
         {/* Accent top border */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        
+        {/* Progress bar for auto-cycle */}
+        {!isPaused && (
+          <motion.div
+            key={activeTab + "-progress"}
+            className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-primary to-accent"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 4, ease: "linear" }}
+          />
+        )}
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -172,7 +194,7 @@ export function ContentShowcase() {
         </AnimatePresence>
       </div>
 
-      {/* Subtle label below */}
+      {/* Label */}
       <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-muted-foreground/60">
         <ArrowUpRight className="w-3 h-3" />
         <span>AI-generated from repo analysis</span>
