@@ -108,7 +108,7 @@ serve(async (req) => {
   }
 
   try {
-    const { repoUrl, githubToken } = await req.json();
+    const { repoUrl, githubToken, preferences } = await req.json();
     
     if (!repoUrl) {
       return new Response(
@@ -118,6 +118,7 @@ serve(async (req) => {
     }
 
     console.log(`Analyzing repository: ${repoUrl}`);
+    console.log('Preferences:', preferences);
     if (githubToken) {
       console.log('GitHub token provided for private repo access');
     }
@@ -144,9 +145,60 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Build preference-aware prompt modifiers
+    const toneMap: Record<string, string> = {
+      professional: 'Use a polished, business-appropriate tone.',
+      casual: 'Use a friendly, approachable, conversational tone.',
+      technical: 'Use a detailed, developer-focused, technical tone with specific terminology.',
+      playful: 'Use a fun, creative, and engaging tone with personality.',
+      enterprise: 'Use a formal, corporate, executive-level tone.',
+    };
+
+    const audienceMap: Record<string, string> = {
+      developers: 'Target software engineers and technical users who appreciate code details and technical accuracy.',
+      business: 'Target CTOs, VPs, and business decision makers who focus on ROI and strategic value.',
+      startups: 'Target founders and early-stage teams who value speed, innovation, and cost-effectiveness.',
+      enterprise: 'Target large organizations that prioritize security, scalability, and compliance.',
+      general: 'Target a non-technical audience who needs simple explanations without jargon.',
+    };
+
+    const industryMap: Record<string, string> = {
+      general: '',
+      saas: 'Frame content in the context of SaaS products and subscription businesses.',
+      fintech: 'Frame content for the financial technology and banking sector.',
+      healthcare: 'Frame content for healthcare and medical technology contexts.',
+      ecommerce: 'Frame content for e-commerce and retail businesses.',
+      devtools: 'Frame content for developer tools and productivity software.',
+      'ai-ml': 'Frame content for AI/ML and data science applications.',
+    };
+
+    const voiceMap: Record<string, string> = {
+      formal: 'Maintain a traditional, structured writing style.',
+      friendly: 'Use a warm, conversational, approachable writing style.',
+      authoritative: 'Project expertise and confidence in all statements.',
+      innovative: 'Emphasize forward-thinking, cutting-edge perspectives.',
+    };
+
+    const toneInstruction = preferences?.tone ? toneMap[preferences.tone] || '' : toneMap.professional;
+    const audienceInstruction = preferences?.audience ? audienceMap[preferences.audience] || '' : audienceMap.developers;
+    const industryInstruction = preferences?.industry ? industryMap[preferences.industry] || '' : '';
+    const voiceInstruction = preferences?.voice ? voiceMap[preferences.voice] || '' : voiceMap.friendly;
+
+    const preferenceInstructions = `
+CONTENT STYLE GUIDELINES:
+${toneInstruction}
+${audienceInstruction}
+${industryInstruction}
+${voiceInstruction}
+
+Apply these style guidelines consistently across ALL generated content including social posts, blog articles, and case studies.
+`;
+
     const systemPrompt = `You are an expert product analyst and content marketer.
 
 IMPORTANT: You MUST return your result by calling the provided tool (function) and passing arguments that match the required schema. Do not output raw JSON in plain text.
+
+${preferenceInstructions}
 
 Analyze the provided GitHub repository and generate comprehensive marketing content.
 

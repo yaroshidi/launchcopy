@@ -1,24 +1,24 @@
- import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { Dashboard } from "@/components/Dashboard";
- import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
+import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { analyzeRepository } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import type { RepoAnalysis } from "@/types/analysis";
+import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
 
 const Index = () => {
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-   const [currentRepoUrl, setCurrentRepoUrl] = useState("");
+  const [currentRepoUrl, setCurrentRepoUrl] = useState("");
   const { toast } = useToast();
 
-  const handleAnalyze = async (url: string, githubToken?: string) => {
+  const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     setIsLoading(true);
-     setCurrentRepoUrl(url);
+    setCurrentRepoUrl(url);
     
     try {
-      const result = await analyzeRepository(url, githubToken);
+      const result = await analyzeRepository(url, githubToken, preferences);
       setAnalysis(result);
     } catch (error) {
       console.error('Analysis failed:', error);

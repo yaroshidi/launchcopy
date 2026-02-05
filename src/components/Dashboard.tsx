@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Github, Users, Target, Zap, Code, Sparkles } from "lucide-react";
+import { ArrowLeft, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductSummary } from "@/components/ProductSummary";
 import { ContentTabs } from "@/components/ContentTabs";
+import { ExportMenu } from "@/components/ExportMenu";
 import type { RepoAnalysis } from "@/types/analysis";
 
 interface DashboardProps {
@@ -30,9 +31,12 @@ export function Dashboard({ analysis, onBack }: DashboardProps) {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Powered by</span>
-              <span className="gradient-text font-semibold text-sm">RepoToContent AI</span>
+            <div className="flex items-center gap-4">
+              <ExportMenu analysis={analysis} />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Powered by</span>
+                <span className="gradient-text font-semibold text-sm">RepoToContent AI</span>
+              </div>
             </div>
           </div>
         </div>
