@@ -80,7 +80,7 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
       <button
         type="button"
         onClick={() => setShowToken(!showToken)}
-        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         <Key className="w-3 h-3" />
         {showToken ? "Hide" : "Have a private repo?"}
@@ -118,7 +118,7 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground">
         {showToken 
           ? "Token is stored locally & sent securely. Create one at GitHub → Settings → Developer settings → Personal access tokens"
           : "Paste any public GitHub repository URL to get started"

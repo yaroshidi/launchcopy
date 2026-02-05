@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
@@ -38,6 +39,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background dark">
+      <Navbar />
       <AnimatePresence mode="wait">
         {!analysis ? (
           <motion.div
@@ -48,7 +50,7 @@ const Index = () => {
             transition={{ duration: 0.3 }}
           >
             <Hero onAnalyze={handleAnalyze} isLoading={isLoading} />
-           {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
+            {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
           </motion.div>
         ) : (
           <motion.div

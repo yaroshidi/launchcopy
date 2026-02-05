@@ -68,7 +68,7 @@ export function ContentPreferences({ preferences, onChange, disabled }: ContentP
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         disabled={disabled}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto disabled:opacity-50"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
       >
         <Settings2 className="w-4 h-4" />
         <span>Customize content style</span>
