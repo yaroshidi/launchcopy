@@ -99,7 +99,7 @@ export function Hero({
         delay: 0.6,
         duration: 0.6
       }} className="flex flex-wrap justify-center gap-3">
-          {["Social Posts", "Blog Articles", "Case Studies", "Value Props", "Use Cases"].map(feature => <span key={feature} className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
+          {["Blog Articles", "Case Studies", "Value Props", "Use Cases"].map(feature => <span key={feature} className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
               {feature}
             </span>)}
         </motion.div>
