@@ -28,15 +28,7 @@ export function Hero({ onAnalyze, isLoading }: HeroProps) {
               Your repo
               <br />
               already has a{" "}
-              <span className="relative">
-                <span className="gradient-text">story.</span>
-                <motion.span
-                  className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full bg-gradient-to-r from-primary to-accent"
-                  initial={{ scaleX: 0, originX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.6, delay: 0.7 }}
-                />
-              </span>
+              <span className="gradient-text">story.</span>
               <br />
               <span className="text-muted-foreground">We help you tell it.</span>
             </h1>
