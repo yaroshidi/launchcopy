@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MessageCircle, Repeat2, Clock, Building2, ArrowUpRight } from "lucide-react";
 
@@ -111,6 +111,7 @@ const CONTENT: Record<TabType, React.ReactNode> = {
 export function ContentShowcase() {
   const [activeTab, setActiveTab] = useState<TabType>("Social Posts");
   const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const nextTab = useCallback(() => {
     setActiveTab((prev) => {
@@ -121,8 +122,14 @@ export function ContentShowcase() {
 
   useEffect(() => {
     if (isPaused) return;
-    const timer = setInterval(nextTab, 4000);
-    return () => clearInterval(timer);
+    // Small initial delay to avoid race with React 18 StrictMode double-mount
+    const timeout = setTimeout(() => {
+      timerRef.current = setInterval(nextTab, 4000);
+    }, 100);
+    return () => {
+      clearTimeout(timeout);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [isPaused, nextTab]);
 
   return (
@@ -175,7 +182,7 @@ export function ContentShowcase() {
           />
         )}
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 12 }}
