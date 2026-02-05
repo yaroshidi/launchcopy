@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { RepoInput } from "@/components/RepoInput";
 import { ContentShowcase } from "@/components/ContentShowcase";
 
-import { Code2, FileText, Sparkles } from "lucide-react";
+
 import type { ContentPreferences } from "@/types/analysis";
 
 interface HeroProps {
@@ -17,27 +17,6 @@ export function Hero({ onAnalyze, isLoading }: HeroProps) {
       <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
         {/* Left — copy + input */}
         <div className="space-y-8">
-          {/* Transformation motif label */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex items-center gap-3"
-          >
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/80 border border-border/50">
-              <Code2 className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[11px] font-mono font-medium text-muted-foreground">code</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-px bg-primary/40" />
-              <Sparkles className="w-3 h-3 text-primary/50" />
-              <span className="w-2 h-px bg-primary/40" />
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
-              <FileText className="w-3.5 h-3.5 text-accent" />
-              <span className="text-[11px] font-mono font-medium text-accent/80">content</span>
-            </div>
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, x: -20 }}
