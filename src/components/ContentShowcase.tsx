@@ -141,64 +141,78 @@ export function ContentShowcase() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      {/* Outer polished container */}
+      <div className="relative p-4 rounded-2xl bg-card/30 backdrop-blur-sm border border-border/20 shadow-medium group transition-shadow duration-500 hover:shadow-glow">
+        {/* Gradient top-edge line */}
+        <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 mb-3">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeTab === tab
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground/80"
-            }`}
-          >
-            {activeTab === tab && (
-              <motion.div
-                layoutId="showcase-tab"
-                className="absolute inset-0 bg-secondary rounded-md"
-                transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-              />
-            )}
-            <span className="relative z-10">{tab}</span>
-          </button>
-        ))}
-      </div>
+        {/* Corner accent dots */}
+        <div className="absolute top-2 left-2 w-1 h-1 rounded-full bg-primary/40" />
+        <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-primary/40" />
+        <div className="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-primary/40" />
+        <div className="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-primary/40" />
 
-      {/* Card */}
-      <div className="relative rounded-xl border border-border/60 bg-card overflow-hidden min-h-[280px]">
-        {/* Accent top border */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-        
-        {/* Progress bar for auto-cycle */}
-        {!isPaused && (
-          <motion.div
-            key={activeTab + "-progress"}
-            className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-primary to-accent"
-            initial={{ width: "0%" }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 4, ease: "linear" }}
-          />
-        )}
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-2">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                activeTab === tab
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground/80"
+              }`}
+            >
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="showcase-tab"
+                  className="absolute inset-0 bg-secondary rounded-md"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                />
+              )}
+              <span className="relative z-10">{tab}</span>
+            </button>
+          ))}
+        </div>
 
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-          >
-            {CONTENT[activeTab]}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+        {/* Separator */}
+        <div className="h-px bg-border/20 mx-1 mb-3" />
 
-      {/* Label */}
-      <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-muted-foreground/60">
-        <ArrowUpRight className="w-3 h-3" />
-        <span>AI-generated from repo analysis</span>
+        {/* Card */}
+        <div className="relative rounded-xl border border-border/30 bg-card overflow-hidden min-h-[280px] shadow-[inset_0_1px_2px_0_hsl(0_0%_0%/0.05)]">
+          {/* Accent top border */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Progress bar for auto-cycle */}
+          {!isPaused && (
+            <motion.div
+              key={activeTab + "-progress"}
+              className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-primary to-accent"
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 4, ease: "linear" }}
+            />
+          )}
+
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+            >
+              {CONTENT[activeTab]}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Label */}
+        <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-muted-foreground/60">
+          <ArrowUpRight className="w-3 h-3" />
+          <span>AI-generated from repo analysis</span>
+        </div>
       </div>
     </motion.div>
   );
