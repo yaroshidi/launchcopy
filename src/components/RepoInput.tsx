@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Github, ArrowRight, Loader2, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ContentPreferences } from "@/components/ContentPreferences";
+import type { ContentPreferences as PreferencesType } from "@/types/analysis";
+import { DEFAULT_PREFERENCES } from "@/types/analysis";
 
 interface RepoInputProps {
-  onAnalyze: (url: string, githubToken?: string) => void;
+  onAnalyze: (url: string, githubToken?: string, preferences?: PreferencesType) => void;
   isLoading: boolean;
 }
 
@@ -14,6 +17,7 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
     return localStorage.getItem("github_token") || "";
   });
   const [showToken, setShowToken] = useState(false);
+  const [preferences, setPreferences] = useState<PreferencesType>(DEFAULT_PREFERENCES);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +26,7 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
       if (githubToken) {
         localStorage.setItem("github_token", githubToken);
       }
-      onAnalyze(url.trim(), githubToken || undefined);
+      onAnalyze(url.trim(), githubToken || undefined, preferences);
     }
   };
 
@@ -64,6 +68,13 @@ export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
           )}
         </Button>
       </div>
+
+      {/* Content Preferences */}
+      <ContentPreferences 
+        preferences={preferences} 
+        onChange={setPreferences} 
+        disabled={isLoading}
+      />
 
       {/* Token toggle */}
       <button

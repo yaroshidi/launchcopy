@@ -2,10 +2,13 @@ import { motion } from "framer-motion";
 import { Github, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RepoInput } from "@/components/RepoInput";
+import type { ContentPreferences } from "@/types/analysis";
+
 interface HeroProps {
-  onAnalyze: (url: string, githubToken?: string) => void;
+  onAnalyze: (url: string, githubToken?: string, preferences?: ContentPreferences) => void;
   isLoading: boolean;
 }
+
 export function Hero({
   onAnalyze,
   isLoading
