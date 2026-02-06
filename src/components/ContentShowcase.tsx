@@ -35,7 +35,7 @@ export function ContentShowcase() {
   useEffect(() => {
     if (isPaused) return;
     const timeout = setTimeout(() => {
-      timerRef.current = setInterval(nextTab, 4000);
+      timerRef.current = setInterval(nextTab, 7000);
     }, 100);
     return () => {
       clearTimeout(timeout);
@@ -95,7 +95,7 @@ export function ContentShowcase() {
                 className="absolute top-0 left-0 h-[1.5px] bg-gradient-to-r from-primary/60 to-accent/60"
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
-                transition={{ duration: 4, ease: "linear" }}
+                transition={{ duration: 7, ease: "linear" }}
               />
             )}
 
