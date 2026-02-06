@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Github, ArrowRight, Loader2, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ContentPreferences } from "@/components/ContentPreferences";
+import { ContentPreferences, TONE_OPTIONS, AUDIENCE_OPTIONS, INDUSTRY_OPTIONS, VOICE_OPTIONS } from "@/components/ContentPreferences";
 import type { ContentPreferences as PreferencesType } from "@/types/analysis";
 import { DEFAULT_PREFERENCES } from "@/types/analysis";
 
@@ -12,13 +12,17 @@ interface RepoInputProps {
   prefillUrl?: string;
 }
 
+function getLabel(value: string, options: { value: string; label: string }[]): string {
+  return options.find((o) => o.value === value)?.label ?? value;
+}
+
 export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) {
   const [url, setUrl] = useState("");
 
-  // Sync prefilled URL from suggestion chips
   useEffect(() => {
     if (prefillUrl) setUrl(prefillUrl);
   }, [prefillUrl]);
+
   const [githubToken, setGithubToken] = useState(() => {
     return localStorage.getItem("github_token") || "";
   });
@@ -28,7 +32,6 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
-      // Save token to localStorage for convenience
       if (githubToken) {
         localStorage.setItem("github_token", githubToken);
       }
@@ -39,6 +42,13 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
   const isValidGithubUrl = (url: string) => {
     return url.includes("github.com/") && url.split("/").length >= 4;
   };
+
+  const chips = [
+    { label: getLabel(preferences.tone, TONE_OPTIONS), isDefault: preferences.tone === DEFAULT_PREFERENCES.tone },
+    { label: getLabel(preferences.audience, AUDIENCE_OPTIONS), isDefault: preferences.audience === DEFAULT_PREFERENCES.audience },
+    { label: getLabel(preferences.industry, INDUSTRY_OPTIONS), isDefault: preferences.industry === DEFAULT_PREFERENCES.industry },
+    { label: getLabel(preferences.voice, VOICE_OPTIONS), isDefault: preferences.voice === DEFAULT_PREFERENCES.voice },
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3">
@@ -75,10 +85,26 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
         </Button>
       </div>
 
-      {/* Content Preferences */}
-      <ContentPreferences 
-        preferences={preferences} 
-        onChange={setPreferences} 
+      {/* Selected preferences chips */}
+      <div className="flex flex-wrap gap-1.5">
+        {chips.map((chip) => (
+          <span
+            key={chip.label}
+            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+              chip.isDefault
+                ? "bg-secondary/60 text-muted-foreground border-border/30"
+                : "bg-primary/10 text-primary border-primary/30"
+            }`}
+          >
+            {chip.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Content Preferences Popover */}
+      <ContentPreferences
+        preferences={preferences}
+        onChange={setPreferences}
         disabled={isLoading}
       />
 
@@ -125,10 +151,9 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
       )}
 
       <p className="text-xs text-muted-foreground">
-        {showToken 
+        {showToken
           ? "Token is stored locally & sent securely. Create one at GitHub → Settings → Developer settings → Personal access tokens"
-          : "Paste any public GitHub repository URL to get started"
-        }
+          : "Paste any public GitHub repository URL to get started"}
       </p>
     </form>
   );
