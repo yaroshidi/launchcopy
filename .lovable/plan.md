@@ -1,102 +1,117 @@
 
 
-# Authentication and Paid Subscription Setup
+# Freemium Funnel: Move Auth Behind Analysis
 
-This plan adds secure user authentication (Google + email/password), basic user profiles, and prepares the app to become a paid tool with Stripe subscriptions.
-
----
-
-## Phase 1: Authentication
-
-### 1.1 Database Setup
-
-Create a **profiles** table to store basic user info from their Google account:
-
-- `id` (UUID, references auth.users)
-- `display_name` (text)
-- `avatar_url` (text)
-- `email` (text)
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
-
-Enable Row Level Security so users can only read/update their own profile.
-
-Create a trigger that auto-creates a profile row whenever a new user signs up (pulling name/avatar from their auth metadata).
-
-### 1.2 Google OAuth
-
-Configure Google as a sign-in provider using the managed Lovable Cloud solution. This works out of the box with no extra Google Cloud setup needed.
-
-### 1.3 Auth Page (`/auth`)
-
-Create a dedicated authentication page with:
-
-- **Google sign-in button** (primary, prominent)
-- **Email/password sign-in and sign-up** as a secondary option
-- Clean, dark-themed design matching the existing glassmorphism style
-- Input validation using zod (email format, password minimum length)
-- Proper error handling (user already exists, invalid credentials, etc.)
-- Automatic redirect to home page after successful login
-
-### 1.4 Auth Context and Route Protection
-
-- Create an `AuthProvider` context that wraps the app, managing session state
-- Use `supabase.auth.onAuthStateChange` + `supabase.auth.getSession` following the correct initialization order
-- Protect the main page: unauthenticated users get redirected to `/auth`
-- Authenticated users on `/auth` get redirected to `/`
-
-### 1.5 Navbar Updates
-
-- Show the user's avatar and display name in the top-right corner
-- Add a dropdown menu with "Sign Out" option
-- Remove or keep the GitHub link as needed
+This changes the user flow from "login first, then use the tool" to "use the tool freely, see a preview, then login and pay to unlock everything."
 
 ---
 
-## Phase 2: Stripe Payments (Monthly Subscription)
+## New User Flow
 
-This will use the Lovable Stripe integration to set up monthly subscriptions.
+1. **Landing page** is fully public -- no login required to visit or use it
+2. User pastes a GitHub URL and clicks **Analyze** -- the analysis runs without authentication
+3. After analysis completes, the **Dashboard** appears showing:
+   - The full **Product Summary** (left column) -- always visible
+   - **One content card per tab** shown in full (the "free preview")
+   - **Remaining content cards blurred/locked** with an overlay prompting the user to sign up and subscribe
+4. Locked content shows a glass overlay with a "Sign up to unlock all content" CTA
+5. Clicking the CTA takes the user to the `/auth` page (or opens a sign-in modal)
+6. After signing in, content remains locked until they have an active subscription (Phase 2 with Stripe -- not in this change)
 
-### 2.1 Enable Stripe
+---
 
-Enable the Stripe integration which will provide the tools and knowledge to properly implement subscription billing. This step needs to happen first -- it will unlock the specific implementation details and tooling for creating products, prices, checkout sessions, and managing subscriptions.
+## What Changes
 
-### 2.2 Subscription Flow (details after Stripe is enabled)
+### 1. Remove Route Protection from `/`
 
-Once Stripe is enabled, we will:
+**File: `src/App.tsx`**
+- Remove the `ProtectedRoute` wrapper around the `Index` page
+- The home page becomes fully public
+- Keep the `/auth` route for when users choose to sign in
+- Keep `AuthProvider` so we can still detect logged-in users
 
-- Create a subscription product and monthly price
-- Add a paywall: users who aren't subscribed see a pricing/upgrade page instead of the analysis tool
-- Build a checkout flow that redirects to Stripe for payment
-- Handle subscription status checks on each page load
-- Add a "Manage Subscription" link for existing subscribers
+### 2. Make Navbar Auth-Aware but Not Blocking
+
+**File: `src/components/Navbar.tsx`**
+- If the user is logged in: show the `UserMenu` (avatar + sign out) as it does now
+- If the user is NOT logged in: show a "Sign In" link/button that goes to `/auth`
+- Either way, the page is accessible
+
+### 3. Add Locked State to ContentTabs
+
+**File: `src/components/ContentTabs.tsx`**
+- Accept a new `isUnlocked` boolean prop
+- When `isUnlocked` is `false`:
+  - Show only the **first** content card in each tab normally
+  - Show all remaining cards in a blurred/locked state
+  - Disable "Regenerate All" button
+- When `isUnlocked` is `true`: show everything as it does today
+
+### 4. Create a LockedContentOverlay Component
+
+**New file: `src/components/LockedContentOverlay.tsx`**
+- A glassmorphic overlay that sits on top of blurred content
+- Shows a lock icon, headline like "Unlock all generated content"
+- Brief value proposition (e.g., "Sign up to access all social posts, blog articles, and case studies")
+- Primary CTA button: "Sign up to unlock" (links to `/auth`)
+- If user is logged in but not subscribed: button says "Upgrade to unlock" (for Phase 2 Stripe integration)
+
+### 5. Update ContentCard for Locked State
+
+**File: `src/components/ContentCard.tsx`**
+- Accept an optional `locked` boolean prop
+- When `locked` is `true`:
+  - Apply a CSS blur filter to the card content
+  - Disable all interactive buttons (edit, copy, regenerate)
+  - Add `pointer-events-none` and `select-none` to prevent text selection
+  - The card is still rendered (so users can see there IS more content) but it's unreadable
+
+### 6. Pass Auth State to Dashboard
+
+**File: `src/components/Dashboard.tsx`**
+- Read `useAuth()` to check if user is logged in
+- For now: `isUnlocked = !!user` (logged in = unlocked; Phase 2 will add subscription check)
+- Pass `isUnlocked` down to `ContentTabs`
+- Disable the Export button when content is locked
+
+### 7. Update Index Page
+
+**File: `src/pages/Index.tsx`**
+- No changes needed -- it already allows analysis without auth since we're removing the route protection
 
 ---
 
 ## Technical Details
 
-### New files:
-- `src/pages/Auth.tsx` -- Login/signup page with Google OAuth and email/password
-- `src/contexts/AuthContext.tsx` -- Auth provider with session management
-- `src/components/UserMenu.tsx` -- Avatar dropdown with sign-out
+### `src/App.tsx`
+- Remove `ProtectedRoute` component entirely (or keep it for future use but don't wrap Index)
+- Change the `/` route from `<ProtectedRoute><Index /></ProtectedRoute>` to just `<Index />`
 
-### Modified files:
-- `src/App.tsx` -- Wrap with AuthProvider, add `/auth` route, add route protection
-- `src/components/Navbar.tsx` -- Add user menu (avatar + dropdown)
-- `src/pages/Index.tsx` -- Gate analysis behind auth check
+### `src/components/Navbar.tsx`
+- Add a conditional: if no `user`, render a `<Link to="/auth">` styled as a small button saying "Sign In"
 
-### Database migration:
-- Create `profiles` table with RLS policies
-- Create trigger function `handle_new_user` to auto-populate profiles on signup
+### `src/components/LockedContentOverlay.tsx` (new)
+- Uses `useAuth` to check user state
+- If not logged in: "Sign up to unlock" button linking to `/auth`
+- If logged in (but later, not subscribed): "Upgrade to unlock" button
+- Styled with `backdrop-blur`, gradient border, centered content
 
-### Auth configuration:
-- Configure Google OAuth via the managed Cloud solution
-- Email/password auth enabled by default
+### `src/components/ContentCard.tsx`
+- Add `locked?: boolean` prop
+- When locked: wrap content in a div with `blur-sm opacity-60 pointer-events-none select-none`
+- Hide the hover action buttons entirely when locked
 
-### Security considerations:
-- RLS on profiles table (users read/update only their own row)
-- zod validation on all auth form inputs
-- No sensitive data logged to console
-- Proper error messages without leaking internal details
-- Session tokens managed by the auth library (not manually stored)
+### `src/components/ContentTabs.tsx`
+- Add `isUnlocked: boolean` prop
+- For each tab's content list: render `items[0]` normally, then for `items.slice(1)` pass `locked={!isUnlocked}` to `ContentCard`
+- After the locked cards, render `<LockedContentOverlay />` if `!isUnlocked`
+- Disable "Regenerate All" button when `!isUnlocked`
+
+### `src/components/Dashboard.tsx`
+- Import `useAuth` and check `const { user } = useAuth()`
+- Pass `isUnlocked={!!user}` to `ContentTabs`
+- Conditionally disable `ExportMenu` when not unlocked
+
+### `src/pages/Auth.tsx`
+- No changes needed (already handles redirect to `/` after login)
 
