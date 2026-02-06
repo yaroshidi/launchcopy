@@ -7,6 +7,7 @@ import { ContentTabs } from "@/components/ContentTabs";
 import { ExportMenu } from "@/components/ExportMenu";
 import { regenerateContent, type ContentType } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
 
 interface DashboardProps {
@@ -17,6 +18,8 @@ interface DashboardProps {
 
 export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: DashboardProps) {
   const [analysis, setAnalysis] = useState<RepoAnalysis>(initialAnalysis);
+  const { user } = useAuth();
+  const isUnlocked = !!user;
   const { toast } = useToast();
 
   const handleRegenerateAll = async (contentType: ContentType) => {
@@ -106,7 +109,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <ExportMenu analysis={analysis} />
+              {isUnlocked && <ExportMenu analysis={analysis} />}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Powered by</span>
                 <span className="gradient-text font-semibold text-sm">RepoToContent AI</span>
@@ -138,6 +141,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
           >
             <ContentTabs
               analysis={analysis}
+              isUnlocked={isUnlocked}
               onRegenerateAll={handleRegenerateAll}
               onRegenerateItem={handleRegenerateItem}
             />

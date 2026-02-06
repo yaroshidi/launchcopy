@@ -15,6 +15,7 @@ interface ContentCardProps {
   content: string;
   scores?: ContentScores;
   metadata?: Record<string, any>;
+  locked?: boolean;
   onRegenerate?: () => Promise<void>;
 }
 
@@ -47,7 +48,7 @@ function ScoreBadge({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function ContentCard({ type, title, content, scores, metadata, onRegenerate }: ContentCardProps) {
+export function ContentCard({ type, title, content, scores, metadata, locked, onRegenerate }: ContentCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
   const [copied, setCopied] = useState(false);
@@ -107,7 +108,7 @@ export function ContentCard({ type, title, content, scores, metadata, onRegenera
       animate={{ opacity: 1, y: 0 }}
       layout
     >
-      <Card className="glass-card border-border/50 overflow-hidden group hover:border-primary/30 transition-all duration-300">
+      <Card className={`glass-card border-border/50 overflow-hidden group hover:border-primary/30 transition-all duration-300 ${locked ? 'relative' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -145,44 +146,46 @@ export function ContentCard({ type, title, content, scores, metadata, onRegenera
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {isEditing ? (
-                <>
-                  <Button variant="ghost" size="icon" onClick={handleCancel}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={handleSave}>
-                    <Save className="w-4 h-4 text-primary" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {onRegenerate && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleRegenerate}
-                      disabled={isRegenerating}
-                    >
-                      <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+            {!locked && (
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {isEditing ? (
+                  <>
+                    <Button variant="ghost" size="icon" onClick={handleCancel}>
+                      <X className="w-4 h-4" />
                     </Button>
-                  )}
-                  <Button variant="ghost" size="icon" onClick={() => { setEditedContent(content); setIsEditing(true); }}>
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={handleCopy}>
-                    {copied ? (
-                      <Check className="w-4 h-4 text-primary" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" onClick={handleSave}>
+                      <Save className="w-4 h-4 text-primary" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {onRegenerate && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleRegenerate}
+                        disabled={isRegenerating}
+                      >
+                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                      </Button>
                     )}
-                  </Button>
-                </>
-              )}
-            </div>
+                    <Button variant="ghost" size="icon" onClick={() => { setEditedContent(content); setIsEditing(true); }}>
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleCopy}>
+                      {copied ? (
+                        <Check className="w-4 h-4 text-primary" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={locked ? 'blur-sm select-none pointer-events-none' : ''}>
           {isEditing ? (
             <Textarea
               value={editedContent}
