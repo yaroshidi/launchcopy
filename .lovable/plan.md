@@ -1,141 +1,102 @@
 
 
-# Content Generation Pipeline Upgrade
+# Authentication and Paid Subscription Setup
 
-This plan adds all the missing pieces identified in the analysis: a two-pass AI refinement pipeline, marketing frameworks, quality scoring, working regeneration buttons, deeper repo context gathering, and individual content regeneration.
-
----
-
-## 1. Deeper Repository Context Gathering
-
-Currently the edge function only reads README, package.json/manifest, and the top-level + one-level-deep directory listing. We'll expand this to pull more meaningful data.
-
-**What changes:**
-- Fetch the repo's GitHub description, topics, and star/fork counts via the GitHub API metadata endpoint (`/repos/{owner}/{repo}`)
-- Read additional documentation files: `CONTRIBUTING.md`, `CHANGELOG.md`, `docs/` folder index
-- Read up to 3 key source files from `src/` or `lib/` (the first few, truncated to ~2000 chars each) to understand actual functionality
-- Fetch GitHub release notes (latest release) if available
-
-This gives the AI much richer context to work with, resulting in more accurate and grounded content.
+This plan adds secure user authentication (Google + email/password), basic user profiles, and prepares the app to become a paid tool with Stripe subscriptions.
 
 ---
 
-## 2. Marketing Frameworks in the System Prompt
+## Phase 1: Authentication
 
-The current prompt says "generate marketing content" but doesn't use proven copywriting structures. We'll embed framework instructions directly into the system prompt:
+### 1.1 Database Setup
 
-- **Social posts**: Use the AIDA framework (Attention, Interest, Desire, Action) -- each post should hook attention, build interest in the problem solved, create desire for the solution, and end with a clear CTA
-- **Blog articles**: Use the PAS framework (Problem, Agitate, Solution) -- open with the pain point, amplify why it matters, then present the repo as the answer
-- **Case studies**: Use the STAR framework (Situation, Task, Action, Result) -- structure each narrative around a concrete scenario with measurable outcomes
+Create a **profiles** table to store basic user info from their Google account:
 
-These are added as explicit instructions per content type in the system prompt, not as separate AI calls.
+- `id` (UUID, references auth.users)
+- `display_name` (text)
+- `avatar_url` (text)
+- `email` (text)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
 
----
+Enable Row Level Security so users can only read/update their own profile.
 
-## 3. Two-Pass Content Refinement
+Create a trigger that auto-creates a profile row whenever a new user signs up (pulling name/avatar from their auth metadata).
 
-After the initial generation, a second AI call reviews and improves the draft content. This is the biggest quality upgrade.
+### 1.2 Google OAuth
 
-**How it works:**
-- Pass 1 (existing): Generate all content as today
-- Pass 2 (new): Send the generated content back to the AI with a "content editor" system prompt that:
-  - Checks for hallucinated features not present in the repo
-  - Improves weak hooks and CTAs
-  - Ensures platform-appropriate formatting (tweet length, LinkedIn tone)
-  - Tightens prose and removes filler
-  - Returns the refined version in the same structured format
+Configure Google as a sign-in provider using the managed Lovable Cloud solution. This works out of the box with no extra Google Cloud setup needed.
 
-The refinement call uses the same tool-call schema so the output is guaranteed to be valid JSON. The edge function handles both passes sequentially before returning.
+### 1.3 Auth Page (`/auth`)
 
----
+Create a dedicated authentication page with:
 
-## 4. Content Quality Scoring
+- **Google sign-in button** (primary, prominent)
+- **Email/password sign-in and sign-up** as a secondary option
+- Clean, dark-themed design matching the existing glassmorphism style
+- Input validation using zod (email format, password minimum length)
+- Proper error handling (user already exists, invalid credentials, etc.)
+- Automatic redirect to home page after successful login
 
-Each piece of generated content gets a quality score from the refinement pass. The AI rates each item on three dimensions:
+### 1.4 Auth Context and Route Protection
 
-- **Relevance** (1-10): How accurately it reflects the actual repo capabilities
-- **Engagement** (1-10): How compelling and shareable the content is
-- **Clarity** (1-10): How easy it is for the target audience to understand
+- Create an `AuthProvider` context that wraps the app, managing session state
+- Use `supabase.auth.onAuthStateChange` + `supabase.auth.getSession` following the correct initialization order
+- Protect the main page: unauthenticated users get redirected to `/auth`
+- Authenticated users on `/auth` get redirected to `/`
 
-Scores are returned alongside the content and displayed as small badges on each content card in the dashboard.
+### 1.5 Navbar Updates
 
----
-
-## 5. Working Regeneration Buttons
-
-The "Regenerate All" buttons in each tab currently fake it with a 1.5-second timeout. We'll make them actually call the AI.
-
-**New edge function: `regenerate-content`**
-- Accepts the existing analysis summary + repo URL + preferences + which content type to regenerate (social, blog, or casestudies)
-- Runs a focused AI call that only regenerates the requested content type, using the existing summary as context (no need to re-fetch the repo)
-- Returns just the regenerated content section
-- Also runs the refinement + scoring pass on the new content
-
-**Frontend changes:**
-- `ContentTabs` gets an `onRegenerate` callback prop
-- `Dashboard` passes a handler that calls the new edge function and merges the result into the existing analysis state
-- Individual `ContentCard` components also get a regenerate button (visible on hover alongside edit/copy) for single-item regeneration
-- The new edge function also supports regenerating a single item by index
+- Show the user's avatar and display name in the top-right corner
+- Add a dropdown menu with "Sign Out" option
+- Remove or keep the GitHub link as needed
 
 ---
 
-## 6. Updated Types
+## Phase 2: Stripe Payments (Monthly Subscription)
 
-Add quality scores to the type definitions:
+This will use the Lovable Stripe integration to set up monthly subscriptions.
 
-- `SocialPost`, `BlogArticle`, and `CaseStudy` each get an optional `scores` field: `{ relevance: number; engagement: number; clarity: number }`
-- `RepoAnalysis` gets an optional `refinedAt` timestamp to indicate the content has been through the refinement pass
+### 2.1 Enable Stripe
+
+Enable the Stripe integration which will provide the tools and knowledge to properly implement subscription billing. This step needs to happen first -- it will unlock the specific implementation details and tooling for creating products, prices, checkout sessions, and managing subscriptions.
+
+### 2.2 Subscription Flow (details after Stripe is enabled)
+
+Once Stripe is enabled, we will:
+
+- Create a subscription product and monthly price
+- Add a paywall: users who aren't subscribed see a pricing/upgrade page instead of the analysis tool
+- Build a checkout flow that redirects to Stripe for payment
+- Handle subscription status checks on each page load
+- Add a "Manage Subscription" link for existing subscribers
 
 ---
 
 ## Technical Details
 
-### File: `supabase/functions/analyze-repo/index.ts`
-- Expand `gatherRepoContext()`:
-  - Add a call to `https://api.github.com/repos/{owner}/{repo}` for description, topics, stars, language
-  - Fetch `CONTRIBUTING.md`, `CHANGELOG.md` if they exist (truncated)
-  - Read up to 3 source files from the `src/` directory
-  - Fetch latest release from `https://api.github.com/repos/{owner}/{repo}/releases/latest`
-- Update the system prompt to include AIDA/PAS/STAR framework instructions per content type
-- After the first AI call, make a second AI call with a "content editor" prompt that refines the output and adds quality scores
-- Update the tool schema to include optional `scores` on each content item
-- Increase `max_tokens` to 12000 to accommodate the richer output
+### New files:
+- `src/pages/Auth.tsx` -- Login/signup page with Google OAuth and email/password
+- `src/contexts/AuthContext.tsx` -- Auth provider with session management
+- `src/components/UserMenu.tsx` -- Avatar dropdown with sign-out
 
-### File: `supabase/functions/regenerate-content/index.ts` (new)
-- New edge function that accepts `{ repoUrl, summary, preferences, contentType, itemIndex? }`
-- Calls the AI with focused prompts for the specific content type
-- Runs the refinement pass
-- Returns the regenerated content with scores
-- Handles 429/402 errors properly
+### Modified files:
+- `src/App.tsx` -- Wrap with AuthProvider, add `/auth` route, add route protection
+- `src/components/Navbar.tsx` -- Add user menu (avatar + dropdown)
+- `src/pages/Index.tsx` -- Gate analysis behind auth check
 
-### File: `supabase/config.toml`
-- Add the new `regenerate-content` function entry
+### Database migration:
+- Create `profiles` table with RLS policies
+- Create trigger function `handle_new_user` to auto-populate profiles on signup
 
-### File: `src/types/analysis.ts`
-- Add `ContentScores` interface: `{ relevance: number; engagement: number; clarity: number }`
-- Add optional `scores?: ContentScores` to `SocialPost`, `BlogArticle`, `CaseStudy`
-- Add optional `refinedAt?: Date` to `RepoAnalysis`
+### Auth configuration:
+- Configure Google OAuth via the managed Cloud solution
+- Email/password auth enabled by default
 
-### File: `src/lib/api.ts`
-- Add `regenerateContent()` function that calls the new edge function
-- Add type for the regeneration request/response
-
-### File: `src/components/ContentTabs.tsx`
-- Replace the fake `handleRegenerate` with a real one that calls `regenerateContent()`
-- Accept `analysis` as mutable state (via callback) so regenerated content updates the UI
-- Add loading states per tab during regeneration
-- Show toast on success/failure
-
-### File: `src/components/ContentCard.tsx`
-- Add a "Regenerate" button (refresh icon) in the hover action bar
-- Display quality scores as small colored badges (green/yellow/red based on score) below the metadata
-- Accept an `onRegenerate` callback prop
-- Show a spinner during individual regeneration
-
-### File: `src/components/Dashboard.tsx`
-- Manage analysis state with `useState` so regenerated content can be merged in
-- Pass regeneration handlers down to `ContentTabs`
-
-### File: `src/pages/Index.tsx`
-- Update state management to support mutable analysis data after regeneration
+### Security considerations:
+- RLS on profiles table (users read/update only their own row)
+- zod validation on all auth form inputs
+- No sensitive data logged to console
+- Proper error messages without leaking internal details
+- Session tokens managed by the auth library (not manually stored)
 
