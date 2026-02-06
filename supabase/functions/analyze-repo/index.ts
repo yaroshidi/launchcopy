@@ -477,7 +477,8 @@ Structure each case study as:
 - Base ALL content ONLY on what the repository actually does – NO invented features
 - Make content accessible to non-technical readers
 - Focus on benefits and outcomes, not just features
-- Use concrete examples and scenarios`;
+- Use concrete examples and scenarios
+- NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.`;
 
     console.log('Pass 1: Generating content with marketing frameworks...');
     const pass1Response = await callAI({
@@ -511,6 +512,8 @@ Your job is to:
    - **Relevance** (1-10): How accurately it reflects actual repository capabilities
    - **Engagement** (1-10): How compelling, shareable, and attention-grabbing it is
    - **Clarity** (1-10): How easy it is for the target audience to understand
+
+IMPORTANT: NEVER use em dashes (the long dash character "\u2014"). Replace any you find with periods, commas, colons, or semicolons.
 
 Return the refined content with scores by calling the provided tool.
 

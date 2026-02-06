@@ -179,7 +179,8 @@ For each item, also provide quality scores (1-10):
 === RULES ===
 - Base ALL content ONLY on the product summary provided – NO invented features
 - ${countInstruction}
-- Make each piece distinct from the others – different angles, hooks, and focus areas
+- Make each piece distinct from the others, using different angles, hooks, and focus areas
+- NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.
 - Return results by calling the provided tool`;
 
     const userMessage = `Product Summary:

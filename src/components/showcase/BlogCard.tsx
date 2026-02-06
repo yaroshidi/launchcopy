@@ -15,7 +15,7 @@ export function BlogCard() {
       <p className="text-sm text-muted-foreground leading-relaxed">
         From intelligent dependency resolution to parallel execution pipelines,
         here's why teams at Stripe, Vercel, and Linear switched their entire
-        build infrastructure—and never looked back.
+        build infrastructure and never looked back.
       </p>
       <div className="flex items-center gap-2">
         <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-[10px] font-bold text-accent">
