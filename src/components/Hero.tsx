@@ -31,7 +31,7 @@ export function Hero({ onAnalyze, isLoading }: HeroProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="space-y-4"
         >
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-[-0.03em] text-foreground">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.15] tracking-[-0.03em] text-foreground">
             Your repo already has a <span className="gradient-text">story.</span>
             <br />
             <span className="text-muted-foreground">We help you tell it.</span>
