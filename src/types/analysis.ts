@@ -18,6 +18,12 @@ export const DEFAULT_PREFERENCES: ContentPreferences = {
   voice: 'friendly',
 };
 
+export interface ContentScores {
+  relevance: number;
+  engagement: number;
+  clarity: number;
+}
+
 export interface ProductSummary {
   name: string;
   whatItDoes: string;
@@ -31,12 +37,14 @@ export interface ProductSummary {
 export interface SocialPost {
   platform: string;
   content: string;
+  scores?: ContentScores;
 }
 
 export interface BlogArticle {
   title: string;
   content: string;
   sections?: string[];
+  scores?: ContentScores;
 }
 
 export interface CaseStudy {
@@ -47,6 +55,7 @@ export interface CaseStudy {
   solution: string;
   outcomes: string[];
   content: string;
+  scores?: ContentScores;
 }
 
 export interface GeneratedContent {
@@ -61,4 +70,5 @@ export interface RepoAnalysis {
   content: GeneratedContent;
   scenarios: string[];
   analyzedAt: Date;
+  refinedAt?: Date;
 }
