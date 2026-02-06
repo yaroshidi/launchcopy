@@ -146,60 +146,72 @@ export function ContentShowcase() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Clean outer container */}
-      <div className="relative p-3 rounded-2xl bg-card/40 backdrop-blur-sm border border-border/30 shadow-medium transition-shadow duration-500 hover:shadow-glow">
-        {/* Pill-style tab bar */}
-        <div className="flex items-center gap-0.5 bg-secondary/30 rounded-lg p-1 mb-3">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-1 justify-center ${
-                activeTab === tab
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground/80"
-              }`}
-            >
-              {activeTab === tab && (
-                <motion.div
-                  layoutId="showcase-tab"
-                  className="absolute inset-0 bg-card rounded-md shadow-sm"
-                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-1.5">
-                {TAB_ICONS[tab]}
-                {tab}
-              </span>
-            </button>
-          ))}
+      {/* Glassmorphism outer container */}
+      <div className="relative rounded-2xl bg-card/20 backdrop-blur-xl border border-border/20 shadow-2xl overflow-hidden transition-shadow duration-500 hover:shadow-glow">
+        {/* Ambient glow effects */}
+        <div className="absolute -top-20 -left-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Top gradient accent */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+
+        <div className="relative p-4">
+          {/* Pill-style tab bar */}
+          <div className="flex items-center gap-1 bg-background/40 backdrop-blur-sm rounded-xl p-1 mb-4 border border-border/10">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-colors flex-1 justify-center ${
+                  activeTab === tab
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/80"
+                }`}
+              >
+                {activeTab === tab && (
+                  <motion.div
+                    layoutId="showcase-tab"
+                    className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-lg shadow-md border border-border/20"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {TAB_ICONS[tab]}
+                  {tab}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Content card */}
+          <div className="relative rounded-xl bg-card/60 backdrop-blur-sm border border-border/15 overflow-hidden min-h-[260px]">
+            {/* Progress bar for auto-cycle */}
+            {!isPaused && (
+              <motion.div
+                key={activeTab + "-progress"}
+                className="absolute top-0 left-0 h-[1.5px] bg-gradient-to-r from-primary/80 to-accent/80"
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 4, ease: "linear" }}
+              />
+            )}
+
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+              >
+                {CONTENT[activeTab]}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Card */}
-        <div className="relative rounded-xl border border-border/30 bg-card overflow-hidden min-h-[260px] shadow-[inset_0_1px_2px_0_hsl(0_0%_0%/0.05)]">
-          {/* Progress bar for auto-cycle */}
-          {!isPaused && (
-            <motion.div
-              key={activeTab + "-progress"}
-              className="absolute top-0 left-0 h-[1.5px] bg-gradient-to-r from-primary to-accent"
-              initial={{ width: "0%" }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 4, ease: "linear" }}
-            />
-          )}
-
-          <AnimatePresence mode="popLayout">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-            >
-              {CONTENT[activeTab]}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        {/* Bottom gradient accent */}
+        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
       </div>
     </motion.div>
   );
