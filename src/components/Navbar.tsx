@@ -1,7 +1,11 @@
 import { Github } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserMenu } from "@/components/UserMenu";
 
 export function Navbar() {
+  const { user } = useAuth();
+
   return (
     <motion.nav
       initial={{ opacity: 0, y: -10 }}
@@ -13,7 +17,7 @@ export function Navbar() {
         RepoToContent
       </span>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
         <a
           href="#showcase"
           className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
@@ -29,6 +33,7 @@ export function Navbar() {
         >
           <Github className="w-5 h-5" />
         </a>
+        {user && <UserMenu />}
       </div>
     </motion.nav>
   );
