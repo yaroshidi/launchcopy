@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, Edit2, Save, X, Twitter, Linkedin, MessageCircle } from "lucide-react";
+import { Copy, Check, Edit2, Save, X, Twitter, Linkedin, MessageCircle, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import type { ContentScores } from "@/types/analysis";
 
 interface ContentCardProps {
   type: "social" | "blog" | "casestudy";
   title: string;
   content: string;
+  scores?: ContentScores;
   metadata?: Record<string, any>;
+  onRegenerate?: () => Promise<void>;
 }
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -20,11 +24,40 @@ const platformIcons: Record<string, React.ReactNode> = {
   default: <MessageCircle className="w-4 h-4" />,
 };
 
-export function ContentCard({ type, title, content, metadata }: ContentCardProps) {
+function ScoreBadge({ label, value }: { label: string; value: number }) {
+  const color =
+    value >= 8 ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
+    value >= 5 ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
+    "bg-red-500/15 text-red-400 border-red-500/30";
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${color}`}>
+            {label.charAt(0).toUpperCase()}
+            <span className="font-bold">{value}</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top">
+          <p className="text-xs">{label}: {value}/10</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+export function ContentCard({ type, title, content, scores, metadata, onRegenerate }: ContentCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
   const [copied, setCopied] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
+
+  // Sync content when it changes externally (e.g. after regeneration)
+  if (!isEditing && content !== editedContent && editedContent === content) {
+    // already in sync
+  }
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(editedContent);
@@ -49,9 +82,24 @@ export function ContentCard({ type, title, content, metadata }: ContentCardProps
     setIsEditing(false);
   };
 
+  const handleRegenerate = async () => {
+    if (!onRegenerate) return;
+    setIsRegenerating(true);
+    try {
+      await onRegenerate();
+    } catch {
+      // error handled upstream
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const getPlatformIcon = (platform: string) => {
     return platformIcons[platform] || platformIcons.default;
   };
+
+  // Update local content when prop changes (after regeneration)
+  const displayContent = isEditing ? editedContent : content;
 
   return (
     <motion.div
@@ -70,25 +118,31 @@ export function ContentCard({ type, title, content, metadata }: ContentCardProps
               )}
               <div>
                 <h3 className="font-semibold text-sm">{title}</h3>
-                {metadata && (
-                  <div className="flex items-center gap-2 mt-1">
-                    {metadata.wordCount && (
-                      <span className="text-xs text-muted-foreground">
-                        {metadata.wordCount} words
-                      </span>
-                    )}
-                    {metadata.client && (
-                      <Badge variant="secondary" className="text-xs">
-                        {metadata.client}
-                      </Badge>
-                    )}
-                    {metadata.industry && (
-                      <Badge variant="outline" className="text-xs">
-                        {metadata.industry}
-                      </Badge>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {metadata?.wordCount && (
+                    <span className="text-xs text-muted-foreground">
+                      {metadata.wordCount} words
+                    </span>
+                  )}
+                  {metadata?.client && (
+                    <Badge variant="secondary" className="text-xs">
+                      {metadata.client}
+                    </Badge>
+                  )}
+                  {metadata?.industry && (
+                    <Badge variant="outline" className="text-xs">
+                      {metadata.industry}
+                    </Badge>
+                  )}
+                  {/* Quality Scores */}
+                  {scores && (
+                    <>
+                      <ScoreBadge label="Relevance" value={scores.relevance} />
+                      <ScoreBadge label="Engagement" value={scores.engagement} />
+                      <ScoreBadge label="Clarity" value={scores.clarity} />
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -103,7 +157,17 @@ export function ContentCard({ type, title, content, metadata }: ContentCardProps
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
+                  {onRegenerate && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleRegenerate}
+                      disabled={isRegenerating}
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => { setEditedContent(content); setIsEditing(true); }}>
                     <Edit2 className="w-4 h-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={handleCopy}>
@@ -128,7 +192,7 @@ export function ContentCard({ type, title, content, metadata }: ContentCardProps
             />
           ) : (
             <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-              {editedContent}
+              {displayContent}
             </p>
           )}
         </CardContent>

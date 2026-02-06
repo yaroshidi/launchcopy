@@ -5,20 +5,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
 import type { RepoAnalysis } from "@/types/analysis";
+import type { ContentType } from "@/lib/api";
 
 interface ContentTabsProps {
   analysis: RepoAnalysis;
+  onRegenerateAll: (contentType: ContentType) => Promise<void>;
+  onRegenerateItem: (contentType: ContentType, itemIndex: number) => Promise<void>;
 }
 
-export function ContentTabs({ analysis }: ContentTabsProps) {
+export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
   const [activeTab, setActiveTab] = useState("social");
   const [regenerating, setRegenerating] = useState<string | null>(null);
 
-  const handleRegenerate = async (type: string) => {
+  const handleRegenerate = async (type: ContentType) => {
     setRegenerating(type);
-    // Simulate regeneration - in real app, this would call AI
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setRegenerating(null);
+    try {
+      await onRegenerateAll(type);
+    } catch {
+      // error is handled in Dashboard
+    } finally {
+      setRegenerating(null);
+    }
   };
 
   return (
@@ -27,7 +34,7 @@ export function ContentTabs({ analysis }: ContentTabsProps) {
         <div>
           <h2 className="text-2xl font-bold">Generated Content</h2>
           <p className="text-muted-foreground">
-            AI-generated marketing content based on repository analysis
+            AI-generated marketing content with two-pass refinement & quality scoring
           </p>
         </div>
       </div>
@@ -85,11 +92,13 @@ export function ContentTabs({ analysis }: ContentTabsProps) {
               </div>
               {analysis.content.socialPosts.map((post, index) => (
                 <ContentCard
-                  key={index}
+                  key={`social-${index}-${post.content.slice(0, 20)}`}
                   type="social"
                   title={post.platform}
                   content={post.content}
+                  scores={post.scores}
                   metadata={{ platform: post.platform }}
+                  onRegenerate={() => onRegenerateItem("social", index)}
                 />
               ))}
             </motion.div>
@@ -122,11 +131,13 @@ export function ContentTabs({ analysis }: ContentTabsProps) {
               </div>
               {analysis.content.blogArticles.map((article, index) => (
                 <ContentCard
-                  key={index}
+                  key={`blog-${index}-${article.title.slice(0, 20)}`}
                   type="blog"
                   title={article.title}
                   content={article.content}
+                  scores={article.scores}
                   metadata={{ wordCount: article.content.split(" ").length }}
+                  onRegenerate={() => onRegenerateItem("blog", index)}
                 />
               ))}
             </motion.div>
@@ -159,14 +170,16 @@ export function ContentTabs({ analysis }: ContentTabsProps) {
               </div>
               {analysis.content.caseStudies.map((study, index) => (
                 <ContentCard
-                  key={index}
+                  key={`case-${index}-${study.title.slice(0, 20)}`}
                   type="casestudy"
                   title={study.title}
                   content={study.content}
+                  scores={study.scores}
                   metadata={{
                     client: study.client,
                     industry: study.industry,
                   }}
+                  onRegenerate={() => onRegenerateItem("casestudies", index)}
                 />
               ))}
             </motion.div>

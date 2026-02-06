@@ -1,1 +1,7 @@
 project_id = "cizdvetxjuaudafwnlpq"
+
+[functions.analyze-repo]
+verify_jwt = false
+
+[functions.regenerate-content]
+verify_jwt = false

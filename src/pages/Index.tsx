@@ -13,11 +13,13 @@ const Index = () => {
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentRepoUrl, setCurrentRepoUrl] = useState("");
+  const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>();
   const { toast } = useToast();
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     setIsLoading(true);
     setCurrentRepoUrl(url);
+    setLastPreferences(preferences);
     
     try {
       const result = await analyzeRepository(url, githubToken, preferences);
@@ -86,7 +88,7 @@ const Index = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Dashboard analysis={analysis} onBack={handleBack} />
+            <Dashboard analysis={analysis} preferences={lastPreferences} onBack={handleBack} />
           </motion.div>
         )}
       </AnimatePresence>
