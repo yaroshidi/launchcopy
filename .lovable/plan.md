@@ -1,117 +1,72 @@
 
 
-# Freemium Funnel: Move Auth Behind Analysis
+# Content Preferences: Popover + Selected Tags
 
-This changes the user flow from "login first, then use the tool" to "use the tool freely, see a preview, then login and pay to unlock everything."
-
----
-
-## New User Flow
-
-1. **Landing page** is fully public -- no login required to visit or use it
-2. User pastes a GitHub URL and clicks **Analyze** -- the analysis runs without authentication
-3. After analysis completes, the **Dashboard** appears showing:
-   - The full **Product Summary** (left column) -- always visible
-   - **One content card per tab** shown in full (the "free preview")
-   - **Remaining content cards blurred/locked** with an overlay prompting the user to sign up and subscribe
-4. Locked content shows a glass overlay with a "Sign up to unlock all content" CTA
-5. Clicking the CTA takes the user to the `/auth` page (or opens a sign-in modal)
-6. After signing in, content remains locked until they have an active subscription (Phase 2 with Stripe -- not in this change)
+Convert the "Customize content style" section from an inline expanding panel into a compact popover, and show the currently selected preferences as small chips/tags beneath the input field for at-a-glance visibility.
 
 ---
 
-## What Changes
+## Current Behavior
 
-### 1. Remove Route Protection from `/`
+- Clicking "Customize content style" expands a full-width panel inline with framer-motion animation
+- The panel contains 4 select dropdowns in a 2x2 grid
+- When collapsed, there is no indication of what preferences are currently active
 
-**File: `src/App.tsx`**
-- Remove the `ProtectedRoute` wrapper around the `Index` page
-- The home page becomes fully public
-- Keep the `/auth` route for when users choose to sign in
-- Keep `AuthProvider` so we can still detect logged-in users
+## New Behavior
 
-### 2. Make Navbar Auth-Aware but Not Blocking
+- Clicking "Customize content style" opens a **Popover** (floating panel) anchored to the button
+- The 4 select dropdowns remain inside this popover
+- Below the main URL input bar, small **chips/tags** display the currently selected values (e.g., `Professional`, `Developers`, `General`, `Friendly`)
+- Chips are always visible so the user can see their active preferences without opening the popover
+- Only non-default values could be highlighted differently (subtle accent) to draw attention to customized settings
 
-**File: `src/components/Navbar.tsx`**
-- If the user is logged in: show the `UserMenu` (avatar + sign out) as it does now
-- If the user is NOT logged in: show a "Sign In" link/button that goes to `/auth`
-- Either way, the page is accessible
+---
 
-### 3. Add Locked State to ContentTabs
+## Files to Change
 
-**File: `src/components/ContentTabs.tsx`**
-- Accept a new `isUnlocked` boolean prop
-- When `isUnlocked` is `false`:
-  - Show only the **first** content card in each tab normally
-  - Show all remaining cards in a blurred/locked state
-  - Disable "Regenerate All" button
-- When `isUnlocked` is `true`: show everything as it does today
+### 1. `src/components/ContentPreferences.tsx`
 
-### 4. Create a LockedContentOverlay Component
+- Replace the `AnimatePresence` / `motion.div` expanding panel with a `Popover` + `PopoverTrigger` + `PopoverContent` from `@/components/ui/popover`
+- The trigger button stays the same visually (Settings2 icon + "Customize content style" text) but now toggles a popover instead of expanding inline
+- Move the 4 select dropdowns inside `PopoverContent` with a wider width (`w-80` or `w-96`) so they fit comfortably
+- Remove the framer-motion import (no longer needed)
+- Remove the `isExpanded` state (popover manages its own open/close)
 
-**New file: `src/components/LockedContentOverlay.tsx`**
-- A glassmorphic overlay that sits on top of blurred content
-- Shows a lock icon, headline like "Unlock all generated content"
-- Brief value proposition (e.g., "Sign up to access all social posts, blog articles, and case studies")
-- Primary CTA button: "Sign up to unlock" (links to `/auth`)
-- If user is logged in but not subscribed: button says "Upgrade to unlock" (for Phase 2 Stripe integration)
+### 2. `src/components/RepoInput.tsx`
 
-### 5. Update ContentCard for Locked State
-
-**File: `src/components/ContentCard.tsx`**
-- Accept an optional `locked` boolean prop
-- When `locked` is `true`:
-  - Apply a CSS blur filter to the card content
-  - Disable all interactive buttons (edit, copy, regenerate)
-  - Add `pointer-events-none` and `select-none` to prevent text selection
-  - The card is still rendered (so users can see there IS more content) but it's unreadable
-
-### 6. Pass Auth State to Dashboard
-
-**File: `src/components/Dashboard.tsx`**
-- Read `useAuth()` to check if user is logged in
-- For now: `isUnlocked = !!user` (logged in = unlocked; Phase 2 will add subscription check)
-- Pass `isUnlocked` down to `ContentTabs`
-- Disable the Export button when content is locked
-
-### 7. Update Index Page
-
-**File: `src/pages/Index.tsx`**
-- No changes needed -- it already allows analysis without auth since we're removing the route protection
+- After the main URL input bar (the `glass-card` div), add a row of small chips showing the current preference selections
+- Each chip displays: the label of the currently selected value for each preference category (Tone, Audience, Industry, Voice)
+- Chips use small rounded pill styling: `text-xs px-2 py-0.5 rounded-full bg-secondary/60 text-muted-foreground border border-border/30`
+- The chips row sits between the input bar and the "Customize content style" button
+- Import the option label arrays from `ContentPreferences` (or define a small helper map) to convert values like `'professional'` to display labels like `Professional`
 
 ---
 
 ## Technical Details
 
-### `src/App.tsx`
-- Remove `ProtectedRoute` component entirely (or keep it for future use but don't wrap Index)
-- Change the `/` route from `<ProtectedRoute><Index /></ProtectedRoute>` to just `<Index />`
+### `src/components/ContentPreferences.tsx`
 
-### `src/components/Navbar.tsx`
-- Add a conditional: if no `user`, render a `<Link to="/auth">` styled as a small button saying "Sign In"
+- Remove imports: `useState`, `motion`, `AnimatePresence`, `ChevronDown`, `ChevronUp`
+- Add imports: `Popover`, `PopoverTrigger`, `PopoverContent` from `@/components/ui/popover`
+- Export the option arrays (`TONE_OPTIONS`, `AUDIENCE_OPTIONS`, `INDUSTRY_OPTIONS`, `VOICE_OPTIONS`) so `RepoInput` can look up labels
+- The trigger button keeps `Settings2` icon and text, styled the same
+- `PopoverContent` gets `className="w-80 sm:w-96"` and `align="start"` so it opens left-aligned below the trigger
+- The 4 select dropdowns stay in a 2-column grid inside the popover
+- Remove the "These preferences will tailor..." footer text to keep the popover compact
 
-### `src/components/LockedContentOverlay.tsx` (new)
-- Uses `useAuth` to check user state
-- If not logged in: "Sign up to unlock" button linking to `/auth`
-- If logged in (but later, not subscribed): "Upgrade to unlock" button
-- Styled with `backdrop-blur`, gradient border, centered content
+### `src/components/RepoInput.tsx`
 
-### `src/components/ContentCard.tsx`
-- Add `locked?: boolean` prop
-- When locked: wrap content in a div with `blur-sm opacity-60 pointer-events-none select-none`
-- Hide the hover action buttons entirely when locked
+- Import the exported option arrays from `ContentPreferences`
+- Add a helper function to look up display labels from preference values
+- Add a `<div className="flex flex-wrap gap-1.5">` between the input bar and the ContentPreferences component
+- Render 4 chips, one per preference, each showing the current selection's label
+- Chip styling: subtle background, small text, rounded pill shape
 
-### `src/components/ContentTabs.tsx`
-- Add `isUnlocked: boolean` prop
-- For each tab's content list: render `items[0]` normally, then for `items.slice(1)` pass `locked={!isUnlocked}` to `ContentCard`
-- After the locked cards, render `<LockedContentOverlay />` if `!isUnlocked`
-- Disable "Regenerate All" button when `!isUnlocked`
+### Layout Order (inside the form)
 
-### `src/components/Dashboard.tsx`
-- Import `useAuth` and check `const { user } = useAuth()`
-- Pass `isUnlocked={!!user}` to `ContentTabs`
-- Conditionally disable `ExportMenu` when not unlocked
-
-### `src/pages/Auth.tsx`
-- No changes needed (already handles redirect to `/` after login)
+1. URL input bar (glass-card)
+2. Selected preferences chips row (new)
+3. "Customize content style" popover trigger + popover (moved below chips)
+4. "Have a private repo?" toggle
+5. Helper text
 
