@@ -44,11 +44,17 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
   };
 
   const chips = [
-    { label: getLabel(preferences.tone, TONE_OPTIONS), isDefault: preferences.tone === DEFAULT_PREFERENCES.tone },
-    { label: getLabel(preferences.audience, AUDIENCE_OPTIONS), isDefault: preferences.audience === DEFAULT_PREFERENCES.audience },
-    { label: getLabel(preferences.industry, INDUSTRY_OPTIONS), isDefault: preferences.industry === DEFAULT_PREFERENCES.industry },
-    { label: getLabel(preferences.voice, VOICE_OPTIONS), isDefault: preferences.voice === DEFAULT_PREFERENCES.voice },
+    { key: 'tone' as const, options: TONE_OPTIONS, current: preferences.tone },
+    { key: 'audience' as const, options: AUDIENCE_OPTIONS, current: preferences.audience },
+    { key: 'industry' as const, options: INDUSTRY_OPTIONS, current: preferences.industry },
+    { key: 'voice' as const, options: VOICE_OPTIONS, current: preferences.voice },
   ];
+
+  const cyclePreference = (key: keyof PreferencesType, options: { value: string }[], currentValue: string) => {
+    const currentIndex = options.findIndex((o) => o.value === currentValue);
+    const nextIndex = (currentIndex + 1) % options.length;
+    setPreferences({ ...preferences, [key]: options[nextIndex].value });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3">
@@ -87,18 +93,25 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
 
       {/* Selected preferences chips */}
       <div className="flex flex-wrap gap-1.5">
-        {chips.map((chip) => (
-          <span
-            key={chip.label}
-            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
-              chip.isDefault
-                ? "bg-secondary/60 text-muted-foreground border-border/30"
-                : "bg-primary/10 text-primary border-primary/30"
-            }`}
-          >
-            {chip.label}
-          </span>
-        ))}
+        {chips.map((chip) => {
+          const isDefault = chip.current === DEFAULT_PREFERENCES[chip.key];
+          const label = getLabel(chip.current, chip.options);
+          return (
+            <button
+              key={chip.key}
+              type="button"
+              disabled={isLoading}
+              onClick={() => cyclePreference(chip.key, chip.options, chip.current)}
+              className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                isDefault
+                  ? "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                  : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Content Preferences Popover */}
