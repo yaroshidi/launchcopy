@@ -175,7 +175,7 @@ export default function Auth() {
           <Button
             variant="outline"
             size="lg"
-            className="w-full gap-3 h-12"
+            className="w-full gap-3 h-12 text-foreground"
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading}
           >
