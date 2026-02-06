@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Github, ArrowRight, Loader2, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,16 @@ import { DEFAULT_PREFERENCES } from "@/types/analysis";
 interface RepoInputProps {
   onAnalyze: (url: string, githubToken?: string, preferences?: PreferencesType) => void;
   isLoading: boolean;
+  prefillUrl?: string;
 }
 
-export function RepoInput({ onAnalyze, isLoading }: RepoInputProps) {
+export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) {
   const [url, setUrl] = useState("");
+
+  // Sync prefilled URL from suggestion chips
+  useEffect(() => {
+    if (prefillUrl) setUrl(prefillUrl);
+  }, [prefillUrl]);
   const [githubToken, setGithubToken] = useState(() => {
     return localStorage.getItem("github_token") || "";
   });

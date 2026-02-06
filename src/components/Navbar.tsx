@@ -13,15 +13,23 @@ export function Navbar() {
         RepoToContent
       </span>
 
-      <a
-        href="https://github.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-        aria-label="GitHub"
-      >
-        <Github className="w-5 h-5" />
-      </a>
+      <div className="flex items-center gap-6">
+        <a
+          href="#showcase"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+        >
+          How it works
+        </a>
+        <a
+          href="https://github.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+          aria-label="GitHub"
+        >
+          <Github className="w-5 h-5" />
+        </a>
+      </div>
     </motion.nav>
   );
 }
