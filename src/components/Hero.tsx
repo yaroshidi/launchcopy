@@ -44,8 +44,8 @@ export function Hero({
           </h1>
 
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Drop a GitHub URL — our AI reads the code, understands the architecture,
-            and writes marketing content that developers actually want to share.
+            Paste a GitHub URL and let our AI turn your codebase into
+            ready-to-publish social posts, blog articles, and case studies.
           </p>
         </motion.div>
 
