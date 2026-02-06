@@ -1,58 +1,61 @@
 
 
-# Remove Em Dashes Everywhere
+# Make Preference Chips Clickable (Cycle on Click)
 
-Fix all hardcoded em dashes in example content and add explicit rules to all AI prompts so generated content never contains them either.
-
----
-
-## Changes
-
-### 1. Fix showcase example cards
-
-**`src/components/showcase/TweetCard.tsx`** (line 17)
-- Replace "unmatched — zero config" with "unmatched. Zero config"
-
-**`src/components/showcase/BlogCard.tsx`** (line 18)
-- Replace "infrastructure—and never looked back" with "infrastructure and never looked back"
-
-### 2. Fix mock analysis fallback content
-
-**`src/lib/mockAnalysis.ts`** - Replace all ~15 em dashes throughout the file:
-- "adapt to their workflow—not the other way around" --> use a period or comma
-- "cloud version—your choice" --> use a period
-- "GitHub, Slack, Jira, you name it—in seconds" --> use a period or comma
-- "started like many startups—with" --> use a colon or period
-- "took just two weeks—far faster" --> use a period
-- "work—the problem that sparked" --> use a period
-- "patchwork of tools—Trello for tasks" --> use a colon
-- "missed its deadline—damaging a key" --> use a comma
-- "save our agency—it transformed it" --> use a semicolon or period
-
-Each will be rewritten to read naturally without the em dash.
-
-### 3. Add "no em dash" rule to AI generation prompts
-
-**`supabase/functions/analyze-repo/index.ts`**
-- Add to the `CRITICAL RULES` section of the generation prompt: "NEVER use em dashes (the long dash character). Use periods, commas, colons, or semicolons instead."
-- Add the same rule to the refinement prompt so the editor pass catches any that slip through.
-
-**`supabase/functions/regenerate-content/index.ts`**
-- Add to the `RULES` section: "NEVER use em dashes (the long dash character). Use periods, commas, colons, or semicolons instead."
+Turn each preference chip below the input field into an interactive button that cycles through its options on click, so users can quickly change preferences without opening the popover.
 
 ---
 
-## Technical Details
+## How It Works
 
-### Files modified
-| File | What changes |
-|------|-------------|
-| `src/components/showcase/TweetCard.tsx` | 1 em dash replaced |
-| `src/components/showcase/BlogCard.tsx` | 1 em dash replaced |
-| `src/lib/mockAnalysis.ts` | ~15 em dashes replaced with appropriate punctuation |
-| `supabase/functions/analyze-repo/index.ts` | Rule added to both generation and refinement system prompts |
-| `supabase/functions/regenerate-content/index.ts` | Rule added to system prompt |
+Each chip (Tone, Audience, Industry, Voice) becomes a clickable button. Clicking it advances to the next option in the list, wrapping back to the first option after the last one. This gives a fast, one-click way to swap preferences directly from the chip row.
 
-### No behavior changes
-All fixes are cosmetic (static text) or prompt-level (AI instruction). No logic, schema, or API changes.
+For example, clicking the "Professional" tone chip cycles it to "Casual", then "Technical", then "Playful", then "Enterprise", then back to "Professional".
 
+The "Customize content style" popover remains available for users who want to see all options at once.
+
+---
+
+## File Changes
+
+### `src/components/RepoInput.tsx`
+
+- Restructure the `chips` array to include the preference key and corresponding options array alongside the label and default status
+- Change each chip from a `<span>` to a `<button>` element
+- On click, find the current value's index in the options array, advance to the next index (wrapping with modulo), and call `setPreferences` with the new value
+- Add `cursor-pointer` and hover styling to make the interactive nature clear
+- Add a small visual hint (e.g., subtle rotate or arrow icon) so users know the chips are tappable
+- Disable clicking when `isLoading` is true
+
+### Updated chip data structure
+
+```text
+chips = [
+  { key: 'tone',     options: TONE_OPTIONS,     current: preferences.tone     },
+  { key: 'audience', options: AUDIENCE_OPTIONS,  current: preferences.audience },
+  { key: 'industry', options: INDUSTRY_OPTIONS,  current: preferences.industry },
+  { key: 'voice',    options: VOICE_OPTIONS,     current: preferences.voice    },
+]
+```
+
+### Click handler logic
+
+```text
+function cyclePreference(key, options, currentValue):
+  currentIndex = options.findIndex(o => o.value === currentValue)
+  nextIndex = (currentIndex + 1) % options.length
+  setPreferences({ ...preferences, [key]: options[nextIndex].value })
+```
+
+### Styling updates
+
+- Change `<span>` to `<button type="button">`
+- Add `cursor-pointer hover:border-primary/50 hover:bg-primary/10` for interactive feedback
+- Keep the existing default vs. customized color distinction
+- Add `disabled:opacity-50 disabled:cursor-not-allowed` for loading state
+
+---
+
+## No other files change
+
+The `ContentPreferences.tsx` popover stays as-is for full control. This only modifies `RepoInput.tsx` to make the chips interactive.
