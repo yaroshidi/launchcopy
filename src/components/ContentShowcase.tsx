@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Repeat2, Clock, Building2, ArrowUpRight } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Clock, Building2, FileText, BarChart3 } from "lucide-react";
 
 const TABS = ["Social Posts", "Blog", "Case Studies"] as const;
 type TabType = (typeof TABS)[number];
+
+const TAB_ICONS: Record<TabType, React.ReactNode> = {
+  "Social Posts": <MessageCircle className="w-3.5 h-3.5" />,
+  "Blog": <FileText className="w-3.5 h-3.5" />,
+  "Case Studies": <BarChart3 className="w-3.5 h-3.5" />,
+};
 
 /* ---- Individual content cards ---- */
 
@@ -122,7 +128,6 @@ export function ContentShowcase() {
 
   useEffect(() => {
     if (isPaused) return;
-    // Small initial delay to avoid race with React 18 StrictMode double-mount
     const timeout = setTimeout(() => {
       timerRef.current = setInterval(nextTab, 4000);
     }, 100);
@@ -141,24 +146,15 @@ export function ContentShowcase() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Outer polished container */}
-      <div className="relative p-4 rounded-2xl bg-card/30 backdrop-blur-sm border border-border/20 shadow-medium group transition-shadow duration-500 hover:shadow-glow">
-        {/* Gradient top-edge line */}
-        <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-
-        {/* Corner accent dots */}
-        <div className="absolute top-2 left-2 w-1 h-1 rounded-full bg-primary/40" />
-        <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-primary/40" />
-        <div className="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-primary/40" />
-        <div className="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-primary/40" />
-
-        {/* Tabs */}
-        <div className="flex items-center gap-1 mb-2">
+      {/* Clean outer container */}
+      <div className="relative p-3 rounded-2xl bg-card/40 backdrop-blur-sm border border-border/30 shadow-medium transition-shadow duration-500 hover:shadow-glow">
+        {/* Pill-style tab bar */}
+        <div className="flex items-center gap-0.5 bg-secondary/30 rounded-lg p-1 mb-3">
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-1 justify-center ${
                 activeTab === tab
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground/80"
@@ -167,28 +163,25 @@ export function ContentShowcase() {
               {activeTab === tab && (
                 <motion.div
                   layoutId="showcase-tab"
-                  className="absolute inset-0 bg-secondary rounded-md"
+                  className="absolute inset-0 bg-card rounded-md shadow-sm"
                   transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                 />
               )}
-              <span className="relative z-10">{tab}</span>
+              <span className="relative z-10 flex items-center gap-1.5">
+                {TAB_ICONS[tab]}
+                {tab}
+              </span>
             </button>
           ))}
         </div>
 
-        {/* Separator */}
-        <div className="h-px bg-border/20 mx-1 mb-3" />
-
         {/* Card */}
-        <div className="relative rounded-xl border border-border/30 bg-card overflow-hidden min-h-[280px] shadow-[inset_0_1px_2px_0_hsl(0_0%_0%/0.05)]">
-          {/* Accent top border */}
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-
+        <div className="relative rounded-xl border border-border/30 bg-card overflow-hidden min-h-[260px] shadow-[inset_0_1px_2px_0_hsl(0_0%_0%/0.05)]">
           {/* Progress bar for auto-cycle */}
           {!isPaused && (
             <motion.div
               key={activeTab + "-progress"}
-              className="absolute top-0 left-0 h-[2px] bg-gradient-to-r from-primary to-accent"
+              className="absolute top-0 left-0 h-[1.5px] bg-gradient-to-r from-primary to-accent"
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: 4, ease: "linear" }}
@@ -198,20 +191,14 @@ export function ContentShowcase() {
           <AnimatePresence mode="popLayout">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
             >
               {CONTENT[activeTab]}
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Label */}
-        <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-muted-foreground/60">
-          <ArrowUpRight className="w-3 h-3" />
-          <span>AI-generated from repo analysis</span>
         </div>
       </div>
     </motion.div>

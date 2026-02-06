@@ -63,7 +63,7 @@ const Index = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4 }}
-                  className="text-center text-sm font-medium text-muted-foreground uppercase tracking-widest"
+                  className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   See what we generate
                 </motion.p>
