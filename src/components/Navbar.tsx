@@ -38,7 +38,7 @@ export function Navbar() {
         {user ? (
           <UserMenu />
         ) : (
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" className="text-foreground" asChild>
             <Link to="/auth">Sign In</Link>
           </Button>
         )}
