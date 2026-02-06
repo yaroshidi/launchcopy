@@ -32,8 +32,7 @@ export function Hero({ onAnalyze, isLoading }: HeroProps) {
           className="space-y-4"
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-[-0.03em] text-foreground">
-            Your repo already has a{" "}
-            <span className="gradient-text">story.</span>
+            Your repo already has a <span className="gradient-text">story.</span>
             <br />
             <span className="text-muted-foreground">We help you tell it.</span>
           </h1>
