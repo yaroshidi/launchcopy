@@ -224,13 +224,13 @@ export default function Auth() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="you@example.com"
-                          className="pl-10"
+                          className="pl-10 text-foreground"
                           {...field}
                         />
                       </div>
@@ -245,14 +245,14 @@ export default function Auth() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-foreground">Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="password"
                           placeholder="••••••••"
-                          className="pl-10"
+                          className="pl-10 text-foreground"
                           {...field}
                         />
                       </div>
