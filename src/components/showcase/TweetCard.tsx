@@ -14,7 +14,7 @@ export function TweetCard() {
       </div>
       <p className="text-sm text-foreground/90 leading-relaxed">
         Just discovered an incredible CLI tool that cut our build times by 60%.
-        The DX is unmatched — zero config, intelligent caching, and it just works.
+        The DX is unmatched. Zero config, intelligent caching, and it just works.
         If you're still waiting on slow builds, you need this. 🚀
       </p>
       <div className="flex items-center gap-6 text-muted-foreground">
