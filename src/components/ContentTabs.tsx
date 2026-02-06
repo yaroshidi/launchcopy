@@ -4,16 +4,18 @@ import { MessageSquare, FileText, BookOpen, RefreshCw, Sparkles } from "lucide-r
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
+import { LockedContentOverlay } from "@/components/LockedContentOverlay";
 import type { RepoAnalysis } from "@/types/analysis";
 import type { ContentType } from "@/lib/api";
 
 interface ContentTabsProps {
   analysis: RepoAnalysis;
+  isUnlocked: boolean;
   onRegenerateAll: (contentType: ContentType) => Promise<void>;
   onRegenerateItem: (contentType: ContentType, itemIndex: number) => Promise<void>;
 }
 
-export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
+export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
   const [activeTab, setActiveTab] = useState("social");
   const [regenerating, setRegenerating] = useState<string | null>(null);
 
@@ -80,7 +82,7 @@ export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: Con
                   variant="outline"
                   size="sm"
                   onClick={() => handleRegenerate("social")}
-                  disabled={regenerating === "social"}
+                  disabled={regenerating === "social" || !isUnlocked}
                 >
                   {regenerating === "social" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -98,9 +100,11 @@ export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: Con
                   content={post.content}
                   scores={post.scores}
                   metadata={{ platform: post.platform }}
-                  onRegenerate={() => onRegenerateItem("social", index)}
+                  locked={!isUnlocked && index > 0}
+                  onRegenerate={isUnlocked ? () => onRegenerateItem("social", index) : undefined}
                 />
               ))}
+              {!isUnlocked && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
 
@@ -119,7 +123,7 @@ export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: Con
                   variant="outline"
                   size="sm"
                   onClick={() => handleRegenerate("blog")}
-                  disabled={regenerating === "blog"}
+                  disabled={regenerating === "blog" || !isUnlocked}
                 >
                   {regenerating === "blog" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -137,9 +141,11 @@ export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: Con
                   content={article.content}
                   scores={article.scores}
                   metadata={{ wordCount: article.content.split(" ").length }}
-                  onRegenerate={() => onRegenerateItem("blog", index)}
+                  locked={!isUnlocked && index > 0}
+                  onRegenerate={isUnlocked ? () => onRegenerateItem("blog", index) : undefined}
                 />
               ))}
+              {!isUnlocked && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
 
@@ -158,7 +164,7 @@ export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: Con
                   variant="outline"
                   size="sm"
                   onClick={() => handleRegenerate("casestudies")}
-                  disabled={regenerating === "casestudies"}
+                  disabled={regenerating === "casestudies" || !isUnlocked}
                 >
                   {regenerating === "casestudies" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -179,9 +185,11 @@ export function ContentTabs({ analysis, onRegenerateAll, onRegenerateItem }: Con
                     client: study.client,
                     industry: study.industry,
                   }}
-                  onRegenerate={() => onRegenerateItem("casestudies", index)}
+                  locked={!isUnlocked && index > 0}
+                  onRegenerate={isUnlocked ? () => onRegenerateItem("casestudies", index) : undefined}
                 />
               ))}
+              {!isUnlocked && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
         </AnimatePresence>

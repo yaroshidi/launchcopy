@@ -1,7 +1,9 @@
 import { Github } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "@/components/UserMenu";
+import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const { user } = useAuth();
@@ -33,7 +35,13 @@ export function Navbar() {
         >
           <Github className="w-5 h-5" />
         </a>
-        {user && <UserMenu />}
+        {user ? (
+          <UserMenu />
+        ) : (
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/auth">Sign In</Link>
+          </Button>
+        )}
       </div>
     </motion.nav>
   );
