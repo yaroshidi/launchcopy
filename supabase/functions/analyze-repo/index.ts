@@ -561,7 +561,21 @@ IMPORTANT: You MUST return your result by calling the provided tool and passing 
 
 ${prefInstructions}
 
-Analyze the provided GitHub repository and generate comprehensive marketing content.
+=== CRITICAL: PRODUCT-FIRST APPROACH ===
+
+Before generating ANY content, you MUST deeply analyze the repository data provided below and extract:
+1. The EXACT product name
+2. What it SPECIFICALLY does (not vague — cite actual functionality from the code/README)
+3. Its specific technical capabilities and differentiators
+4. Who specifically benefits and HOW
+
+Every single piece of content you generate MUST:
+- Reference the product BY NAME
+- Mention at least ONE specific feature or capability found in the repository data
+- Describe a CONCRETE benefit tied to what the code actually does
+- NEVER be generic enough to apply to any random product — if you removed the product name and the content could apply to anything, it FAILS
+
+If the README says "fast build tool" — say WHAT makes it fast. If it has a CLI, reference specific commands. If it supports plugins, mention the plugin system. Be SPECIFIC.
 
 === MARKETING FRAMEWORK INSTRUCTIONS ===
 
@@ -577,16 +591,17 @@ HARD RULES (violating these means the post fails):
 - MAX 1 emoji per post, or zero. Never start with an emoji.
 - Lowercase is fine and often preferred. Skip title case.
 - Never use "Introducing..." or "Excited to announce..." or any corporate phrasing
+- MUST mention a SPECIFIC feature or capability from the actual repo, not generic praise
 
 HIGH-PERFORMING X POST FORMATS (use a different format for each of the 3 posts):
 
-1. **Hot Take / Contrarian**: Bold, slightly controversial opinion. Keep it punchy (2-3 short lines).
+1. **Hot Take / Contrarian**: Bold, slightly controversial opinion referencing a SPECIFIC capability of this product.
    Example: "unpopular opinion: most CI pipelines are over-engineered.\\nyou don't need 47 yaml files.\\n[product] does it in one command."
 
-2. **Problem → Discovery**: Relatable frustration → solution reveal (2-3 lines).
+2. **Problem → Discovery**: Relatable frustration → solution reveal citing a SPECIFIC feature.
    Example: "spent 3 hours debugging a build issue.\\nswitched to [product], same build worked first try.\\ni'm not going back."
 
-3. **Concrete Result**: Specific metric or before/after (2-3 lines).
+3. **Concrete Result**: Specific metric or before/after tied to what the product ACTUALLY does.
    Example: "deploy time: 4min → 90sec.\\nzero config changes.\\n[product]'s caching is genuinely smart."
 
 TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild profanity-adjacent intensity ("genuinely insane", "absolute game changer") is fine. Avoid superlatives that feel forced.
@@ -602,38 +617,42 @@ HARD RULES:
 - Never start with the product name. Start with the problem or insight.
 - End with an engagement question ("How is your team handling X?" or "What's your approach to Y?")
 - 150-250 words per post
+- MUST reference SPECIFIC capabilities and use cases from the actual repo
 
 HIGH-PERFORMING LINKEDIN FORMATS (use a different format for each post):
 
-1. **Insight → Framework → Product as Proof**: Open with a non-obvious industry insight, present a mental model or framework, then reference the product as an example of the framework in action.
-   Structure: Hook line → Insight (2 short paragraphs) → Framework/principle → Product mention → Engagement question
+1. **Insight → Framework → Product as Proof**: Open with a non-obvious industry insight, present a mental model or framework, then reference the product (with specific features) as an example of the framework in action.
+   Structure: Hook line → Insight (2 short paragraphs) → Framework/principle → Product mention with specific features → Engagement question
 
-2. **Story → Lesson → Recommendation**: Tell a brief personal/team story about a pain point, extract a broader lesson, then naturally recommend the product.
-   Structure: Hook line → Story (2-3 short paragraphs) → Lesson learned → Soft product mention → Engagement question
+2. **Story → Lesson → Recommendation**: Tell a brief personal/team story about a pain point, extract a broader lesson, then naturally recommend the product citing specific capabilities.
+   Structure: Hook line → Story (2-3 short paragraphs) → Lesson learned → Soft product mention with specific features → Engagement question
 
 **Blog Articles – Use the PAS Framework:**
 Structure each article as:
 1. PROBLEM: Open with the pain point your audience faces (make it relatable)
 2. AGITATE: Amplify the pain – show what happens if it's not solved, the cost of inaction
-3. SOLUTION: Present the repository/product as the answer, with concrete examples and proof
+3. SOLUTION: Present the repository/product as the answer, with SPECIFIC features, capabilities, and examples from the actual codebase
 - Minimum 500 words per article
 - Include practical examples and code snippets where relevant
+- Reference actual features, APIs, or capabilities from the repository
 - Use headers and scannable formatting
 
 **Case Studies – Use the STAR Framework:**
 Structure each case study as:
 1. SITUATION: Set the scene – who is the client, what's their context
 2. TASK: What specific challenge did they need to solve
-3. ACTION: How they implemented the solution using this product
+3. ACTION: How they implemented the solution using SPECIFIC features of this product
 4. RESULT: Quantifiable outcomes with realistic metrics
 - Make companies and scenarios feel authentic and plausible
 - Include 3+ measurable outcomes per case study
+- The solution section MUST reference actual product capabilities, not generic descriptions
 
-=== CRITICAL RULES ===
+=== ABSOLUTE RULES ===
 - Base ALL content ONLY on what the repository actually does – NO invented features
+- Every piece of content must mention the product by name AND reference specific functionality
 - Make content accessible to non-technical readers
 - Focus on benefits and outcomes, not just features
-- Use concrete examples and scenarios
+- Use concrete examples and scenarios grounded in the repo's actual capabilities
 - For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts.
 - Generate exactly 3 blog articles with different angles.
 - Generate exactly 3 case studies with different industries and company sizes.
@@ -646,7 +665,7 @@ Structure each case study as:
       tool_choice: { type: 'function', function: { name: 'generate_repo_marketing' } },
       messages: [
         { role: 'system', content: generationPrompt },
-        { role: 'user', content: `Analyze this GitHub repository and generate marketing content:\n\n${repoContext}` },
+        { role: 'user', content: `Here is the complete repository data. Read it carefully and extract every specific feature, capability, and detail before generating content. Your content MUST reference these specifics.\n\n${repoContext}` },
       ],
       temperature: 0.7,
       max_tokens: 16000,
@@ -661,15 +680,17 @@ Structure each case study as:
 
 Your job is to:
 1. REFINE each piece of content:
+   - **MOST IMPORTANT**: Every piece of content MUST mention the product by name and reference SPECIFIC features or capabilities from the repository. If any content is generic enough to apply to any product, REWRITE it to be specific to this product.
    - Remove any hallucinated features not supported by the repository data
    - Strengthen weak hooks and calls-to-action
-   - For X posts: ensure they sound like a real person posting, NOT a brand. Check they use line breaks, have no hashtags, max 1 emoji, under 280 chars. They should feel like genuine peer recommendations, not ads. Rewrite any that start with "Introducing", "Excited to", or use corporate language.
-   - For LinkedIn: ensure NO hashtags, short paragraphs (max 2 sentences each) with blank lines between them, hook-first opening that works before the "See more" fold, and ends with an engagement question. Rewrite any that start with the product name or read like a press release.
+   - For X posts: ensure they sound like a real person posting, NOT a brand. Check they use line breaks, have no hashtags, max 1 emoji, under 280 chars. They should feel like genuine peer recommendations, not ads. Rewrite any that start with "Introducing", "Excited to", or use corporate language. Each post MUST reference a specific product feature.
+   - For LinkedIn: ensure NO hashtags, short paragraphs (max 2 sentences each) with blank lines between them, hook-first opening that works before the "See more" fold, and ends with an engagement question. MUST mention specific product capabilities. Rewrite any that start with the product name or read like a press release.
    - Tighten prose: remove filler words and vague claims
+   - Replace any vague statements like "powerful tool" or "great solution" with SPECIFIC descriptions of what the product does
    - Improve readability and flow
 
 2. SCORE each piece of content on three dimensions (1-10 scale):
-   - **Relevance** (1-10): How accurately it reflects actual repository capabilities
+   - **Relevance** (1-10): How accurately and specifically it reflects actual repository capabilities. Generic content that could apply to any product scores 1-3. Content referencing specific features scores 7-10.
    - **Engagement** (1-10): How compelling, shareable, and attention-grabbing it is
    - **Clarity** (1-10): How easy it is for the target audience to understand
 
@@ -677,8 +698,8 @@ IMPORTANT: NEVER use em dashes (the long dash character "\u2014"). Replace any y
 
 Return the refined content with scores by calling the provided tool.
 
-Here is the original repository context for fact-checking:
-${repoContext.slice(0, 4000)}`;
+Here is the original repository context for fact-checking. Use this to verify every claim and ensure content references REAL features:
+${repoContext.slice(0, 6000)}`;
 
     const pass2Response = await callAI({
       model: 'google/gemini-3-flash-preview',
@@ -686,7 +707,7 @@ ${repoContext.slice(0, 4000)}`;
       tool_choice: { type: 'function', function: { name: 'refine_content' } },
       messages: [
         { role: 'system', content: refinementPrompt },
-        { role: 'user', content: `Please refine and score this draft content:\n\n${JSON.stringify(draft.content, null, 2)}` },
+        { role: 'user', content: `Please refine and score this draft content. Rewrite any content that is generic or doesn't specifically reference the product's actual features:\n\n${JSON.stringify(draft.content, null, 2)}` },
       ],
       temperature: 0.3,
       max_tokens: 12000,
