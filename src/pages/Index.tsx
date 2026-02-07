@@ -37,6 +37,7 @@ const Index = () => {
   const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>(saved?.preferences);
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
   const [retryingWithToken, setRetryingWithToken] = useState(false);
+  const [tokenError, setTokenError] = useState<string | undefined>();
   const { toast } = useToast();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
@@ -77,16 +78,14 @@ const Index = () => {
 
   const handleTokenSubmit = async (token: string) => {
     setRetryingWithToken(true);
+    setTokenError(undefined);
     try {
       await runAnalysis(currentRepoUrl, token, lastPreferences);
       setPrivateRepoOpen(false);
     } catch (error) {
       console.error('Retry with token failed:', error);
-      toast({
-        title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze repository. Check your token and try again.",
-        variant: "destructive",
-      });
+      const msg = error instanceof Error ? error.message : "Failed to analyze repository. Check your token and try again.";
+      setTokenError(msg);
     } finally {
       setRetryingWithToken(false);
     }
@@ -131,10 +130,14 @@ const Index = () => {
 
       <PrivateRepoDialog
         open={privateRepoOpen}
-        onOpenChange={setPrivateRepoOpen}
+        onOpenChange={(open) => {
+          setPrivateRepoOpen(open);
+          if (!open) setTokenError(undefined);
+        }}
         repoUrl={currentRepoUrl}
         onSubmitToken={handleTokenSubmit}
         isLoading={retryingWithToken}
+        errorMessage={tokenError}
       />
     </div>
   );
