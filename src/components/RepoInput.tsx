@@ -31,6 +31,16 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
   const [githubToken, setGithubToken] = useState(() => {
     return localStorage.getItem("github_token") || "";
   });
+
+  // Re-sync token state when loading finishes (error handler may have cleared localStorage)
+  useEffect(() => {
+    if (!isLoading) {
+      const stored = localStorage.getItem("github_token") || "";
+      if (stored !== githubToken && !stored) {
+        setGithubToken("");
+      }
+    }
+  }, [isLoading]);
   const [showToken, setShowToken] = useState(false);
   const [preferences, setPreferences] = useState<PreferencesType>(DEFAULT_PREFERENCES);
 

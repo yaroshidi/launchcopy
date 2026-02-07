@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lock, Key, ExternalLink, ArrowRight, Loader2, Info, AlertCircle } from "lucide-react";
 import {
   Dialog,
@@ -28,6 +28,13 @@ export function PrivateRepoDialog({
   errorMessage,
 }: PrivateRepoDialogProps) {
   const [token, setToken] = useState(() => localStorage.getItem("github_token") || "");
+
+  // Clear stale token when an error is shown (means the previous token was bad)
+  useEffect(() => {
+    if (errorMessage) {
+      setToken("");
+    }
+  }, [errorMessage]);
 
   const repoName = repoUrl
     .replace(/^https?:\/\/github\.com\//, "")
