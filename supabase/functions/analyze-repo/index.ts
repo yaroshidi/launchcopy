@@ -239,11 +239,12 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
 const contentScoresSchema = {
   type: 'object',
   additionalProperties: false,
-  required: ['relevance', 'engagement', 'clarity'],
+  required: ['relevance', 'engagement', 'clarity', 'humanness'],
   properties: {
     relevance: { type: 'number' },
     engagement: { type: 'number' },
     clarity: { type: 'number' },
+    humanness: { type: 'number' },
   },
 };
 
@@ -400,44 +401,74 @@ function buildRefinementToolSchema() {
 // ── Preference instruction builder ──────────────────────
 
 function buildPreferenceInstructions(preferences?: any): string {
-  const toneMap: Record<string, string> = {
-    professional: 'Use a polished, business-appropriate tone.',
-    casual: 'Use a friendly, approachable, conversational tone.',
-    technical: 'Use a detailed, developer-focused, technical tone with specific terminology.',
-    playful: 'Use a fun, creative, and engaging tone with personality.',
-    enterprise: 'Use a formal, corporate, executive-level tone.',
+  const personaMatrix: Record<string, Record<string, string>> = {
+    professional: {
+      developers: "Write as a staff engineer writing a well-regarded technical blog. Use 'you' and 'we'. Be precise but not stiff. Technical terms are fine; explain concepts through concrete examples, not definitions. Confidence without arrogance.",
+      business: "Write as a VP of Engineering briefing the C-suite. Lead with outcomes and metrics. Keep technical details minimal but accurate. Measured confidence; let the numbers speak.",
+      startups: "Write as a seasoned startup advisor who's seen what works. Direct, no-nonsense. Emphasis on speed-to-market and competitive advantage. Skip the fluff; founders are busy.",
+      enterprise: "Write as a principal consultant preparing an executive brief. Formal but not stuffy. Prioritize risk mitigation, compliance, and scalability. Data-driven claims only.",
+      general: "Write as a tech journalist explaining a product to a curious reader. Clear, accessible prose. No jargon without immediate explanation. Engaging but credible.",
+    },
+    casual: {
+      developers: "Write as a senior dev on their personal blog after discovering something cool. Use 'I' and 'you'. Contractions always. Technical depth is fine but keep it conversational. Intensity like 'absurdly fast' or 'genuinely wild' is encouraged. Sentence fragments are fine.",
+      business: "Write as a friendly CTO explaining tech to a non-technical co-founder over coffee. Warm, approachable. Analogies over acronyms. Make complex things feel simple without being condescending.",
+      startups: "Write as a founder sharing a genuine win in a Slack community. Excited but real. Short paragraphs, punchy language. 'We shipped this in a weekend' energy.",
+      enterprise: "Write as a pragmatic team lead making a case to management in a relaxed all-hands. Personable but substantive. Mix data with relatable anecdotes.",
+      general: "Write as a friend recommending an app over text. Simple words, short sentences. Enthusiasm that feels genuine, not performative.",
+    },
+    technical: {
+      developers: "Write as a core contributor writing detailed technical documentation with personality. Precise terminology, code examples where relevant. Assume the reader knows their way around a terminal. Deep-dive energy.",
+      business: "Write as a solutions architect presenting to technical stakeholders. Bridge the gap between implementation detail and business impact. Include architecture-level insights.",
+      startups: "Write as a technical co-founder explaining the stack to potential hires. Show depth and craft. Emphasize technical decisions and their rationale.",
+      enterprise: "Write as a senior systems engineer writing an internal RFC. Thorough, detailed, well-structured. Address scalability, security, and integration concerns upfront.",
+      general: "Write as a patient tech educator making complex topics accessible. Use analogies freely. Build understanding step by step without dumbing things down.",
+    },
+    playful: {
+      developers: "Write as a developer advocate who genuinely loves their job. Witty, energetic, occasionally irreverent. Pop culture references are fine. Make technical content fun without sacrificing accuracy.",
+      business: "Write as a charismatic keynote speaker who keeps the audience laughing. Bold claims backed by substance. Memorable one-liners mixed with real insight.",
+      startups: "Write as the most entertaining person in a startup accelerator cohort. High energy, bold takes, memorable phrasing. 'Move fast and break conventions' vibes.",
+      enterprise: "Write as a thought leader who brings levity to serious topics. Professional enough for the boardroom but with personality that stands out. Smart humor, not dad jokes.",
+      general: "Write as a popular science communicator who makes everything fascinating. Curiosity-driven, vivid language. The kind of writing that makes people say 'I had no idea that was so cool.'",
+    },
+    enterprise: {
+      developers: "Write as a distinguished engineer at a Fortune 500 company. Technical authority with institutional gravitas. Emphasis on reliability, standards, and long-term thinking.",
+      business: "Write as a management consulting partner drafting a strategy document. Formal, structured, data-driven. No exclamation marks. Every claim backed by metrics or precedent.",
+      startups: "Write as a venture partner evaluating a technology investment. Analytical, forward-looking. Balance innovation potential with risk assessment.",
+      enterprise: "Write as a Chief Technology Officer addressing the board. Maximum formality and precision. Focus on governance, compliance, total cost of ownership, and strategic alignment.",
+      general: "Write as a corporate communications lead crafting a press release with substance. Polished, authoritative, clear. Accessible to a broad audience while maintaining institutional credibility.",
+    },
   };
-  const audienceMap: Record<string, string> = {
-    developers: 'Target software engineers and technical users who appreciate code details and technical accuracy.',
-    business: 'Target CTOs, VPs, and business decision makers who focus on ROI and strategic value.',
-    startups: 'Target founders and early-stage teams who value speed, innovation, and cost-effectiveness.',
-    enterprise: 'Target large organizations that prioritize security, scalability, and compliance.',
-    general: 'Target a non-technical audience who needs simple explanations without jargon.',
-  };
+
+  const tone = preferences?.tone || 'professional';
+  const audience = preferences?.audience || 'developers';
+  const persona = personaMatrix[tone]?.[audience] || personaMatrix.professional.developers;
+
   const industryMap: Record<string, string> = {
     general: '',
-    saas: 'Frame content in the context of SaaS products and subscription businesses.',
-    fintech: 'Frame content for the financial technology and banking sector.',
-    healthcare: 'Frame content for healthcare and medical technology contexts.',
-    ecommerce: 'Frame content for e-commerce and retail businesses.',
-    devtools: 'Frame content for developer tools and productivity software.',
-    'ai-ml': 'Frame content for AI/ML and data science applications.',
+    saas: 'Frame all examples and scenarios in the context of SaaS products, subscription metrics (MRR, churn, LTV), and cloud-native workflows.',
+    fintech: 'Frame content for financial technology: emphasize security, regulatory compliance, transaction processing, and trust.',
+    healthcare: 'Frame content for healthcare tech: emphasize HIPAA compliance, patient outcomes, clinical workflows, and data sensitivity.',
+    ecommerce: 'Frame content for e-commerce: emphasize conversion rates, cart optimization, inventory management, and customer experience.',
+    devtools: 'Frame content for the developer tools ecosystem: emphasize DX (developer experience), integration friction, build times, and workflow automation.',
+    'ai-ml': 'Frame content for AI/ML practitioners: emphasize model performance, data pipelines, inference speed, and reproducibility.',
   };
+
   const voiceMap: Record<string, string> = {
-    formal: 'Maintain a traditional, structured writing style.',
-    friendly: 'Use a warm, conversational, approachable writing style.',
-    authoritative: 'Project expertise and confidence in all statements.',
-    innovative: 'Emphasize forward-thinking, cutting-edge perspectives.',
+    formal: 'Lean toward structured, measured prose. Avoid contractions in blog articles and case studies (social posts can be more relaxed).',
+    friendly: 'Keep a warm, human tone throughout. Use contractions. Address the reader directly.',
+    authoritative: 'Project deep expertise. Make definitive statements rather than hedging. Back claims with specifics.',
+    innovative: 'Emphasize what is new and different. Focus on unconventional approaches. Forward-looking language.',
   };
 
-  return `
-CONTENT STYLE GUIDELINES:
-${preferences?.tone ? toneMap[preferences.tone] || toneMap.professional : toneMap.professional}
-${preferences?.audience ? audienceMap[preferences.audience] || audienceMap.developers : audienceMap.developers}
-${preferences?.industry ? industryMap[preferences.industry] || '' : ''}
-${preferences?.voice ? voiceMap[preferences.voice] || voiceMap.friendly : voiceMap.friendly}
+  const industry = preferences?.industry ? industryMap[preferences.industry] || '' : '';
+  const voice = preferences?.voice ? voiceMap[preferences.voice] || voiceMap.friendly : voiceMap.friendly;
 
-Apply these style guidelines consistently across ALL generated content.
+  return `=== YOUR WRITING PERSONA ===
+${persona}
+
+${voice}${industry ? `\n${industry}` : ''}
+
+Apply this persona consistently across ALL generated content. Every piece should sound like it was written by this specific person.
 `;
 }
 
@@ -577,12 +608,46 @@ Every single piece of content you generate MUST:
 
 If the README says "fast build tool" — say WHAT makes it fast. If it has a CLI, reference specific commands. If it supports plugins, mention the plugin system. Be SPECIFIC.
 
+=== BANNED WORDS AND PHRASES ===
+
+These words and phrases are overused by AI and instantly flag content as machine-generated. NEVER use them.
+
+BANNED WORDS: leverage, harness, streamline, robust, cutting-edge, seamlessly, utilize, empower, elevate, foster, spearhead, groundbreaking, revolutionary, comprehensive, holistic, synergy, paradigm, delve, realm, landscape (when used metaphorically), navigate (when used metaphorically), unlock, supercharge, turbocharge, pivotal, myriad, plethora, moreover, furthermore, hence, thus, transformative, next-level, game-changing, best-in-class, world-class, state-of-the-art, mission-critical, end-to-end, turnkey, bleeding-edge
+
+BANNED OPENING PATTERNS: "In today's...", "In the ever-evolving...", "In a world where...", "Whether you're a... or a...", "Are you tired of...", "Let's face it...", "It's no secret that...", "When it comes to...", "In the fast-paced world of...", "As we all know..."
+
+BANNED STRUCTURAL PATTERNS:
+- Three-adjective lists ("fast, reliable, and scalable")
+- Rhetorical questions immediately followed by their answer
+- Ending with "The future is [product category]"
+- "Not just X, but Y" constructions
+- "From X to Y" feature lists
+- Starting consecutive paragraphs the same way
+
+If you catch yourself using any of these, stop and rewrite using plain, specific language. Say exactly what you mean in words a real person would actually choose.
+
+=== WRITING LIKE A HUMAN ===
+
+Your biggest risk is sounding like AI. Here is how to avoid it:
+
+SENTENCE RHYTHM: Vary sentence length deliberately. Follow a long sentence with a short one. Use fragments. One word is fine. Then let the next sentence breathe a bit longer, carrying more detail. This creates the natural rhythm of human writing.
+
+SPECIFICITY OVER IMPRESSIVENESS: "Cuts deploy time from 4 minutes to 90 seconds" beats "Dramatically accelerates deployment." Always choose the concrete detail.
+
+MILD IMPERFECTIONS: Real people write "kinda", "tbh", "ngl" in tweets. They start blog sentences with "And" or "But". They use parenthetical asides (like this one). They write "it's" not "it is". Don't be grammatically perfect everywhere. Be natural.
+
+HAVE AN OPINION: Don't hedge. Don't say "can help." Say "does." Don't say "may improve." Say "improves." Weak hedging is the hallmark of AI text.
+
+CONCRETE SENSORY DETAILS: "The kind of bug that makes you close your laptop and go for a walk" beats "a frustrating debugging experience." Ground your writing in experiences readers recognize.
+
+UNIQUE PHRASING: Avoid the first phrase that comes to mind. It is probably a cliche. If you are about to write "takes it to the next level," stop and describe what actually changes. If you want to say "game-changer," describe the specific change instead.
+
 === MARKETING FRAMEWORK INSTRUCTIONS ===
 
 **Social Posts:**
 
 === X POSTS (3 posts) ===
-Write like a real developer posting, NOT a brand account. Study these high-performing patterns:
+Write like a real developer posting, NOT a brand account.
 
 HARD RULES (violating these means the post fails):
 - STRICT 280 CHARACTER LIMIT. Count carefully. Posts over 280 characters are REJECTED. Aim for 200-260 characters to stay safe.
@@ -593,18 +658,33 @@ HARD RULES (violating these means the post fails):
 - Never use "Introducing..." or "Excited to announce..." or any corporate phrasing
 - MUST mention a SPECIFIC feature or capability from the actual repo, not generic praise
 
-HIGH-PERFORMING X POST FORMATS (use a different format for each of the 3 posts):
+HIGH-PERFORMING X POST FORMATS (pick 3 different formats from this pool — never repeat a format in the same batch):
 
-1. **Hot Take / Contrarian**: Bold, slightly controversial opinion referencing a SPECIFIC capability of this product.
+1. **Hot Take / Contrarian**: Bold, slightly controversial opinion referencing a SPECIFIC capability.
    Example: "unpopular opinion: most CI pipelines are over-engineered.\\nyou don't need 47 yaml files.\\n[product] does it in one command."
 
-2. **Problem → Discovery**: Relatable frustration → solution reveal citing a SPECIFIC feature.
+2. **Problem then Discovery**: Relatable frustration then solution reveal citing a SPECIFIC feature.
    Example: "spent 3 hours debugging a build issue.\\nswitched to [product], same build worked first try.\\ni'm not going back."
 
-3. **Concrete Result**: Specific metric or before/after tied to what the product ACTUALLY does.
-   Example: "deploy time: 4min → 90sec.\\nzero config changes.\\n[product]'s caching is genuinely smart."
+3. **Concrete Result**: Specific metric or before/after tied to actual capabilities.
+   Example: "deploy time: 4min to 90sec.\\nzero config changes.\\n[product]'s caching is genuinely smart."
 
-TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild profanity-adjacent intensity ("genuinely insane", "absolute game changer") is fine. Avoid superlatives that feel forced.
+4. **The Confession**: Admit a past belief, then show how the product changed your mind.
+   Example: "i used to hand-roll all my auth flows.\\n'it's not that hard,' i said.\\n3 security bugs later, i use [product]."
+
+5. **The List**: A short list of specific things the product enables or eliminates.
+   Example: "3 things i stopped doing after switching to [product]:\\n- writing migration scripts by hand\\n- debugging ORM queries\\n- dreading schema changes"
+
+6. **The Question**: One provocative question, answered in one line.
+   Example: "why are we still writing boilerplate in 2025?\\n[product] auto-generates type-safe APIs from your schema."
+
+7. **The Before/After**: Raw comparison, no editorializing.
+   Example: "before [product]: 200 lines of config.\\nafter: 12.\\nsame result."
+
+8. **The Understatement**: Deliberately downplay something impressive.
+   Example: "[product] saved us maybe 6 hours a week.\\nwhich is fine i guess.\\n(it's not fine. it's absurd.)"
+
+TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild intensity ("genuinely insane", "absurdly good") is fine. Avoid superlatives that feel forced.
 
 === LINKEDIN POSTS (2 posts) ===
 Write as a senior engineer or tech lead sharing a genuine insight, NOT a company page posting.
@@ -619,44 +699,67 @@ HARD RULES:
 - 150-250 words per post
 - MUST reference SPECIFIC capabilities and use cases from the actual repo
 
-HIGH-PERFORMING LINKEDIN FORMATS (use a different format for each post):
+HIGH-PERFORMING LINKEDIN FORMATS (pick 2 different formats from this pool — never repeat):
 
-1. **Insight → Framework → Product as Proof**: Open with a non-obvious industry insight, present a mental model or framework, then reference the product (with specific features) as an example of the framework in action.
-   Structure: Hook line → Insight (2 short paragraphs) → Framework/principle → Product mention with specific features → Engagement question
+1. **Insight then Framework then Product as Proof**: Non-obvious industry insight, mental model, product as example.
+   Structure: Hook line, Insight (2 short paragraphs), Framework/principle, Product mention with specific features, Engagement question
 
-2. **Story → Lesson → Recommendation**: Tell a brief personal/team story about a pain point, extract a broader lesson, then naturally recommend the product citing specific capabilities.
-   Structure: Hook line → Story (2-3 short paragraphs) → Lesson learned → Soft product mention with specific features → Engagement question
+2. **Story then Lesson then Recommendation**: Brief personal/team story about a pain point, broader lesson, natural product recommendation.
+   Structure: Hook line, Story (2-3 short paragraphs), Lesson learned, Soft product mention with specific features, Engagement question
 
-**Blog Articles – Use the PAS Framework:**
-Structure each article as:
-1. PROBLEM: Open with the pain point your audience faces (make it relatable)
-2. AGITATE: Amplify the pain – show what happens if it's not solved, the cost of inaction
-3. SOLUTION: Present the repository/product as the answer, with SPECIFIC features, capabilities, and examples from the actual codebase
-- Minimum 500 words per article
+3. **Myth-Busting**: Challenge a commonly held belief in your industry, then present evidence.
+   Structure: "Most people think X. They're wrong." then Why it is wrong (2 paragraphs), What actually works (with product as example), Engagement question
+
+4. **Numbers-First**: Open with a surprising statistic or metric, then explain what it means.
+   Structure: Bold metric, Context (why this matters), How it was achieved (referencing product), Engagement question
+
+5. **The Quiet Win**: Describe a small, overlooked improvement that compounds into a big deal.
+   Structure: "Nobody talks about X." then Why X matters more than people think, How product addresses X, Engagement question
+
+**Blog Articles (3 articles, each using a DIFFERENT structure from this pool):**
+
+1. **PAS (Problem-Agitate-Solve)**: Open with the pain point, amplify the pain with consequences, present the product as the solution with specific features and examples.
+
+2. **How-To Guide**: Practical, step-by-step walkthrough of achieving a specific outcome using the product. Include code snippets or configuration examples where relevant. Focus on the "aha" moments in each step.
+
+3. **Comparison / Before-After**: Show a specific workflow or task before and after adopting the product. Be concrete about what changes. Include real metrics or realistic estimates.
+
+4. **Listicle with Depth**: "5 Ways [Product] Changes How You [Specific Task]". Each item goes deep with examples and specifics, not surface-level bullet points.
+
+5. **The Deep Dive**: Pick one specific feature and explore it thoroughly. How it works, why it was built that way, what makes it different, and real-world impact.
+
+All blog articles must:
+- Be minimum 500 words
 - Include practical examples and code snippets where relevant
 - Reference actual features, APIs, or capabilities from the repository
 - Use headers and scannable formatting
+- NEVER open with "In today's..." or any banned opening pattern
 
-**Case Studies – Use the STAR Framework:**
-Structure each case study as:
-1. SITUATION: Set the scene – who is the client, what's their context
-2. TASK: What specific challenge did they need to solve
-3. ACTION: How they implemented the solution using SPECIFIC features of this product
-4. RESULT: Quantifiable outcomes with realistic metrics
+**Case Studies (3 case studies, each using a DIFFERENT structure and industry):**
+
+1. **STAR (Situation-Task-Action-Result)**: Classic case study. Set the scene, define the challenge, show the implementation with specific product features, quantify the results.
+
+2. **Before/After Narrative**: Tell the story chronologically. What was life like before? What was the turning point? What does life look like now? Focus on the human experience alongside metrics.
+
+3. **The Unexpected Win**: The client adopted the product for one reason but discovered unexpected benefits. Lead with the surprise. This creates a more authentic, less formulaic narrative.
+
+All case studies must:
 - Make companies and scenarios feel authentic and plausible
-- Include 3+ measurable outcomes per case study
-- The solution section MUST reference actual product capabilities, not generic descriptions
+- Include 3+ measurable outcomes with realistic metrics (avoid suspiciously round numbers)
+- Reference actual product capabilities from the repository, not generic descriptions
+- Use different industries and company sizes across the 3 studies
 
 === ABSOLUTE RULES ===
-- Base ALL content ONLY on what the repository actually does – NO invented features
+- Base ALL content ONLY on what the repository actually does. NO invented features
 - Every piece of content must mention the product by name AND reference specific functionality
 - Make content accessible to non-technical readers
 - Focus on benefits and outcomes, not just features
 - Use concrete examples and scenarios grounded in the repo's actual capabilities
 - For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts.
-- Generate exactly 3 blog articles with different angles.
-- Generate exactly 3 case studies with different industries and company sizes.
-- NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.`;
+- Generate exactly 3 blog articles, each with a different structure from the pool above.
+- Generate exactly 3 case studies, each with a different structure, industry, and company size.
+- NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.
+- NEVER use any word or phrase from the BANNED list above.`;
 
     console.log('Pass 1: Generating content with marketing frameworks...');
     const pass1Response = await callAI({
@@ -667,7 +770,7 @@ Structure each case study as:
         { role: 'system', content: generationPrompt },
         { role: 'user', content: `Here is the complete repository data. Read it carefully and extract every specific feature, capability, and detail before generating content. Your content MUST reference these specifics.\n\n${repoContext}` },
       ],
-      temperature: 0.7,
+      temperature: 0.85,
       max_tokens: 16000,
     });
 
@@ -676,25 +779,43 @@ Structure each case study as:
     console.log('Pass 1 complete. Starting refinement pass...');
 
     // ── STEP 3: Pass 2 – Refine & Score ──
-    const refinementPrompt = `You are a senior content editor and quality analyst. You will receive draft marketing content generated from a GitHub repository analysis.
+    const refinementPrompt = `You are a senior content editor specializing in detecting and eliminating AI-generated writing patterns. You will receive draft marketing content generated from a GitHub repository analysis.
 
 Your job is to:
-1. REFINE each piece of content:
-   - **MOST IMPORTANT**: Every piece of content MUST mention the product by name and reference SPECIFIC features or capabilities from the repository. If any content is generic enough to apply to any product, REWRITE it to be specific to this product.
-   - Remove any hallucinated features not supported by the repository data
-   - Strengthen weak hooks and calls-to-action
-   - For X posts: ensure they sound like a real person posting, NOT a brand. Check they use line breaks, have no hashtags, max 1 emoji, under 280 chars. They should feel like genuine peer recommendations, not ads. Rewrite any that start with "Introducing", "Excited to", or use corporate language. Each post MUST reference a specific product feature.
-   - For LinkedIn: ensure NO hashtags, short paragraphs (max 2 sentences each) with blank lines between them, hook-first opening that works before the "See more" fold, and ends with an engagement question. MUST mention specific product capabilities. Rewrite any that start with the product name or read like a press release.
-   - Tighten prose: remove filler words and vague claims
-   - Replace any vague statements like "powerful tool" or "great solution" with SPECIFIC descriptions of what the product does
-   - Improve readability and flow
 
-2. SCORE each piece of content on three dimensions (1-10 scale):
-   - **Relevance** (1-10): How accurately and specifically it reflects actual repository capabilities. Generic content that could apply to any product scores 1-3. Content referencing specific features scores 7-10.
-   - **Engagement** (1-10): How compelling, shareable, and attention-grabbing it is
-   - **Clarity** (1-10): How easy it is for the target audience to understand
+1. DETECT AND ELIMINATE AI WRITING PATTERNS:
+   - Scan every piece for these BANNED WORDS and replace ALL instances with plain, specific language: leverage, harness, streamline, robust, cutting-edge, seamlessly, utilize, empower, elevate, foster, spearhead, groundbreaking, revolutionary, comprehensive, holistic, synergy, paradigm, delve, realm, landscape (metaphorical), navigate (metaphorical), unlock, supercharge, turbocharge, pivotal, myriad, plethora, moreover, furthermore, hence, thus, transformative, next-level, game-changing, best-in-class, world-class, state-of-the-art, mission-critical, end-to-end, turnkey, bleeding-edge
+   - Check for these BANNED OPENINGS and rewrite them: "In today's...", "In the ever-evolving...", "In a world where...", "Whether you're a... or a...", "Are you tired of...", "Let's face it...", "It's no secret that...", "When it comes to..."
+   - Check for three-adjective lists, "Not just X, but Y" constructions, and rhetorical questions answered immediately. Rewrite them.
+   - Read each piece as if reading it aloud. If it sounds like a press release or a LinkedIn influencer parody, rewrite it to sound like a real person.
+   - Ensure no two pieces in the same batch start the same way, use the same structure, or hit the same beats.
 
-IMPORTANT: NEVER use em dashes (the long dash character "\u2014"). Replace any you find with periods, commas, colons, or semicolons.
+2. PRESERVE HUMANITY:
+   - DO NOT smooth out sentence fragments, casual language, or personality. These make writing feel human.
+   - DO NOT replace contractions with full forms.
+   - DO NOT add transitional phrases like "moreover" or "furthermore."
+   - DO NOT make every sentence the same length. Preserve rhythm variation.
+   - If a piece has genuine personality or voice, protect it. Only fix factual errors and banned language.
+
+3. ENSURE PRODUCT SPECIFICITY:
+   - Every piece MUST mention the product by name and reference SPECIFIC features from the repository.
+   - If any content is generic enough to apply to any product, REWRITE it with specific details from the repo.
+   - Remove any hallucinated features not supported by the repository data.
+   - Replace vague praise ("powerful tool", "great solution") with concrete descriptions of what the product does.
+
+4. PLATFORM-SPECIFIC CHECKS:
+   - X posts: Would a real dev actually post this? If it reads like a brand account, rewrite as a peer recommendation. Check: line breaks present, no hashtags, max 1 emoji, under 280 chars.
+   - LinkedIn: No hashtags, short paragraphs (max 2 sentences each) with blank lines, hook-first opening, ends with engagement question. Must not start with the product name.
+   - Blogs: Check that each article uses a different structure. No two should feel like the same template with different words.
+   - Case studies: Each must feel like a different company in a different industry. Metrics should feel plausible, not suspiciously round numbers.
+
+5. SCORE each piece on four dimensions (1-10 scale):
+   - **Relevance** (1-10): How accurately it reflects actual repository capabilities. Generic = 1-3, specific features referenced = 7-10.
+   - **Engagement** (1-10): How compelling, shareable, and attention-grabbing.
+   - **Clarity** (1-10): How easy for the target audience to understand.
+   - **Humanness** (1-10): How natural and human the writing sounds. 1 = obvious AI, 10 = indistinguishable from a skilled human writer. Target: 7+. Score below 5 if it uses any banned words or patterns.
+
+IMPORTANT: NEVER use em dashes (the long dash character "\u2014"). Replace any with periods, commas, colons, or semicolons.
 
 Return the refined content with scores by calling the provided tool.
 

@@ -22,6 +22,7 @@ export interface ContentScores {
   relevance: number;
   engagement: number;
   clarity: number;
+  humanness: number;
 }
 
 export interface ProductSummary {

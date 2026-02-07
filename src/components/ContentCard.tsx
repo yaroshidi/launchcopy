@@ -147,6 +147,9 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
                       <ScoreBadge label="Relevance" value={scores.relevance} />
                       <ScoreBadge label="Engagement" value={scores.engagement} />
                       <ScoreBadge label="Clarity" value={scores.clarity} />
+                      {scores.humanness != null && (
+                        <ScoreBadge label="Humanness" value={scores.humanness} />
+                      )}
                     </>
                   )}
                 </div>
