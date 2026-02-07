@@ -32,12 +32,14 @@ const Index = () => {
   const saved = restoreSaved();
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(saved?.analysis ?? null);
   const [isLoading, setIsLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState(false);
   const [currentRepoUrl, setCurrentRepoUrl] = useState(saved?.repoUrl ?? "");
   const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>(saved?.preferences);
   const { toast } = useToast();
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     setIsLoading(true);
+    setAnalysisError(false);
     setCurrentRepoUrl(url);
     setLastPreferences(preferences);
     
@@ -51,6 +53,7 @@ const Index = () => {
       }));
     } catch (error) {
       console.error('Analysis failed:', error);
+      setAnalysisError(true);
       toast({
         title: "Analysis Failed",
         description: error instanceof Error ? error.message : "Failed to analyze repository. Please try again.",
@@ -79,7 +82,7 @@ const Index = () => {
             transition={{ duration: 0.3 }}
           >
             <Hero onAnalyze={handleAnalyze} isLoading={isLoading} />
-            {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
+            {isLoading && !analysisError && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
 
             <FeaturesShowcase />
             <PricingSection />
