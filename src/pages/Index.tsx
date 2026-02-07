@@ -70,6 +70,8 @@ const Index = () => {
         lowerMsg.includes("fine-grained");
 
       if (isRepoAccessError) {
+        // Clear the bad token so it doesn't auto-send on the next attempt
+        localStorage.removeItem("github_token");
         // Show the private repo dialog — with the error if a token was already provided
         if (githubToken) {
           setTokenError(msg);
