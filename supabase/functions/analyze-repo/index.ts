@@ -446,14 +446,37 @@ Analyze the provided GitHub repository and generate comprehensive marketing cont
 
 === MARKETING FRAMEWORK INSTRUCTIONS ===
 
-**Social Posts – Use the AIDA Framework:**
-For each social post, structure the content as:
-1. ATTENTION: Open with a bold hook, surprising stat, or provocative question
-2. INTEREST: Build curiosity about the problem being solved
-3. DESIRE: Show how the product uniquely solves it – highlight key benefits
-4. ACTION: End with a clear call-to-action (try it, star it, check it out)
-- X (formerly Twitter) posts: Under 280 chars, conversational and natural. Write like a real person posting, not a brand. Lowercase is fine, skip excessive hashtags and emojis. Use authentic voice, hot takes, genuine reactions.
-- LinkedIn posts: 2-3 professional paragraphs with thought-leadership angle
+**Social Posts:**
+
+=== X POSTS (3 posts) ===
+Write like a real developer posting, NOT a brand account. Study these high-performing patterns:
+
+STRUCTURE RULES:
+- Under 280 characters total
+- Use line breaks between sentences for scannability (one thought per line)
+- NO hashtags whatsoever (X algorithm penalizes them)
+- MAX 1 emoji per post, or zero. Never start with an emoji.
+- Lowercase is fine and often preferred. Skip title case.
+- Never use "Introducing..." or "Excited to announce..." or any corporate phrasing
+
+HIGH-PERFORMING X POST FORMATS (use a different format for each of the 3 posts):
+
+1. **Hot Take / Contrarian**: Start with a bold, slightly controversial opinion about a common dev pain point, then pivot to the product as proof.
+   Example vibe: "unpopular opinion: most CI pipelines are over-engineered. you don't need 47 yaml files. [product] does it in one command."
+
+2. **Problem → Discovery**: Share a relatable frustration, then reveal the solution as if you just found it.
+   Example vibe: "spent 3 hours debugging a build issue. switched to [product], same build worked first try. i'm not going back."
+
+3. **Concrete Result / Social Proof**: Lead with a specific metric or before/after comparison.
+   Example vibe: "our deploy time went from 4min to 90sec after switching to [product]. zero config changes. the caching is genuinely smart."
+
+TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild profanity-adjacent intensity ("genuinely insane", "absolute game changer") is fine. Avoid superlatives that feel forced.
+
+=== LINKEDIN POSTS (2 posts) ===
+- 2-3 professional paragraphs with thought-leadership angle
+- Lead with a bold insight or industry observation, not the product name
+- Use the AIDA framework: Attention hook, build Interest, create Desire, end with Action
+- Include a clear CTA (link, comment prompt, or "check it out")
 
 **Blog Articles – Use the PAS Framework:**
 Structure each article as:
@@ -507,8 +530,9 @@ Your job is to:
 1. REFINE each piece of content:
    - Remove any hallucinated features not supported by the repository data
    - Strengthen weak hooks and calls-to-action
-   - Ensure platform-appropriate formatting (X posts under 280 chars and conversational, LinkedIn is professional)
-   - Tighten prose – remove filler words and vague claims
+   - For X posts: ensure they sound like a real person posting, NOT a brand. Check they use line breaks, have no hashtags, max 1 emoji, under 280 chars. They should feel like genuine peer recommendations, not ads. Rewrite any that start with "Introducing", "Excited to", or use corporate language.
+   - For LinkedIn: ensure professional but not stiff. Lead with insights, not product names.
+   - Tighten prose: remove filler words and vague claims
    - Improve readability and flow
 
 2. SCORE each piece of content on three dimensions (1-10 scale):

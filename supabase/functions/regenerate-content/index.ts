@@ -84,13 +84,28 @@ function buildRegenerationToolSchema(contentType: string) {
 
 function getFrameworkInstructions(contentType: string): string {
   const frameworks: Record<string, string> = {
-    social: `Use the AIDA Framework for each social post:
-1. ATTENTION: Bold hook, surprising stat, or provocative question
-2. INTEREST: Build curiosity about the problem being solved
-3. DESIRE: Show how the product uniquely solves it
-4. ACTION: Clear call-to-action
-- X (formerly Twitter): Under 280 chars, conversational and natural. Write like a real person posting, not a brand. Lowercase is fine, skip excessive hashtags and emojis. Use authentic voice, hot takes, genuine reactions.
-- LinkedIn: 2-3 professional paragraphs with thought-leadership angle`,
+    social: `=== X POSTS ===
+Write like a real developer posting, NOT a brand account.
+
+STRUCTURE RULES:
+- Under 280 characters total
+- Use line breaks between sentences for scannability
+- NO hashtags whatsoever (X algorithm penalizes them)
+- MAX 1 emoji per post, or zero. Never start with an emoji.
+- Lowercase is fine and often preferred.
+- Never use "Introducing..." or "Excited to announce..." or corporate phrasing
+
+HIGH-PERFORMING X POST FORMATS (vary across posts):
+1. Hot Take / Contrarian: Bold opinion about a dev pain point, pivot to the product as proof.
+2. Problem → Discovery: Relatable frustration, then reveal the solution as a genuine find.
+3. Concrete Result: Lead with a specific metric or before/after comparison.
+
+TONE: Write as a peer sharing a genuine recommendation. Sound like someone who actually uses the tool. Mild intensity ("genuinely insane", "absolute game changer") is fine.
+
+=== LINKEDIN POSTS ===
+- 2-3 professional paragraphs with thought-leadership angle
+- Lead with a bold insight, not the product name
+- Use AIDA: Attention hook, build Interest, create Desire, end with Action`,
     blog: `Use the PAS Framework for each article:
 1. PROBLEM: Open with the pain point (make it relatable)
 2. AGITATE: Amplify the pain – cost of inaction
