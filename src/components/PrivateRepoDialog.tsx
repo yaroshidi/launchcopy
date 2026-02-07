@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, Key, ExternalLink, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, Key, ExternalLink, ArrowRight, Loader2, Info } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -55,10 +55,43 @@ export function PrivateRepoDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div className="space-y-2">
+        <div className="rounded-lg border border-border/60 bg-secondary/30 p-3 mt-2 space-y-2.5">
+          <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+            How to create a token
+          </p>
+          <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside ml-0.5">
+            <li>
+              Go to{" "}
+              <a
+                href="https://github.com/settings/tokens/new?scopes=repo&description=LaunchCopy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline inline-flex items-center gap-0.5"
+              >
+                GitHub → Settings → Developer Settings → Personal Access Tokens
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            </li>
+            <li>Choose <span className="font-medium text-foreground">Tokens (classic)</span></li>
+            <li>Click <span className="font-medium text-foreground">Generate new token (classic)</span></li>
+            <li>
+              Under scopes, check{" "}
+              <span className="font-mono text-[11px] bg-secondary px-1 py-0.5 rounded text-foreground">repo</span>{" "}
+              (Full control of private repositories)
+            </li>
+            <li>Click <span className="font-medium text-foreground">Generate token</span> and copy it</li>
+          </ol>
+          <p className="text-[11px] text-muted-foreground/70 flex items-center gap-1">
+            <Lock className="w-3 h-3" />
+            Your token is stored locally in your browser only — never sent to our servers.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3 mt-3">
+          <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              GitHub Personal Access Token
+              Paste your token
             </label>
             <div className="relative">
               <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -72,41 +105,26 @@ export function PrivateRepoDialog({
                 autoFocus
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Needs <span className="font-medium text-foreground">repo</span> scope.
-              Token is stored locally in your browser only.
-            </p>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Button
-              type="submit"
-              variant="gradient"
-              disabled={!token.trim() || isLoading}
-              className="w-full"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  Continue Analysis
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-            <a
-              href="https://github.com/settings/tokens/new?scopes=repo&description=LaunchCopy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              <ExternalLink className="w-3 h-3" />
-              Create a token on GitHub
-            </a>
-          </div>
+          <Button
+            type="submit"
+            variant="gradient"
+            disabled={!token.trim() || isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                Continue Analysis
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
