@@ -478,7 +478,9 @@ Structure each case study as:
 - Make content accessible to non-technical readers
 - Focus on benefits and outcomes, not just features
 - Use concrete examples and scenarios
-- For social posts, use "X" as the platform name (NOT "Twitter"). Generate at least 2 X posts and 1 LinkedIn post.
+- For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts.
+- Generate exactly 3 blog articles with different angles.
+- Generate exactly 3 case studies with different industries and company sizes.
 - NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.`;
 
     console.log('Pass 1: Generating content with marketing frameworks...');
@@ -491,7 +493,7 @@ Structure each case study as:
         { role: 'user', content: `Analyze this GitHub repository and generate marketing content:\n\n${repoContext}` },
       ],
       temperature: 0.7,
-      max_tokens: 12000,
+      max_tokens: 16000,
     });
 
     const draft = extractToolArgs(pass1Response);

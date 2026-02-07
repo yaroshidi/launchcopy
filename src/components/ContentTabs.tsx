@@ -34,8 +34,8 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Generated Content</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold text-foreground">Generated Content</h2>
+          <p className="text-sm text-muted-foreground">
             AI-generated marketing content with two-pass refinement & quality scoring
           </p>
         </div>

@@ -160,8 +160,9 @@ serve(async (req) => {
 
     const countInstruction = itemIndex !== undefined
       ? 'Generate exactly 1 item.'
-      : contentType === 'social' ? 'Generate 3 posts (at least 1 X post, 1 LinkedIn). Use "X" as the platform name, NOT "Twitter".'
-      : 'Generate 2 items.';
+      : contentType === 'social' ? 'Generate 5 posts (3 X posts, 2 LinkedIn). Use "X" as the platform name, NOT "Twitter".'
+      : contentType === 'blog' ? 'Generate 3 articles with different angles.'
+      : 'Generate 3 case studies with different industries.';
 
     const systemPrompt = `You are an expert content marketer. Generate fresh ${contentTypeLabel[contentType] || 'content'} for a product.
 
@@ -209,7 +210,7 @@ Generate fresh, high-quality ${contentTypeLabel[contentType] || 'content'} with 
           { role: 'user', content: userMessage },
         ],
         temperature: 0.8,
-        max_tokens: 8000,
+        max_tokens: 12000,
       }),
     });
 
