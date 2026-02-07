@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, Key, ExternalLink, ArrowRight, Loader2, Info } from "lucide-react";
+import { Lock, Key, ExternalLink, ArrowRight, Loader2, Info, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ interface PrivateRepoDialogProps {
   repoUrl: string;
   onSubmitToken: (token: string) => void;
   isLoading: boolean;
+  errorMessage?: string;
 }
 
 export function PrivateRepoDialog({
@@ -24,6 +25,7 @@ export function PrivateRepoDialog({
   repoUrl,
   onSubmitToken,
   isLoading,
+  errorMessage,
 }: PrivateRepoDialogProps) {
   const [token, setToken] = useState(() => localStorage.getItem("github_token") || "");
 
@@ -54,6 +56,13 @@ export function PrivateRepoDialog({
             appears to be private. A GitHub token is needed to access its contents.
           </DialogDescription>
         </DialogHeader>
+
+        {errorMessage && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 flex gap-2 items-start">
+            <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+            <p className="text-xs text-destructive">{errorMessage}</p>
+          </div>
+        )}
 
         <div className="rounded-lg border border-border/60 bg-secondary/30 p-3 mt-2 space-y-2.5">
           <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">

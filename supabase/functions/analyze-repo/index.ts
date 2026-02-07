@@ -52,11 +52,34 @@ async function fetchRawFile(url: string, githubToken?: string): Promise<string> 
   return res.text();
 }
 
+// ── Token validation helper ─────────────────────────────
+
+async function validateGitHubToken(githubToken: string): Promise<{ valid: boolean; user?: string; scopes?: string }> {
+  try {
+    const res = await fetch('https://api.github.com/user', { headers: ghHeaders(githubToken) });
+    if (res.ok) {
+      const user = await res.json();
+      const scopes = res.headers.get('x-oauth-scopes') || '';
+      return { valid: true, user: user.login, scopes };
+    }
+    return { valid: false };
+  } catch {
+    return { valid: false };
+  }
+}
+
 // ── Deeper context gathering ────────────────────────────
 
-async function gatherRepoContext(owner: string, repo: string, githubToken?: string): Promise<{ context: string; hasAccess: boolean }> {
+async function gatherRepoContext(owner: string, repo: string, githubToken?: string): Promise<{ context: string; hasAccess: boolean; tokenInfo?: { valid: boolean; user?: string; scopes?: string } }> {
   let context = `Repository: ${owner}/${repo}\n\n`;
   let hasAccess = false;
+  let tokenInfo: { valid: boolean; user?: string; scopes?: string } | undefined;
+
+  // Validate token upfront if provided
+  if (githubToken) {
+    tokenInfo = await validateGitHubToken(githubToken);
+    console.log(`Token validation: valid=${tokenInfo.valid}, user=${tokenInfo.user}, scopes="${tokenInfo.scopes}"`);
+  }
 
   // 1. Repo metadata (description, topics, stars, language)
   let repoMeta: any = null;
@@ -90,7 +113,6 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
     }
   } catch (error) {
     console.error('Error fetching root contents:', error);
-    // Don't throw — let the validation below handle it
   }
 
   // 3. Priority documentation files
@@ -184,7 +206,7 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
     }
   } catch { console.log('Could not fetch recent PRs'); }
 
-  return { context, hasAccess };
+  return { context, hasAccess, tokenInfo };
 }
 
 // ── Tool schema (shared for generation & refinement) ────
@@ -469,17 +491,30 @@ serve(async (req) => {
     const repoName = repo.replace(/\.git$/, '');
 
     // ── STEP 1: Gather deep repo context ──
-    const { context: repoContext, hasAccess } = await gatherRepoContext(owner, repoName, githubToken);
-    console.log(`Gathered ${repoContext.length} characters of context, hasAccess: ${hasAccess}`);
+    const { context: repoContext, hasAccess, tokenInfo } = await gatherRepoContext(owner, repoName, githubToken);
+    console.log(`Gathered ${repoContext.length} characters of context, hasAccess: ${hasAccess}, tokenProvided: ${!!githubToken}`);
 
     // ── GATE: Reject if we couldn't access repo content ──
     const MIN_CONTEXT_LENGTH = 300;
     if (!hasAccess || repoContext.length < MIN_CONTEXT_LENGTH) {
-      const isLikelyPrivate = !hasAccess;
-      const errorMsg = isLikelyPrivate
-        ? 'Could not access this repository. It may be private — please provide a GitHub Personal Access Token using the "Private repo" option below the input.'
-        : 'Could not gather enough information from this repository to generate meaningful content. The repository may be empty or have restricted access.';
-      console.error(`Context gate failed: hasAccess=${hasAccess}, contextLength=${repoContext.length}`);
+      let errorMsg: string;
+
+      if (githubToken && tokenInfo) {
+        if (!tokenInfo.valid) {
+          errorMsg = 'The GitHub token you provided is invalid or expired. Please generate a new Personal Access Token (classic) with the "repo" scope and try again.';
+        } else if (tokenInfo.scopes && !tokenInfo.scopes.includes('repo')) {
+          errorMsg = `Your token is valid (authenticated as @${tokenInfo.user}) but is missing the "repo" scope. Please create a new token with the "repo" scope enabled.`;
+        } else {
+          // Token is valid and has repo scope, but still can't access
+          errorMsg = `Your token is valid (authenticated as @${tokenInfo.user}) but cannot access ${owner}/${repoName}. Make sure you have access to this repository and that fine-grained tokens include this repo in their permissions.`;
+        }
+      } else if (!hasAccess) {
+        errorMsg = 'Could not access this repository. It may be private — please provide a GitHub Personal Access Token using the "Private repo" option below the input.';
+      } else {
+        errorMsg = 'Could not gather enough information from this repository to generate meaningful content. The repository may be empty or have restricted access.';
+      }
+
+      console.error(`Context gate failed: hasAccess=${hasAccess}, contextLength=${repoContext.length}, tokenProvided=${!!githubToken}, tokenValid=${tokenInfo?.valid}`);
       return new Response(
         JSON.stringify({ error: errorMsg }),
         { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
