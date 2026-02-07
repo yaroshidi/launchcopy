@@ -1,94 +1,108 @@
 
 
-# Persist Analysis Across Auth Flow
+# Landing Page Upgrade -- BabyLoveGrowth-Style Sections
 
-When a user analyzes a repo and then signs up, they should return to their analysis results with the content unlocked, not the empty homepage.
-
----
-
-## The Problem
-
-The analysis data lives in React state inside `Index.tsx`. When the user clicks "Sign up to unlock" and navigates to `/auth`, the Index component unmounts and the analysis state is lost. After signing in, they're sent back to `/` with no analysis to show.
-
-## The Solution
-
-Save the analysis data to `sessionStorage` whenever an analysis completes, and restore it when the Index page mounts. This way the analysis survives navigation to `/auth` and back.
+Inspired by BabyLoveGrowth.ai, we'll add three new sections below the hero to better communicate value and convert visitors: a features showcase with flanking cards, a pricing section, and an FAQ.
 
 ---
 
-## Changes
+## What We're Adding
 
-### 1. `src/pages/Index.tsx` -- Save and restore analysis
+### 1. Features Showcase Section (replaces current simple "See what we generate")
 
-- On successful analysis, save the result (plus the repo URL and preferences) to `sessionStorage`
-- On component mount, check `sessionStorage` for a saved analysis and restore it into state
-- On "New Analysis" (back button), clear sessionStorage so the user starts fresh
-- Serialize the `analyzedAt` Date properly
+A 3-column layout inspired by BabyLoveGrowth's content preview page:
 
-### 2. `src/components/LockedContentOverlay.tsx` -- No changes needed
+- **Center column**: The existing `ContentShowcase` component (tabbed social/blog/case study previews)
+- **Left column**: Stacked feature cards explaining content quality (e.g., "Two-Pass AI Refinement", "Platform-Optimized Formatting", "Real Codebase Analysis")
+- **Right column**: More feature cards (e.g., "Quality Scored", "Ready to Publish", "SEO-Optimized Structure")
 
-The overlay already links to `/auth`. Once the user signs in and returns to `/`, the restored analysis + authenticated state will automatically unlock the content.
+Each feature card will have:
+- A small category badge (like "AI Quality", "Content Optimization")
+- A bold title
+- A short description
+- Glass card styling matching the existing design system
 
-### 3. `src/pages/Auth.tsx` -- No changes needed
+On mobile, the side columns collapse below the showcase.
 
-It already redirects authenticated users to `/` with `<Navigate to="/" replace />`. The Index page will pick up the saved analysis from sessionStorage.
+### 2. Pricing Section
+
+A clean section with gradient headline ("Invest in Quality Content" or similar) showing:
+
+- **Free tier card**: What unauthed users get (1 free preview per content type, product summary)
+- **Pro tier card** (highlighted): What signing up unlocks (all 5 social posts, 3 blogs, 3 case studies, export options, regeneration)
+- Feature checklist with check icons
+- CTA buttons linking to /auth
+
+Styled with the existing glass-card aesthetic, no jarring new colors.
+
+### 3. FAQ Section
+
+An accordion-based FAQ section answering common questions:
+- "What repos can I analyze?"
+- "How does the AI generate content?"
+- "Is my code stored or shared?"
+- "What platforms are the social posts optimized for?"
+- "Can I edit the generated content?"
+
+Uses the existing Radix accordion component.
+
+---
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| `src/components/FeaturesShowcase.tsx` | 3-column layout with feature cards flanking the content showcase |
+| `src/components/PricingSection.tsx` | Free vs Pro pricing cards with feature lists |
+| `src/components/FAQSection.tsx` | Accordion-based FAQ |
+
+## Modified Files
+
+| File | What changes |
+|------|-------------|
+| `src/pages/Index.tsx` | Import and render the three new sections below the hero |
+| `src/components/Navbar.tsx` | Add "Pricing" nav link alongside "How it works" |
 
 ---
 
 ## Technical Details
 
-### sessionStorage key and structure
+### FeaturesShowcase.tsx
 
-A single key `repo_analysis` stores a JSON object:
+- Wraps the existing `ContentShowcase` in a wider `max-w-6xl` container
+- Left and right columns are arrays of feature card objects rendered with `motion.div` stagger animations
+- Uses `whileInView` for scroll-triggered entrance
+- Responsive: `grid grid-cols-1 lg:grid-cols-[240px_1fr_240px]` so side cards stack below on mobile
+- Feature cards use `glass-card` utility class with `border-border/50`
 
+Feature card data structure:
 ```text
-{
-  analysis: RepoAnalysis (with analyzedAt as ISO string),
-  repoUrl: string,
-  preferences: ContentPreferences | undefined
-}
+{ badge: "AI Quality", title: "Two-Pass Refinement", description: "Content is generated then refined..." }
 ```
 
-### Save logic (in Index.tsx handleAnalyze)
+### PricingSection.tsx
 
-After `setAnalysis(result)` succeeds, write to sessionStorage:
+- Section with gradient headline text
+- Two cards side by side: Free (outline border) and Pro (primary gradient border, highlighted)
+- Each card has a feature list with check/x icons
+- Pro card has a "Sign up free" CTA button linking to `/auth`
+- Uses existing `Card`, `Button` components
+- Urgency/social proof line: "Join 2,400+ developers" (matches hero stat)
 
-```text
-sessionStorage.setItem('repo_analysis', JSON.stringify({
-  analysis: result,
-  repoUrl: url,
-  preferences
-}));
-```
+### FAQSection.tsx
 
-### Restore logic (in Index.tsx, on mount via useState initializer or useEffect)
+- Uses `@radix-ui/react-accordion` (already installed)
+- 5-6 questions with answers
+- Styled to match the dark glassmorphic theme
+- `max-w-3xl mx-auto` for readability
 
-```text
-useState(() => {
-  const saved = sessionStorage.getItem('repo_analysis');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    parsed.analysis.analyzedAt = new Date(parsed.analysis.analyzedAt);
-    return parsed.analysis;
-  }
-  return null;
-});
-```
+### Index.tsx changes
 
-Also restore `currentRepoUrl` and `lastPreferences` from the same saved data.
+Current order: Hero -> ContentShowcase section
 
-### Clear logic (in handleBack)
+New order: Hero -> FeaturesShowcase (wrapping ContentShowcase) -> PricingSection -> FAQSection
 
-```text
-sessionStorage.removeItem('repo_analysis');
-setAnalysis(null);
-```
+### Navbar.tsx changes
 
-### Files modified
-
-| File | What changes |
-|------|-------------|
-| `src/pages/Index.tsx` | Add sessionStorage save on analysis, restore on mount, clear on back |
-
-No other files need changes. The existing auth redirect and unlock logic handle the rest automatically.
+Add a "Pricing" anchor link (`href="#pricing"`) next to the existing "How it works" link.
 
