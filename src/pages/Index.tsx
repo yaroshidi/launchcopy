@@ -9,11 +9,29 @@ import { analyzeRepository } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
 
+const STORAGE_KEY = 'repo_analysis';
+
+const restoreSaved = () => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      parsed.analysis.analyzedAt = new Date(parsed.analysis.analyzedAt);
+      if (parsed.analysis.refinedAt) {
+        parsed.analysis.refinedAt = new Date(parsed.analysis.refinedAt);
+      }
+      return parsed as { analysis: RepoAnalysis; repoUrl: string; preferences?: ContentPreferences };
+    }
+  } catch { /* ignore corrupt data */ }
+  return null;
+};
+
 const Index = () => {
-  const [analysis, setAnalysis] = useState<RepoAnalysis | null>(null);
+  const saved = restoreSaved();
+  const [analysis, setAnalysis] = useState<RepoAnalysis | null>(saved?.analysis ?? null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentRepoUrl, setCurrentRepoUrl] = useState("");
-  const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>();
+  const [currentRepoUrl, setCurrentRepoUrl] = useState(saved?.repoUrl ?? "");
+  const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>(saved?.preferences);
   const { toast } = useToast();
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
@@ -24,6 +42,11 @@ const Index = () => {
     try {
       const result = await analyzeRepository(url, githubToken, preferences);
       setAnalysis(result);
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        analysis: result,
+        repoUrl: url,
+        preferences,
+      }));
     } catch (error) {
       console.error('Analysis failed:', error);
       toast({
@@ -37,6 +60,7 @@ const Index = () => {
   };
 
   const handleBack = () => {
+    sessionStorage.removeItem(STORAGE_KEY);
     setAnalysis(null);
   };
 
