@@ -60,7 +60,7 @@ export function PrivateRepoDialog({
         {errorMessage && (
           <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 flex gap-2 items-start">
             <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-            <p className="text-xs text-destructive">{errorMessage}</p>
+            <p className="text-xs text-destructive whitespace-pre-line">{errorMessage}</p>
           </div>
         )}
 
