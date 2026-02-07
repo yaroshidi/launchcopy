@@ -1,4 +1,4 @@
-import { Download, FileJson, FileText, Twitter, Linkedin, Copy, Check } from "lucide-react";
+import { Download, FileJson, FileText, Linkedin, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +14,18 @@ import type { RepoAnalysis } from "@/types/analysis";
 import {
   exportAsJSON,
   exportAsMarkdown,
-  copyAsTwitterThread,
+  copyAsXThread,
   copyAsLinkedIn,
   exportSocialPosts,
   exportBlogArticles,
   exportCaseStudies,
 } from "@/lib/exportUtils";
+
+const XIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 interface ExportMenuProps {
   analysis: RepoAnalysis;
@@ -29,9 +35,9 @@ export function ExportMenu({ analysis }: ExportMenuProps) {
   const { toast } = useToast();
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
-  const handleCopy = async (type: 'twitter' | 'linkedin') => {
-    const content = type === 'twitter' 
-      ? copyAsTwitterThread(analysis) 
+  const handleCopy = async (type: 'x' | 'linkedin') => {
+    const content = type === 'x' 
+      ? copyAsXThread(analysis) 
       : copyAsLinkedIn(analysis);
     
     await navigator.clipboard.writeText(content);
@@ -39,7 +45,7 @@ export function ExportMenu({ analysis }: ExportMenuProps) {
     
     toast({
       title: "Copied to clipboard",
-      description: `${type === 'twitter' ? 'Twitter thread' : 'LinkedIn post'} copied successfully`,
+      description: `${type === 'x' ? 'X thread' : 'LinkedIn post'} copied successfully`,
     });
     
     setTimeout(() => setCopiedType(null), 2000);
@@ -81,13 +87,13 @@ export function ExportMenu({ analysis }: ExportMenuProps) {
         
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Copy to Clipboard</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => handleCopy('twitter')}>
-          {copiedType === 'twitter' ? (
+        <DropdownMenuItem onClick={() => handleCopy('x')}>
+          {copiedType === 'x' ? (
             <Check className="w-4 h-4 mr-2 text-primary" />
           ) : (
-            <Twitter className="w-4 h-4 mr-2" />
+            <XIcon />
           )}
-          Copy as Twitter Thread
+          Copy as X Thread
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleCopy('linkedin')}>
           {copiedType === 'linkedin' ? (
