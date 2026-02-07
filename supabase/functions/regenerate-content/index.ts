@@ -87,20 +87,20 @@ function getFrameworkInstructions(contentType: string): string {
     social: `=== X POSTS ===
 Write like a real developer posting, NOT a brand account.
 
-STRUCTURE RULES:
-- Under 280 characters total
-- Use line breaks between sentences for scannability
+HARD RULES (violating these means the post fails):
+- STRICT 280 CHARACTER LIMIT. Count carefully. Aim for 200-260 characters to stay safe.
+- Use \\n line breaks between sentences. Each sentence on its own line.
 - NO hashtags whatsoever (X algorithm penalizes them)
 - MAX 1 emoji per post, or zero. Never start with an emoji.
 - Lowercase is fine and often preferred.
 - Never use "Introducing..." or "Excited to announce..." or corporate phrasing
 
 HIGH-PERFORMING X POST FORMATS (vary across posts):
-1. Hot Take / Contrarian: Bold opinion about a dev pain point, pivot to the product as proof.
-2. Problem → Discovery: Relatable frustration, then reveal the solution as a genuine find.
-3. Concrete Result: Lead with a specific metric or before/after comparison.
+1. Hot Take / Contrarian: Bold opinion, 2-3 punchy lines. Example: "unpopular opinion: most CI pipelines are over-engineered.\\nyou don't need 47 yaml files."
+2. Problem → Discovery: Relatable frustration → solution reveal in 2-3 lines.
+3. Concrete Result: Specific metric or before/after in 2-3 lines.
 
-TONE: Write as a peer sharing a genuine recommendation. Sound like someone who actually uses the tool. Mild intensity ("genuinely insane", "absolute game changer") is fine.
+TONE: Write as a peer sharing a genuine recommendation. Mild intensity ("genuinely insane", "absolute game changer") is fine.
 
 === LINKEDIN POSTS ===
 - 2-3 professional paragraphs with thought-leadership angle
