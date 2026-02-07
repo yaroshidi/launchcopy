@@ -54,20 +54,23 @@ async function fetchRawFile(url: string, githubToken?: string): Promise<string> 
 
 // ── Deeper context gathering ────────────────────────────
 
-async function gatherRepoContext(owner: string, repo: string, githubToken?: string): Promise<string> {
+async function gatherRepoContext(owner: string, repo: string, githubToken?: string): Promise<{ context: string; hasAccess: boolean }> {
   let context = `Repository: ${owner}/${repo}\n\n`;
+  let hasAccess = false;
 
   // 1. Repo metadata (description, topics, stars, language)
+  let repoMeta: any = null;
   try {
-    const meta = await fetchGitHubJSON(`https://api.github.com/repos/${owner}/${repo}`, githubToken);
-    if (meta) {
+    repoMeta = await fetchGitHubJSON(`https://api.github.com/repos/${owner}/${repo}`, githubToken);
+    if (repoMeta) {
+      hasAccess = true;
       const m: RepoMeta = {
-        description: meta.description || '',
-        topics: meta.topics || [],
-        stars: meta.stargazers_count || 0,
-        forks: meta.forks_count || 0,
-        language: meta.language || 'Unknown',
-        homepage: meta.homepage || '',
+        description: repoMeta.description || '',
+        topics: repoMeta.topics || [],
+        stars: repoMeta.stargazers_count || 0,
+        forks: repoMeta.forks_count || 0,
+        language: repoMeta.language || 'Unknown',
+        homepage: repoMeta.homepage || '',
       };
       context += `=== Repository Metadata ===\nDescription: ${m.description}\nTopics: ${m.topics.join(', ')}\nStars: ${m.stars} | Forks: ${m.forks}\nPrimary Language: ${m.language}\n`;
       if (m.homepage) context += `Homepage: ${m.homepage}\n`;
@@ -81,10 +84,13 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
   let files: GitHubFile[] = [];
   try {
     const rootContents = await fetchGitHubJSON(`https://api.github.com/repos/${owner}/${repo}/contents/`, githubToken);
-    if (Array.isArray(rootContents)) files = rootContents;
+    if (Array.isArray(rootContents)) {
+      files = rootContents;
+      hasAccess = true;
+    }
   } catch (error) {
     console.error('Error fetching root contents:', error);
-    throw error;
+    // Don't throw — let the validation below handle it
   }
 
   // 3. Priority documentation files
@@ -111,9 +117,11 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
   }
 
   // 5. Directory structure
-  context += "=== Directory Structure ===\n";
-  for (const file of files.slice(0, 30)) {
-    context += `${file.type === 'dir' ? '📁' : '📄'} ${file.name}\n`;
+  if (files.length > 0) {
+    context += "=== Directory Structure ===\n";
+    for (const file of files.slice(0, 30)) {
+      context += `${file.type === 'dir' ? '📁' : '📄'} ${file.name}\n`;
+    }
   }
 
   // 6. Source folder structure + sample source files
@@ -145,7 +153,38 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
     }
   } catch { /* no releases */ }
 
-  return context;
+  // 8. Recent commits (last 10) — shows what's actively being worked on
+  try {
+    const commits = await fetchGitHubJSON(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=10`, githubToken);
+    if (Array.isArray(commits) && commits.length > 0) {
+      context += `\n=== Recent Commits (last ${commits.length}) ===\n`;
+      for (const c of commits) {
+        const date = c.commit?.author?.date ? new Date(c.commit.author.date).toISOString().split('T')[0] : 'unknown';
+        const msg = (c.commit?.message || '').split('\n')[0].slice(0, 120);
+        context += `[${date}] ${msg}\n`;
+      }
+      context += '\n';
+    }
+  } catch { console.log('Could not fetch recent commits'); }
+
+  // 9. Recent merged pull requests (last 5) — shows features/fixes recently shipped
+  try {
+    const prs = await fetchGitHubJSON(`https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&sort=updated&direction=desc&per_page=5`, githubToken);
+    if (Array.isArray(prs)) {
+      const merged = prs.filter((pr: any) => pr.merged_at);
+      if (merged.length > 0) {
+        context += `=== Recently Merged PRs ===\n`;
+        for (const pr of merged) {
+          const date = new Date(pr.merged_at).toISOString().split('T')[0];
+          context += `[${date}] #${pr.number}: ${pr.title}\n`;
+          if (pr.body) context += `  ${pr.body.slice(0, 200)}\n`;
+        }
+        context += '\n';
+      }
+    }
+  } catch { console.log('Could not fetch recent PRs'); }
+
+  return { context, hasAccess };
 }
 
 // ── Tool schema (shared for generation & refinement) ────
@@ -430,8 +469,22 @@ serve(async (req) => {
     const repoName = repo.replace(/\.git$/, '');
 
     // ── STEP 1: Gather deep repo context ──
-    const repoContext = await gatherRepoContext(owner, repoName, githubToken);
-    console.log(`Gathered ${repoContext.length} characters of context`);
+    const { context: repoContext, hasAccess } = await gatherRepoContext(owner, repoName, githubToken);
+    console.log(`Gathered ${repoContext.length} characters of context, hasAccess: ${hasAccess}`);
+
+    // ── GATE: Reject if we couldn't access repo content ──
+    const MIN_CONTEXT_LENGTH = 300;
+    if (!hasAccess || repoContext.length < MIN_CONTEXT_LENGTH) {
+      const isLikelyPrivate = !hasAccess;
+      const errorMsg = isLikelyPrivate
+        ? 'Could not access this repository. It may be private — please provide a GitHub Personal Access Token using the "Private repo" option below the input.'
+        : 'Could not gather enough information from this repository to generate meaningful content. The repository may be empty or have restricted access.';
+      console.error(`Context gate failed: hasAccess=${hasAccess}, contextLength=${repoContext.length}`);
+      return new Response(
+        JSON.stringify({ error: errorMsg }),
+        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const prefInstructions = buildPreferenceInstructions(preferences);
 
