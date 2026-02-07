@@ -7,6 +7,7 @@ import { PricingSection } from "@/components/PricingSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
+import { PrivateRepoDialog } from "@/components/PrivateRepoDialog";
 import { analyzeRepository } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
@@ -32,35 +33,62 @@ const Index = () => {
   const saved = restoreSaved();
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(saved?.analysis ?? null);
   const [isLoading, setIsLoading] = useState(false);
-  const [analysisError, setAnalysisError] = useState(false);
   const [currentRepoUrl, setCurrentRepoUrl] = useState(saved?.repoUrl ?? "");
   const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>(saved?.preferences);
+  const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
+  const [retryingWithToken, setRetryingWithToken] = useState(false);
   const { toast } = useToast();
+
+  const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
+    const result = await analyzeRepository(url, githubToken, preferences);
+    setAnalysis(result);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+      analysis: result,
+      repoUrl: url,
+      preferences,
+    }));
+  };
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     setIsLoading(true);
-    setAnalysisError(false);
     setCurrentRepoUrl(url);
     setLastPreferences(preferences);
     
     try {
-      const result = await analyzeRepository(url, githubToken, preferences);
-      setAnalysis(result);
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-        analysis: result,
-        repoUrl: url,
-        preferences,
-      }));
+      await runAnalysis(url, githubToken, preferences);
     } catch (error) {
       console.error('Analysis failed:', error);
-      setAnalysisError(true);
+      const msg = error instanceof Error ? error.message : "";
+      const isPrivateRepoError = msg.toLowerCase().includes("private") || msg.toLowerCase().includes("could not access");
+
+      if (isPrivateRepoError && !githubToken) {
+        setPrivateRepoOpen(true);
+      } else {
+        toast({
+          title: "Analysis Failed",
+          description: msg || "Failed to analyze repository. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTokenSubmit = async (token: string) => {
+    setRetryingWithToken(true);
+    try {
+      await runAnalysis(currentRepoUrl, token, lastPreferences);
+      setPrivateRepoOpen(false);
+    } catch (error) {
+      console.error('Retry with token failed:', error);
       toast({
         title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze repository. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to analyze repository. Check your token and try again.",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setRetryingWithToken(false);
     }
   };
 
@@ -82,7 +110,7 @@ const Index = () => {
             transition={{ duration: 0.3 }}
           >
             <Hero onAnalyze={handleAnalyze} isLoading={isLoading} />
-            {isLoading && !analysisError && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
+            {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
 
             <FeaturesShowcase />
             <PricingSection />
@@ -100,6 +128,14 @@ const Index = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PrivateRepoDialog
+        open={privateRepoOpen}
+        onOpenChange={setPrivateRepoOpen}
+        repoUrl={currentRepoUrl}
+        onSubmitToken={handleTokenSubmit}
+        isLoading={retryingWithToken}
+      />
     </div>
   );
 };
