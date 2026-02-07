@@ -451,9 +451,9 @@ Analyze the provided GitHub repository and generate comprehensive marketing cont
 === X POSTS (3 posts) ===
 Write like a real developer posting, NOT a brand account. Study these high-performing patterns:
 
-STRUCTURE RULES:
-- Under 280 characters total
-- Use line breaks between sentences for scannability (one thought per line)
+HARD RULES (violating these means the post fails):
+- STRICT 280 CHARACTER LIMIT. Count carefully. Posts over 280 characters are REJECTED. Aim for 200-260 characters to stay safe.
+- Use \\n line breaks between sentences. Each sentence should be on its own line. This is critical for readability on X.
 - NO hashtags whatsoever (X algorithm penalizes them)
 - MAX 1 emoji per post, or zero. Never start with an emoji.
 - Lowercase is fine and often preferred. Skip title case.
@@ -461,14 +461,14 @@ STRUCTURE RULES:
 
 HIGH-PERFORMING X POST FORMATS (use a different format for each of the 3 posts):
 
-1. **Hot Take / Contrarian**: Start with a bold, slightly controversial opinion about a common dev pain point, then pivot to the product as proof.
-   Example vibe: "unpopular opinion: most CI pipelines are over-engineered. you don't need 47 yaml files. [product] does it in one command."
+1. **Hot Take / Contrarian**: Bold, slightly controversial opinion. Keep it punchy (2-3 short lines).
+   Example: "unpopular opinion: most CI pipelines are over-engineered.\\nyou don't need 47 yaml files.\\n[product] does it in one command."
 
-2. **Problem → Discovery**: Share a relatable frustration, then reveal the solution as if you just found it.
-   Example vibe: "spent 3 hours debugging a build issue. switched to [product], same build worked first try. i'm not going back."
+2. **Problem → Discovery**: Relatable frustration → solution reveal (2-3 lines).
+   Example: "spent 3 hours debugging a build issue.\\nswitched to [product], same build worked first try.\\ni'm not going back."
 
-3. **Concrete Result / Social Proof**: Lead with a specific metric or before/after comparison.
-   Example vibe: "our deploy time went from 4min to 90sec after switching to [product]. zero config changes. the caching is genuinely smart."
+3. **Concrete Result**: Specific metric or before/after (2-3 lines).
+   Example: "deploy time: 4min → 90sec.\\nzero config changes.\\n[product]'s caching is genuinely smart."
 
 TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild profanity-adjacent intensity ("genuinely insane", "absolute game changer") is fine. Avoid superlatives that feel forced.
 
