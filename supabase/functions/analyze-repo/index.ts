@@ -452,7 +452,7 @@ For each social post, structure the content as:
 2. INTEREST: Build curiosity about the problem being solved
 3. DESIRE: Show how the product uniquely solves it – highlight key benefits
 4. ACTION: End with a clear call-to-action (try it, star it, check it out)
-- Twitter posts: Under 280 chars, punchy, use relevant hashtags
+- X (formerly Twitter) posts: Under 280 chars, conversational and natural. Write like a real person posting, not a brand. Lowercase is fine, skip excessive hashtags and emojis. Use authentic voice, hot takes, genuine reactions.
 - LinkedIn posts: 2-3 professional paragraphs with thought-leadership angle
 
 **Blog Articles – Use the PAS Framework:**
@@ -478,6 +478,7 @@ Structure each case study as:
 - Make content accessible to non-technical readers
 - Focus on benefits and outcomes, not just features
 - Use concrete examples and scenarios
+- For social posts, use "X" as the platform name (NOT "Twitter"). Generate at least 2 X posts and 1 LinkedIn post.
 - NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.`;
 
     console.log('Pass 1: Generating content with marketing frameworks...');
@@ -504,7 +505,7 @@ Your job is to:
 1. REFINE each piece of content:
    - Remove any hallucinated features not supported by the repository data
    - Strengthen weak hooks and calls-to-action
-   - Ensure platform-appropriate formatting (tweets under 280 chars, LinkedIn is professional)
+   - Ensure platform-appropriate formatting (X posts under 280 chars and conversational, LinkedIn is professional)
    - Tighten prose – remove filler words and vague claims
    - Improve readability and flow
 

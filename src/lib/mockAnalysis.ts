@@ -44,16 +44,16 @@ export function generateMockAnalysis(repoUrl: string): RepoAnalysis {
     content: {
       socialPosts: [
         {
-          platform: "Twitter",
-          content: `🚀 Just discovered ${repoName} and it's a game-changer for team productivity!\n\n✅ Real-time collaboration\n✅ Intuitive workflows\n✅ Integrates with everything\n\nIf you're still juggling spreadsheets, you need to check this out. Your future self will thank you. 🙌\n\n#productivity #devtools #opensource`,
+          platform: "X",
+          content: `ok ${repoName} is actually wild. been using it for a week and our whole team workflow changed.\n\nreal-time collab that doesn't lag. integrations that just work. no 45-min setup.\n\nif you're still managing projects in spreadsheets... there's a better way 🚀`,
         },
         {
           platform: "LinkedIn",
           content: `I've been exploring ${repoName} for our team's workflow management, and I'm impressed.\n\nHere's what stands out:\n\n1️⃣ The learning curve is practically non-existent\n2️⃣ Integration with our existing stack took minutes, not days\n3️⃣ The analytics dashboard gives us insights we never had before\n\nFor teams looking to level up their project management without the enterprise price tag, this is worth a serious look.\n\nWhat tools are you using for team coordination?`,
         },
         {
-          platform: "Twitter",
-          content: `Hot take: Most project management tools are overengineered.\n\n${repoName} gets it right by focusing on what actually matters:\n\n→ Speed\n→ Simplicity  \n→ Flexibility\n\nNo bloat. No 100-feature checklists. Just works. ⚡`,
+          platform: "X",
+          content: `hot take: most project management tools are way overengineered\n\n${repoName} gets it. fast, simple, flexible. no bloat.\n\njust shipped a feature in half the time because i wasn't fighting the tool. that's the whole point ⚡`,
         },
       ],
       blogArticles: [

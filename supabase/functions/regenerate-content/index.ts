@@ -89,7 +89,7 @@ function getFrameworkInstructions(contentType: string): string {
 2. INTEREST: Build curiosity about the problem being solved
 3. DESIRE: Show how the product uniquely solves it
 4. ACTION: Clear call-to-action
-- Twitter: Under 280 chars, punchy, relevant hashtags
+- X (formerly Twitter): Under 280 chars, conversational and natural. Write like a real person posting, not a brand. Lowercase is fine, skip excessive hashtags and emojis. Use authentic voice, hot takes, genuine reactions.
 - LinkedIn: 2-3 professional paragraphs with thought-leadership angle`,
     blog: `Use the PAS Framework for each article:
 1. PROBLEM: Open with the pain point (make it relatable)
@@ -160,7 +160,7 @@ serve(async (req) => {
 
     const countInstruction = itemIndex !== undefined
       ? 'Generate exactly 1 item.'
-      : contentType === 'social' ? 'Generate 3 posts (at least 1 Twitter, 1 LinkedIn).'
+      : contentType === 'social' ? 'Generate 3 posts (at least 1 X post, 1 LinkedIn). Use "X" as the platform name, NOT "Twitter".'
       : 'Generate 2 items.';
 
     const systemPrompt = `You are an expert content marketer. Generate fresh ${contentTypeLabel[contentType] || 'content'} for a product.

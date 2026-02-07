@@ -91,17 +91,17 @@ export function exportAsMarkdown(analysis: RepoAnalysis) {
   downloadFile(markdown, `${repoName}-content.md`, 'text/markdown');
 }
 
-// Copy Twitter thread format
-export function copyAsTwitterThread(analysis: RepoAnalysis): string {
-  const tweets = analysis.content.socialPosts
-    .filter(post => post.platform.toLowerCase() === 'twitter')
+// Copy X thread format
+export function copyAsXThread(analysis: RepoAnalysis): string {
+  const posts = analysis.content.socialPosts
+    .filter(post => post.platform.toLowerCase() === 'x' || post.platform.toLowerCase() === 'twitter')
     .map((post, i) => `${i + 1}/ ${post.content}`);
   
-  if (tweets.length === 0) {
-    return "No Twitter posts available";
+  if (posts.length === 0) {
+    return "No X posts available";
   }
   
-  return tweets.join('\n\n');
+  return posts.join('\n\n');
 }
 
 // Copy LinkedIn format
