@@ -103,9 +103,20 @@ HIGH-PERFORMING X POST FORMATS (vary across posts):
 TONE: Write as a peer sharing a genuine recommendation. Mild intensity ("genuinely insane", "absolute game changer") is fine.
 
 === LINKEDIN POSTS ===
-- 2-3 professional paragraphs with thought-leadership angle
-- Lead with a bold insight, not the product name
-- Use AIDA: Attention hook, build Interest, create Desire, end with Action`,
+Write as a senior engineer sharing a genuine insight, NOT a company page.
+
+HARD RULES:
+- NO hashtags (LinkedIn algorithm deprioritizes them in 2025+)
+- Short paragraphs: MAX 2 sentences per paragraph, blank line between each
+- Use \\n\\n between paragraphs for white space
+- First 2 lines MUST hook before the "See more" fold. Bold, counterintuitive claim.
+- Never start with product name. Start with the problem or insight.
+- End with an engagement question ("How is your team handling X?")
+- 150-250 words per post
+
+FORMATS (vary across posts):
+1. Insight → Framework → Product as Proof: Non-obvious insight, mental model, product as example.
+2. Story → Lesson → Recommendation: Brief pain-point story, broader lesson, soft product mention.`,
     blog: `Use the PAS Framework for each article:
 1. PROBLEM: Open with the pain point (make it relatable)
 2. AGITATE: Amplify the pain – cost of inaction

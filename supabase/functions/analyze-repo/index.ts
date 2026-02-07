@@ -473,10 +473,24 @@ HIGH-PERFORMING X POST FORMATS (use a different format for each of the 3 posts):
 TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild profanity-adjacent intensity ("genuinely insane", "absolute game changer") is fine. Avoid superlatives that feel forced.
 
 === LINKEDIN POSTS (2 posts) ===
-- 2-3 professional paragraphs with thought-leadership angle
-- Lead with a bold insight or industry observation, not the product name
-- Use the AIDA framework: Attention hook, build Interest, create Desire, end with Action
-- Include a clear CTA (link, comment prompt, or "check it out")
+Write as a senior engineer or tech lead sharing a genuine insight, NOT a company page posting.
+
+HARD RULES:
+- NO hashtags whatsoever (LinkedIn algorithm deprioritizes posts with hashtags in 2025+)
+- Short paragraphs: MAX 2 sentences per paragraph, with a blank line between each
+- Use \\n\\n between paragraphs for heavy white space (critical for readability on LinkedIn)
+- First 2 lines MUST hook the reader before the "See more" fold. Open with a bold, counterintuitive claim or a surprising insight.
+- Never start with the product name. Start with the problem or insight.
+- End with an engagement question ("How is your team handling X?" or "What's your approach to Y?")
+- 150-250 words per post
+
+HIGH-PERFORMING LINKEDIN FORMATS (use a different format for each post):
+
+1. **Insight → Framework → Product as Proof**: Open with a non-obvious industry insight, present a mental model or framework, then reference the product as an example of the framework in action.
+   Structure: Hook line → Insight (2 short paragraphs) → Framework/principle → Product mention → Engagement question
+
+2. **Story → Lesson → Recommendation**: Tell a brief personal/team story about a pain point, extract a broader lesson, then naturally recommend the product.
+   Structure: Hook line → Story (2-3 short paragraphs) → Lesson learned → Soft product mention → Engagement question
 
 **Blog Articles – Use the PAS Framework:**
 Structure each article as:
@@ -531,7 +545,7 @@ Your job is to:
    - Remove any hallucinated features not supported by the repository data
    - Strengthen weak hooks and calls-to-action
    - For X posts: ensure they sound like a real person posting, NOT a brand. Check they use line breaks, have no hashtags, max 1 emoji, under 280 chars. They should feel like genuine peer recommendations, not ads. Rewrite any that start with "Introducing", "Excited to", or use corporate language.
-   - For LinkedIn: ensure professional but not stiff. Lead with insights, not product names.
+   - For LinkedIn: ensure NO hashtags, short paragraphs (max 2 sentences each) with blank lines between them, hook-first opening that works before the "See more" fold, and ends with an engagement question. Rewrite any that start with the product name or read like a press release.
    - Tighten prose: remove filler words and vague claims
    - Improve readability and flow
 
