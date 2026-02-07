@@ -60,9 +60,20 @@ const Index = () => {
     } catch (error) {
       console.error('Analysis failed:', error);
       const msg = error instanceof Error ? error.message : "";
-      const isPrivateRepoError = msg.toLowerCase().includes("private") || msg.toLowerCase().includes("could not access");
+      const lowerMsg = msg.toLowerCase();
+      const isRepoAccessError =
+        lowerMsg.includes("private") ||
+        lowerMsg.includes("could not access") ||
+        lowerMsg.includes("does not have access") ||
+        lowerMsg.includes("cannot access") ||
+        lowerMsg.includes("token") ||
+        lowerMsg.includes("fine-grained");
 
-      if (isPrivateRepoError && !githubToken) {
+      if (isRepoAccessError) {
+        // Show the private repo dialog — with the error if a token was already provided
+        if (githubToken) {
+          setTokenError(msg);
+        }
         setPrivateRepoOpen(true);
       } else {
         toast({
