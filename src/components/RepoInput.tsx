@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import { Github, ArrowRight, Loader2, Key } from "lucide-react";
+import { Github, ArrowRight, Loader2, Key, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ContentPreferences, TONE_OPTIONS, AUDIENCE_OPTIONS, INDUSTRY_OPTIONS, VOICE_OPTIONS } from "@/components/ContentPreferences";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { TONE_OPTIONS, AUDIENCE_OPTIONS, INDUSTRY_OPTIONS, VOICE_OPTIONS } from "@/components/ContentPreferences";
 import type { ContentPreferences as PreferencesType } from "@/types/analysis";
 import { DEFAULT_PREFERENCES } from "@/types/analysis";
 
@@ -43,18 +48,14 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
     return url.includes("github.com/") && url.split("/").length >= 4;
   };
 
-  const chips = [
-    { key: 'tone' as const, options: TONE_OPTIONS, current: preferences.tone },
-    { key: 'audience' as const, options: AUDIENCE_OPTIONS, current: preferences.audience },
-    { key: 'industry' as const, options: INDUSTRY_OPTIONS, current: preferences.industry },
-    { key: 'voice' as const, options: VOICE_OPTIONS, current: preferences.voice },
-  ];
+  const [openChip, setOpenChip] = useState<string | null>(null);
 
-  const cyclePreference = (key: keyof PreferencesType, options: { value: string }[], currentValue: string) => {
-    const currentIndex = options.findIndex((o) => o.value === currentValue);
-    const nextIndex = (currentIndex + 1) % options.length;
-    setPreferences({ ...preferences, [key]: options[nextIndex].value });
-  };
+  const chips = [
+    { key: 'tone' as const, label: 'Tone', options: TONE_OPTIONS, current: preferences.tone },
+    { key: 'audience' as const, label: 'Audience', options: AUDIENCE_OPTIONS, current: preferences.audience },
+    { key: 'industry' as const, label: 'Industry', options: INDUSTRY_OPTIONS, current: preferences.industry },
+    { key: 'voice' as const, label: 'Voice', options: VOICE_OPTIONS, current: preferences.voice },
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3">
@@ -91,38 +92,89 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
         </Button>
       </div>
 
-      {/* Selected preferences chips */}
+      {/* Preference chips with dropdowns */}
       <div className="flex flex-wrap gap-1.5">
         {chips.map((chip) => {
           const isDefault = chip.current === DEFAULT_PREFERENCES[chip.key];
           const label = getLabel(chip.current, chip.options);
           return (
-            <button
+            <Popover
               key={chip.key}
-              type="button"
-              disabled={isLoading}
-              onClick={() => cyclePreference(chip.key, chip.options, chip.current)}
-              className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                isDefault
-                  ? "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"
-                  : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
-              }`}
+              open={openChip === chip.key}
+              onOpenChange={(open) => setOpenChip(open ? chip.key : null)}
             >
-              {label}
-            </button>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
+                    isDefault
+                      ? "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"
+                      : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {!isDefault && (
+                    <span
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreferences({ ...preferences, [chip.key]: DEFAULT_PREFERENCES[chip.key] });
+                      }}
+                      className="hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-1" align="start">
+                <div className="flex flex-col">
+                  {chip.options.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setPreferences({ ...preferences, [chip.key]: option.value });
+                        setOpenChip(null);
+                      }}
+                      className={`text-left text-xs px-3 py-2 rounded-md transition-colors ${
+                        chip.current === option.value
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      <div>{option.label}</div>
+                      {'description' in option && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{(option as any).description}</div>
+                      )}
+                    </button>
+                  ))}
+                  {!isDefault && (
+                    <>
+                      <div className="h-px bg-border my-1" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreferences({ ...preferences, [chip.key]: DEFAULT_PREFERENCES[chip.key] });
+                          setOpenChip(null);
+                        }}
+                        className="text-left text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary transition-colors"
+                      >
+                        Reset to default
+                      </button>
+                    </>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           );
         })}
       </div>
 
       {/* Centered controls */}
       <div className="flex flex-col items-center gap-3">
-        {/* Content Preferences & Private Repo toggles */}
         <div className="flex items-center gap-2">
-          <ContentPreferences
-            preferences={preferences}
-            onChange={setPreferences}
-            disabled={isLoading}
-          />
           <button
             type="button"
             onClick={() => setShowToken(!showToken)}
