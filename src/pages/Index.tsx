@@ -2,7 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
-import { ContentShowcase } from "@/components/ContentShowcase";
+import { FeaturesShowcase } from "@/components/FeaturesShowcase";
+import { PricingSection } from "@/components/PricingSection";
+import { FAQSection } from "@/components/FAQSection";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { analyzeRepository } from "@/lib/api";
@@ -79,30 +81,9 @@ const Index = () => {
             <Hero onAnalyze={handleAnalyze} isLoading={isLoading} />
             {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
 
-            <section
-              id="showcase"
-              className="relative px-6 md:px-10 pb-24"
-            >
-              <div className="max-w-3xl mx-auto space-y-6">
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4 }}
-                  className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  See what we generate
-                </motion.p>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  <ContentShowcase />
-                </motion.div>
-              </div>
-            </section>
+            <FeaturesShowcase />
+            <PricingSection />
+            <FAQSection />
           </motion.div>
         ) : (
           <motion.div

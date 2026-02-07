@@ -27,6 +27,12 @@ export function Navbar() {
           How it works
         </a>
         <a
+          href="#pricing"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+        >
+          Pricing
+        </a>
+        <a
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
