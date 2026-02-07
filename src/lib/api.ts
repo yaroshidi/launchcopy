@@ -15,7 +15,21 @@ export async function analyzeRepository(
 
   if (error) {
     console.error('Edge function error:', error);
-    throw new Error(error.message || 'Failed to analyze repository');
+    // Extract the actual error message from the response context if available
+    let message = 'Failed to analyze repository';
+    try {
+      // FunctionsHttpError stores the response in error.context
+      const ctx = (error as any).context;
+      if (ctx && typeof ctx.json === 'function') {
+        const body = await ctx.json();
+        if (body?.error) message = body.error;
+      } else if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // fallback to generic message
+    }
+    throw new Error(message);
   }
 
   if (data?.error) {
