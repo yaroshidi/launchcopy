@@ -1,108 +1,70 @@
 
+# Deep Source Code Scanning for Accurate Content Generation
 
-# Landing Page Upgrade -- BabyLoveGrowth-Style Sections
+## Problem
 
-Inspired by BabyLoveGrowth.ai, we'll add three new sections below the hero to better communicate value and convert visitors: a features showcase with flanking cards, a pricing section, and an FAQ.
+The analysis engine currently relies heavily on the README file and only skims 3 top-level source files. When the README is outdated or inaccurate, the generated content doesn't reflect what the app actually does. The source code -- which is the truth -- is barely read.
 
----
+## What Changes
 
-## What We're Adding
+The context-gathering step in the backend function will be upgraded to recursively scan the repository's source code, intelligently selecting the most informative files to read. This gives the AI a much richer understanding of what the project actually does.
 
-### 1. Features Showcase Section (replaces current simple "See what we generate")
+## How It Works
 
-A 3-column layout inspired by BabyLoveGrowth's content preview page:
+### 1. Recursive Directory Tree (new)
 
-- **Center column**: The existing `ContentShowcase` component (tabbed social/blog/case study previews)
-- **Left column**: Stacked feature cards explaining content quality (e.g., "Two-Pass AI Refinement", "Platform-Optimized Formatting", "Real Codebase Analysis")
-- **Right column**: More feature cards (e.g., "Quality Scored", "Ready to Publish", "SEO-Optimized Structure")
+Instead of only listing the root of `src/`, the function will recursively fetch up to 3 levels deep across key directories (`src/`, `lib/`, `app/`, `pages/`, `routes/`, `api/`, `components/`). This builds a complete picture of the project structure.
 
-Each feature card will have:
-- A small category badge (like "AI Quality", "Content Optimization")
-- A bold title
-- A short description
-- Glass card styling matching the existing design system
+### 2. Smart File Selection (new)
 
-On mobile, the side columns collapse below the showcase.
+Not all files are equally informative. The function will prioritize reading files that reveal functionality:
 
-### 2. Pricing Section
+**High-priority files** (read first, up to 3000 chars each):
+- Entry points: `index.ts`, `main.ts`, `App.tsx`, `app.ts`
+- Route definitions: files in `routes/`, `pages/`, or containing "route" in the name
+- API handlers: files in `api/`, `handlers/`, `controllers/`
+- Configuration: `config.ts`, `constants.ts`, `.env.example`
 
-A clean section with gradient headline ("Invest in Quality Content" or similar) showing:
+**Medium-priority files** (read next, up to 2000 chars each):
+- Component files in `components/` (sample up to 5)
+- Hook/utility files in `hooks/`, `utils/`, `lib/`
+- Database/model files: `schema.ts`, `models/`, `types/`
 
-- **Free tier card**: What unauthed users get (1 free preview per content type, product summary)
-- **Pro tier card** (highlighted): What signing up unlocks (all 5 social posts, 3 blogs, 3 case studies, export options, regeneration)
-- Feature checklist with check icons
-- CTA buttons linking to /auth
+**Low-priority files** (structure only, not read):
+- Test files, style files, generated files
 
-Styled with the existing glass-card aesthetic, no jarring new colors.
+### 3. Budget-Aware Reading
 
-### 3. FAQ Section
+The function will track total context size and stop reading once it hits ~30,000 characters (up from the current ~15,000). This keeps the AI request fast while providing 2x more signal.
 
-An accordion-based FAQ section answering common questions:
-- "What repos can I analyze?"
-- "How does the AI generate content?"
-- "Is my code stored or shared?"
-- "What platforms are the social posts optimized for?"
-- "Can I edit the generated content?"
+### 4. File Tree in Context
 
-Uses the existing Radix accordion component.
-
----
-
-## New Files
-
-| File | Purpose |
-|------|---------|
-| `src/components/FeaturesShowcase.tsx` | 3-column layout with feature cards flanking the content showcase |
-| `src/components/PricingSection.tsx` | Free vs Pro pricing cards with feature lists |
-| `src/components/FAQSection.tsx` | Accordion-based FAQ |
-
-## Modified Files
-
-| File | What changes |
-|------|-------------|
-| `src/pages/Index.tsx` | Import and render the three new sections below the hero |
-| `src/components/Navbar.tsx` | Add "Pricing" nav link alongside "How it works" |
-
----
+The full directory tree (up to 3 levels) will be included in the context so the AI can see the overall architecture even for files it didn't read. Seeing `src/components/Dashboard.tsx`, `src/pages/Auth.tsx`, `src/lib/api.ts` tells the AI a lot even without reading those files.
 
 ## Technical Details
 
-### FeaturesShowcase.tsx
+### File: `supabase/functions/analyze-repo/index.ts`
 
-- Wraps the existing `ContentShowcase` in a wider `max-w-6xl` container
-- Left and right columns are arrays of feature card objects rendered with `motion.div` stagger animations
-- Uses `whileInView` for scroll-triggered entrance
-- Responsive: `grid grid-cols-1 lg:grid-cols-[240px_1fr_240px]` so side cards stack below on mobile
-- Feature cards use `glass-card` utility class with `border-border/50`
+**New helper function: `fetchDirRecursive`**
+- Recursively fetches directory contents from GitHub API up to a specified depth
+- Returns a flat list of all files with their full paths
+- Respects rate limits by capping total API calls at ~15
 
-Feature card data structure:
-```text
-{ badge: "AI Quality", title: "Two-Pass Refinement", description: "Content is generated then refined..." }
-```
+**Updated `gatherRepoContext` function:**
+- Replace the current single-directory scan (lines 174-193) with the recursive approach
+- Add a priority scoring system for file selection
+- Read 10-15 source files instead of 3, selected by priority
+- Include the full directory tree listing in context output
+- Track character budget to avoid oversized prompts
 
-### PricingSection.tsx
+**Changes to existing sections:**
+- Section 6 (source folder scan) will be completely rewritten
+- A new Section 6b (smart file reading) will be added
+- The directory structure section (Section 5) will show the full recursive tree instead of just root files
 
-- Section with gradient headline text
-- Two cards side by side: Free (outline border) and Pro (primary gradient border, highlighted)
-- Each card has a feature list with check/x icons
-- Pro card has a "Sign up free" CTA button linking to `/auth`
-- Uses existing `Card`, `Button` components
-- Urgency/social proof line: "Join 2,400+ developers" (matches hero stat)
+### Estimated API calls per analysis
+- Current: ~8-10 GitHub API calls
+- New: ~20-25 GitHub API calls (still well within rate limits)
 
-### FAQSection.tsx
-
-- Uses `@radix-ui/react-accordion` (already installed)
-- 5-6 questions with answers
-- Styled to match the dark glassmorphic theme
-- `max-w-3xl mx-auto` for readability
-
-### Index.tsx changes
-
-Current order: Hero -> ContentShowcase section
-
-New order: Hero -> FeaturesShowcase (wrapping ContentShowcase) -> PricingSection -> FAQSection
-
-### Navbar.tsx changes
-
-Add a "Pricing" anchor link (`href="#pricing"`) next to the existing "How it works" link.
-
+### No frontend changes needed
+This is entirely a backend improvement. The same UI displays the results -- they'll just be more accurate and specific.
