@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
@@ -11,6 +11,18 @@ import { PrivateRepoDialog } from "@/components/PrivateRepoDialog";
 import { analyzeRepository } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
+
+/** Delays rendering of the AnalyzingOverlay so fast-fail errors (like private repo 422s)
+ *  never flash a full-screen overlay. */
+function DelayedOverlay({ repoUrl }: { repoUrl: string }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 1200);
+    return () => clearTimeout(t);
+  }, []);
+  if (!show) return null;
+  return <AnalyzingOverlay repoUrl={repoUrl} />;
+}
 
 const STORAGE_KEY = 'repo_analysis';
 
@@ -122,7 +134,7 @@ const Index = () => {
             transition={{ duration: 0.3 }}
           >
             <Hero onAnalyze={handleAnalyze} isLoading={isLoading} />
-            {isLoading && <AnalyzingOverlay repoUrl={currentRepoUrl} />}
+            {isLoading && !privateRepoOpen && <DelayedOverlay repoUrl={currentRepoUrl} />}
 
             <FeaturesShowcase />
             <PricingSection />
