@@ -85,6 +85,76 @@ async function checkRepoAccess(owner: string, repo: string, githubToken: string)
   }
 }
 
+// ── Recursive directory scanner ─────────────────────────
+
+interface FileEntry {
+  name: string;
+  path: string;
+  type: string;
+  download_url?: string;
+}
+
+async function fetchDirRecursive(
+  owner: string,
+  repo: string,
+  dirPath: string,
+  githubToken?: string,
+  maxDepth = 3,
+  currentDepth = 0,
+  apiCallCount = { count: 0 },
+): Promise<FileEntry[]> {
+  if (currentDepth >= maxDepth || apiCallCount.count >= 15) return [];
+  apiCallCount.count++;
+
+  const items: FileEntry[] = [];
+  try {
+    const contents = await fetchGitHubJSON(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}`,
+      githubToken,
+    );
+    if (!Array.isArray(contents)) return [];
+
+    for (const item of contents) {
+      items.push({ name: item.name, path: item.path, type: item.type, download_url: item.download_url });
+      if (item.type === 'dir' && apiCallCount.count < 15) {
+        const children = await fetchDirRecursive(owner, repo, item.path, githubToken, maxDepth, currentDepth + 1, apiCallCount);
+        items.push(...children);
+      }
+    }
+  } catch {
+    console.log(`Could not fetch directory: ${dirPath}`);
+  }
+  return items;
+}
+
+// ── File priority scoring ───────────────────────────────
+
+const SKIP_PATTERNS = /\.(test|spec|stories|story|snap|mock|fixture|d)\.(ts|tsx|js|jsx)$|\.css$|\.scss$|\.less$|\.svg$|\.png$|\.jpg$|\.ico$|\.lock$|\.map$|package-lock|yarn\.lock|bun\.lockb|node_modules|\.git\//i;
+
+function scoreFile(filePath: string): number {
+  if (SKIP_PATTERNS.test(filePath)) return -1; // skip entirely
+
+  const lc = filePath.toLowerCase();
+  const name = lc.split('/').pop() || '';
+
+  // High priority – entry points and route definitions
+  if (/^(index|main|app|server)\.(ts|tsx|js|jsx|py|rs|go)$/.test(name)) return 100;
+  if (/route|router|routing/i.test(name)) return 95;
+  if (/\/(pages|routes|api|handlers|controllers)\//.test(lc)) return 90;
+  if (/^(config|constants)\.(ts|js|tsx|jsx)$/.test(name)) return 85;
+  if (name === '.env.example' || name === '.env.local.example') return 85;
+
+  // Medium priority – components, hooks, lib, schemas
+  if (/\/(hooks|utils|lib|helpers)\//.test(lc)) return 60;
+  if (/schema|models?|types|interfaces/i.test(name)) return 65;
+  if (/\/(components)\//.test(lc) && !/\/ui\//.test(lc)) return 50; // skip generic UI primitives
+
+  // Source code files get a base score
+  if (/\.(ts|tsx|js|jsx|py|rs|go|java|rb|ex|exs|swift|kt)$/i.test(name)) return 30;
+
+  return 0; // non-code files
+}
+
 // ── Deeper context gathering ────────────────────────────
 
 async function gatherRepoContext(owner: string, repo: string, githubToken?: string): Promise<{ context: string; hasAccess: boolean; tokenInfo?: { valid: boolean; user?: string; scopes?: string }; repoAccessStatus?: number }> {
@@ -163,34 +233,72 @@ async function gatherRepoContext(owner: string, repo: string, githubToken?: stri
     } catch { /* skip */ }
   }
 
-  // 5. Directory structure
-  if (files.length > 0) {
-    context += "=== Directory Structure ===\n";
-    for (const file of files.slice(0, 30)) {
-      context += `${file.type === 'dir' ? '📁' : '📄'} ${file.name}\n`;
+  // 5. Recursive directory tree + smart file reading
+  const SOURCE_DIRS = ['src', 'lib', 'app', 'pages', 'routes', 'api', 'components', 'server', 'packages'];
+  const dirsToScan = files
+    .filter(f => f.type === 'dir' && SOURCE_DIRS.includes(f.name.toLowerCase()))
+    .map(f => f.name);
+
+  // Also include root-level source files in the tree
+  let allFiles: FileEntry[] = files.map(f => ({
+    name: f.name,
+    path: f.path || f.name,
+    type: f.type,
+    download_url: f.download_url,
+  }));
+
+  // Recursively scan each key directory (up to 3 levels deep, capped at ~15 API calls)
+  const apiCallCount = { count: 0 };
+  for (const dir of dirsToScan) {
+    if (apiCallCount.count >= 15) break;
+    const dirFiles = await fetchDirRecursive(owner, repo, dir, githubToken, 3, 0, apiCallCount);
+    allFiles.push(...dirFiles);
+  }
+  console.log(`Recursive scan found ${allFiles.length} total entries (${apiCallCount.count} API calls used)`);
+
+  // Build the full directory tree for context
+  context += "\n=== Full Directory Tree ===\n";
+  const treeFiles = allFiles.slice(0, 200); // cap at 200 entries to keep context lean
+  for (const f of treeFiles) {
+    const depth = (f.path.match(/\//g) || []).length;
+    const indent = '  '.repeat(depth);
+    context += `${indent}${f.type === 'dir' ? '📁' : '📄'} ${f.path}\n`;
+  }
+  context += '\n';
+
+  // 6. Smart file selection – score, sort, and read the most informative files
+  const CONTEXT_BUDGET = 30000;
+  let usedBudget = context.length;
+
+  const scoredFiles = allFiles
+    .filter(f => f.type === 'file' && f.download_url)
+    .map(f => ({ ...f, score: scoreFile(f.path) }))
+    .filter(f => f.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const HIGH_PRIORITY_THRESHOLD = 80;
+  const filesToRead = scoredFiles.slice(0, 15); // cap at 15 files max
+  let filesRead = 0;
+
+  for (const sf of filesToRead) {
+    if (usedBudget >= CONTEXT_BUDGET) {
+      console.log(`Context budget reached (${usedBudget} chars), stopping file reads after ${filesRead} files`);
+      break;
+    }
+    const maxChars = sf.score >= HIGH_PRIORITY_THRESHOLD ? 3000 : 2000;
+    try {
+      const content = await fetchRawFile(sf.download_url!, githubToken);
+      if (content && content.length > 10) {
+        const trimmed = content.slice(0, maxChars);
+        context += `\n=== Source: ${sf.path} (priority: ${sf.score}) ===\n${trimmed}\n`;
+        usedBudget += trimmed.length + sf.path.length + 50;
+        filesRead++;
+      }
+    } catch {
+      console.log(`Failed to read file: ${sf.path}`);
     }
   }
-
-  // 6. Source folder structure + sample source files
-  const srcDir = files.find(f => (f.name === 'src' || f.name === 'lib' || f.name === 'app') && f.type === 'dir');
-  if (srcDir) {
-    try {
-      const srcFiles: GitHubFile[] = await fetchGitHubJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${srcDir.name}`, githubToken) || [];
-      context += `\n=== ${srcDir.name}/ Structure ===\n`;
-      for (const file of srcFiles.slice(0, 20)) {
-        context += `  ${file.type === 'dir' ? '📁' : '📄'} ${file.name}\n`;
-      }
-
-      // Read up to 3 key source files for deeper understanding
-      const codeFiles = srcFiles.filter(f => f.type === 'file' && /\.(ts|js|py|rs|go|java|rb)$/i.test(f.name)).slice(0, 3);
-      for (const cf of codeFiles) {
-        if (cf.download_url) {
-          const src = await fetchRawFile(cf.download_url, githubToken);
-          if (src) context += `\n=== Source: ${srcDir.name}/${cf.name} ===\n${src.slice(0, 2000)}\n`;
-        }
-      }
-    } catch { console.log(`Could not fetch ${srcDir.name} contents`); }
-  }
+  console.log(`Read ${filesRead} source files, total context: ${usedBudget} chars`);
 
   // 7. Latest release notes
   try {
