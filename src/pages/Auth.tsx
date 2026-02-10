@@ -164,7 +164,7 @@ export default function Auth() {
           {/* Header */}
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold gradient-text">
-              RepoToContent
+              LaunchCopy
             </h1>
             <p className="text-sm text-muted-foreground">
               {isSignUp ? "Create your account" : "Welcome back"}

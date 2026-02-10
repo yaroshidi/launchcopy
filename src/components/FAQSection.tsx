@@ -54,7 +54,7 @@ export function FAQSection() {
             Frequently asked questions
           </h2>
           <p className="text-muted-foreground text-base">
-            Everything you need to know about RepoToContent.
+            Everything you need to know about LaunchCopy.
           </p>
         </motion.div>
 
