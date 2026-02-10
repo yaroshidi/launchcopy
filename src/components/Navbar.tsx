@@ -32,6 +32,14 @@ export function Navbar() {
         >
           Pricing
         </a>
+        {user && (
+          <Link
+            to="/my-scans"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+          >
+            My Scans
+          </Link>
+        )}
         <a
           href="https://github.com"
           target="_blank"
