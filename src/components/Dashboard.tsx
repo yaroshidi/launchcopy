@@ -112,7 +112,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
               {isUnlocked && <ExportMenu analysis={analysis} />}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Powered by</span>
-                <span className="gradient-text font-semibold text-sm">RepoToContent AI</span>
+                <span className="gradient-text font-semibold text-sm">LaunchCopy AI</span>
               </div>
             </div>
           </div>

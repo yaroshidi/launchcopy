@@ -19,9 +19,9 @@ export function BlogCard() {
       </p>
       <div className="flex items-center gap-2">
         <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-[10px] font-bold text-accent">
-          RC
+          LC
         </div>
-        <span className="text-xs text-muted-foreground">by RepoToContent AI</span>
+        <span className="text-xs text-muted-foreground">by LaunchCopy AI</span>
       </div>
     </div>
   );

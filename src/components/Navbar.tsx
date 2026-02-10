@@ -16,7 +16,7 @@ export function Navbar() {
       className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-10 bg-background/60 backdrop-blur-xl border-b border-border/40"
     >
       <span className="text-lg font-bold tracking-tight gradient-text">
-        RepoToContent
+        LaunchCopy
       </span>
 
       <div className="flex items-center gap-4">
