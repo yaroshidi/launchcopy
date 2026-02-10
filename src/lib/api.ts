@@ -6,6 +6,7 @@ export async function analyzeRepository(
   githubToken?: string,
   preferences?: ContentPreferences
 ): Promise<RepoAnalysis> {
+  // ... keep existing code
   console.log('Calling analyze-repo edge function for:', repoUrl);
   console.log('With preferences:', preferences);
 
@@ -15,10 +16,8 @@ export async function analyzeRepository(
 
   if (error) {
     console.error('Edge function error:', error);
-    // Extract the actual error message from the response context if available
     let message = 'Failed to analyze repository';
     try {
-      // FunctionsHttpError stores the response in error.context
       const ctx = (error as any).context;
       if (ctx && typeof ctx.json === 'function') {
         const body = await ctx.json();
@@ -42,6 +41,90 @@ export async function analyzeRepository(
     analyzedAt: new Date(data.analyzedAt),
     refinedAt: data.refinedAt ? new Date(data.refinedAt) : undefined,
   } as RepoAnalysis;
+}
+
+// ── Save & Load analyses ────────────────────────────────
+
+export async function saveAnalysis(
+  analysis: RepoAnalysis,
+  preferences?: ContentPreferences
+): Promise<string> {
+  const { data, error } = await supabase
+    .from('analyses' as any)
+    .insert({
+      repo_url: analysis.repoUrl,
+      summary: analysis.summary as any,
+      content: analysis.content as any,
+      scenarios: analysis.scenarios as any,
+      preferences: (preferences || null) as any,
+      readme_accuracy: (analysis.readmeAccuracy || null) as any,
+      analyzed_at: analysis.analyzedAt.toISOString(),
+      refined_at: analysis.refinedAt?.toISOString() || null,
+    } as any)
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('Failed to save analysis:', error);
+    throw new Error('Failed to save analysis');
+  }
+  return (data as any).id;
+}
+
+export async function loadUserAnalyses(): Promise<
+  Array<{ id: string; repoUrl: string; summary: ProductSummary; analyzedAt: Date }>
+> {
+  const { data, error } = await supabase
+    .from('analyses' as any)
+    .select('id, repo_url, summary, analyzed_at')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('Failed to load analyses:', error);
+    return [];
+  }
+
+  return ((data as any[]) || []).map((row: any) => ({
+    id: row.id,
+    repoUrl: row.repo_url,
+    summary: row.summary as ProductSummary,
+    analyzedAt: new Date(row.analyzed_at),
+  }));
+}
+
+export async function loadAnalysisById(id: string): Promise<RepoAnalysis | null> {
+  const { data, error } = await supabase
+    .from('analyses' as any)
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const row = data as any;
+
+  return {
+    id: row.id,
+    repoUrl: row.repo_url,
+    summary: row.summary,
+    content: row.content,
+    scenarios: row.scenarios || [],
+    analyzedAt: new Date(row.analyzed_at),
+    refinedAt: row.refined_at ? new Date(row.refined_at) : undefined,
+    readmeAccuracy: row.readme_accuracy,
+  };
+}
+
+export async function deleteAnalysis(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('analyses' as any)
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Failed to delete analysis:', error);
+    throw new Error('Failed to delete analysis');
+  }
 }
 
 export type ContentType = 'social' | 'blog' | 'casestudies';

@@ -8,8 +8,9 @@ import { FAQSection } from "@/components/FAQSection";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { PrivateRepoDialog } from "@/components/PrivateRepoDialog";
-import { analyzeRepository } from "@/lib/api";
+import { analyzeRepository, saveAnalysis } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
 
 /** Delays rendering of the AnalyzingOverlay so fast-fail errors (like private repo 422s)
@@ -50,6 +51,7 @@ const Index = () => {
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
   
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
@@ -59,6 +61,16 @@ const Index = () => {
       repoUrl: url,
       preferences,
     }));
+
+    // Auto-save to user account if logged in
+    if (user) {
+      try {
+        const id = await saveAnalysis(result, preferences);
+        setAnalysis((prev) => prev ? { ...prev, id } : prev);
+      } catch (e) {
+        console.error('Auto-save failed:', e);
+      }
+    }
   };
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
