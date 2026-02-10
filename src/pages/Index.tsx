@@ -48,8 +48,7 @@ const Index = () => {
   const [currentRepoUrl, setCurrentRepoUrl] = useState(saved?.repoUrl ?? "");
   const [lastPreferences, setLastPreferences] = useState<ContentPreferences | undefined>(saved?.preferences);
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
-  const [retryingWithToken, setRetryingWithToken] = useState(false);
-  const [tokenError, setTokenError] = useState<string | undefined>();
+  
   const { toast } = useToast();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
@@ -82,12 +81,7 @@ const Index = () => {
         lowerMsg.includes("fine-grained");
 
       if (isRepoAccessError) {
-        // Clear the bad token so it doesn't auto-send on the next attempt
         localStorage.removeItem("github_token");
-        // Show the private repo dialog — with the error if a token was already provided
-        if (githubToken) {
-          setTokenError(msg);
-        }
         setPrivateRepoOpen(true);
       } else {
         toast({
@@ -101,20 +95,8 @@ const Index = () => {
     }
   };
 
-  const handleTokenSubmit = async (token: string) => {
-    setRetryingWithToken(true);
-    setTokenError(undefined);
-    try {
-      await runAnalysis(currentRepoUrl, token, lastPreferences);
-      setPrivateRepoOpen(false);
-    } catch (error) {
-      console.error('Retry with token failed:', error);
-      const msg = error instanceof Error ? error.message : "Failed to analyze repository. Check your token and try again.";
-      setTokenError(msg);
-    } finally {
-      setRetryingWithToken(false);
-    }
-  };
+
+
 
   const handleBack = () => {
     sessionStorage.removeItem(STORAGE_KEY);
@@ -155,14 +137,8 @@ const Index = () => {
 
       <PrivateRepoDialog
         open={privateRepoOpen}
-        onOpenChange={(open) => {
-          setPrivateRepoOpen(open);
-          if (!open) setTokenError(undefined);
-        }}
+        onOpenChange={setPrivateRepoOpen}
         repoUrl={currentRepoUrl}
-        onSubmitToken={handleTokenSubmit}
-        isLoading={retryingWithToken}
-        errorMessage={tokenError}
       />
     </div>
   );
