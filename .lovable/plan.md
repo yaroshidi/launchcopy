@@ -1,70 +1,51 @@
 
-# Deep Source Code Scanning for Accurate Content Generation
 
-## Problem
+# My Scans Dashboard
 
-The analysis engine currently relies heavily on the README file and only skims 3 top-level source files. When the README is outdated or inaccurate, the generated content doesn't reflect what the app actually does. The source code -- which is the truth -- is barely read.
+A new `/my-scans` page where logged-in users can see all their past repository analyses in a clean, organized layout.
 
-## What Changes
+## What You'll Get
 
-The context-gathering step in the backend function will be upgraded to recursively scan the repository's source code, intelligently selecting the most informative files to read. This gives the AI a much richer understanding of what the project actually does.
+- A dedicated "My Scans" page showing all your previously analyzed repos
+- Each scan displayed as a card with the repo name, a brief description, scan date, and content counts (posts, articles, case studies)
+- Click any scan to open it in the full content dashboard
+- Delete scans you no longer need
+- A "My Scans" link in the navbar and user menu for easy access
+- If you're not logged in, you'll be redirected to sign in
 
-## How It Works
+## Layout
 
-### 1. Recursive Directory Tree (new)
+Each scan card will show:
+- Repository name (extracted from the GitHub URL)
+- Product description (from the summary)
+- Date scanned
+- Quick stats: number of social posts, blog articles, and case studies
+- Actions: Open or Delete
 
-Instead of only listing the root of `src/`, the function will recursively fetch up to 3 levels deep across key directories (`src/`, `lib/`, `app/`, `pages/`, `routes/`, `api/`, `components/`). This builds a complete picture of the project structure.
-
-### 2. Smart File Selection (new)
-
-Not all files are equally informative. The function will prioritize reading files that reveal functionality:
-
-**High-priority files** (read first, up to 3000 chars each):
-- Entry points: `index.ts`, `main.ts`, `App.tsx`, `app.ts`
-- Route definitions: files in `routes/`, `pages/`, or containing "route" in the name
-- API handlers: files in `api/`, `handlers/`, `controllers/`
-- Configuration: `config.ts`, `constants.ts`, `.env.example`
-
-**Medium-priority files** (read next, up to 2000 chars each):
-- Component files in `components/` (sample up to 5)
-- Hook/utility files in `hooks/`, `utils/`, `lib/`
-- Database/model files: `schema.ts`, `models/`, `types/`
-
-**Low-priority files** (structure only, not read):
-- Test files, style files, generated files
-
-### 3. Budget-Aware Reading
-
-The function will track total context size and stop reading once it hits ~30,000 characters (up from the current ~15,000). This keeps the AI request fast while providing 2x more signal.
-
-### 4. File Tree in Context
-
-The full directory tree (up to 3 levels) will be included in the context so the AI can see the overall architecture even for files it didn't read. Seeing `src/components/Dashboard.tsx`, `src/pages/Auth.tsx`, `src/lib/api.ts` tells the AI a lot even without reading those files.
+---
 
 ## Technical Details
 
-### File: `supabase/functions/analyze-repo/index.ts`
+### 1. New page: `src/pages/MyScans.tsx`
+- Fetches saved analyses using the existing `loadUserAnalyses` API
+- Displays a grid of scan cards
+- Clicking a card calls `loadAnalysisById` and navigates to the dashboard view
+- Delete button calls `deleteAnalysis` with a confirmation
+- Empty state for users with no scans yet
+- Loading skeleton while data loads
 
-**New helper function: `fetchDirRecursive`**
-- Recursively fetches directory contents from GitHub API up to a specified depth
-- Returns a flat list of all files with their full paths
-- Respects rate limits by capping total API calls at ~15
+### 2. New route in `src/App.tsx`
+- Add `/my-scans` route pointing to the new page
 
-**Updated `gatherRepoContext` function:**
-- Replace the current single-directory scan (lines 174-193) with the recursive approach
-- Add a priority scoring system for file selection
-- Read 10-15 source files instead of 3, selected by priority
-- Include the full directory tree listing in context output
-- Track character budget to avoid oversized prompts
+### 3. Update `src/components/Navbar.tsx`
+- Add a "My Scans" link visible only to logged-in users
 
-**Changes to existing sections:**
-- Section 6 (source folder scan) will be completely rewritten
-- A new Section 6b (smart file reading) will be added
-- The directory structure section (Section 5) will show the full recursive tree instead of just root files
+### 4. Update `src/components/UserMenu.tsx`
+- Add a "My Scans" menu item in the dropdown
 
-### Estimated API calls per analysis
-- Current: ~8-10 GitHub API calls
-- New: ~20-25 GitHub API calls (still well within rate limits)
+### 5. Update `src/lib/api.ts` (`loadUserAnalyses`)
+- Extend the select query to also return content counts (or the full content JSON so we can count items client-side) to display stats on each card
 
-### No frontend changes needed
-This is entirely a backend improvement. The same UI displays the results -- they'll just be more accurate and specific.
+### 6. No database changes needed
+- The `analyses` table and RLS policies already support everything required
+
