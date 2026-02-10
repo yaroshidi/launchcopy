@@ -824,24 +824,24 @@ HIGH-PERFORMING LINKEDIN FORMATS (pick 2 different formats from this pool — ne
 5. **The Quiet Win**: Describe a small, overlooked improvement that compounds into a big deal.
    Structure: "Nobody talks about X." then Why X matters more than people think, How product addresses X, Engagement question
 
-**Blog Articles (3 articles, each using a DIFFERENT structure from this pool):**
+**Blog Articles (2 articles, each using a DIFFERENT structure from this pool):**
 
-1. **PAS (Problem-Agitate-Solve)**: Open with the pain point, amplify the pain with consequences, present the product as the solution with specific features and examples.
+1. **PAS (Problem-Agitate-Solve)**: Open with the pain point, amplify the pain with consequences, present the product as the solution. Focus on business outcomes, not code.
 
-2. **How-To Guide**: Practical, step-by-step walkthrough of achieving a specific outcome using the product. Include code snippets or configuration examples where relevant. Focus on the "aha" moments in each step.
+2. **Comparison / Before-After**: Show a specific workflow or task before and after adopting the product. Be concrete about what changes. Include real metrics or realistic estimates.
 
-3. **Comparison / Before-After**: Show a specific workflow or task before and after adopting the product. Be concrete about what changes. Include real metrics or realistic estimates.
+3. **Listicle with Depth**: "5 Ways [Product] Changes How You [Specific Task]". Each item goes deep with examples and specifics, not surface-level bullet points.
 
-4. **Listicle with Depth**: "5 Ways [Product] Changes How You [Specific Task]". Each item goes deep with examples and specifics, not surface-level bullet points.
-
-5. **The Deep Dive**: Pick one specific feature and explore it thoroughly. How it works, why it was built that way, what makes it different, and real-world impact.
+4. **The Deep Dive**: Pick one core benefit and explore it thoroughly. How it impacts teams, workflows, and outcomes. Focus on the "why it matters" not the "how it works technically."
 
 All blog articles must:
-- Be minimum 500 words
-- Include practical examples and code snippets where relevant
-- Reference actual features, APIs, or capabilities from the repository
-- Use headers and scannable formatting
+- Be approximately 800 words each (aim for 750-850 words)
+- Use markdown H2 headers (## Header) to break content into 3-5 clearly titled sections
+- Be written for a MARKETING audience, not a technical one. Focus on benefits, outcomes, and value, not code details or architecture
+- Avoid code snippets, technical jargon, or implementation details. If referencing a technical feature, explain what it DOES for the user, not HOW it works
+- Use concrete examples, customer scenarios, and business impact
 - NEVER open with "In today's..." or any banned opening pattern
+- Each article must use a different structure from the pool above
 
 **Case Studies (3 case studies, each using a DIFFERENT structure and industry):**
 
@@ -864,7 +864,7 @@ All case studies must:
 - Focus on benefits and outcomes, not just features
 - Use concrete examples and scenarios grounded in the repo's actual capabilities
 - For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts.
-- Generate exactly 3 blog articles, each with a different structure from the pool above.
+- Generate exactly 2 blog articles, each approximately 800 words, marketing-focused with markdown H2 headers (## Header), each with a different structure from the pool above. NO code snippets or technical deep-dives.
 - Generate exactly 3 case studies, each with a different structure, industry, and company size.
 - NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.
 - NEVER use any word or phrase from the BANNED list above.`;
@@ -914,7 +914,7 @@ Your job is to:
 4. PLATFORM-SPECIFIC CHECKS:
    - X posts: Would a real dev actually post this? If it reads like a brand account, rewrite as a peer recommendation. Check: line breaks present, no hashtags, max 1 emoji, under 280 chars.
    - LinkedIn: No hashtags, short paragraphs (max 2 sentences each) with blank lines, hook-first opening, ends with engagement question. Must not start with the product name.
-   - Blogs: Check that each article uses a different structure. No two should feel like the same template with different words.
+   - Blogs: Check that each article uses a different structure. No two should feel like the same template. Ensure proper markdown H2 headers (## Header) are used to break content into sections. Content should be marketing-focused with no code snippets or overly technical language. Each article should be approximately 800 words.
    - Case studies: Each must feel like a different company in a different industry. Metrics should feel plausible, not suspiciously round numbers.
 
 5. SCORE each piece on four dimensions (1-10 scale):

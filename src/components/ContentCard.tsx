@@ -202,6 +202,20 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
               className="min-h-[120px] resize-none bg-secondary/30 border-primary/20 focus:border-primary"
               autoFocus
             />
+          ) : type === "blog" || type === "casestudy" ? (
+            <div className="prose prose-sm prose-invert max-w-none">
+              {displayContent.split('\n').map((line, i) => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('## ')) {
+                  return <h2 key={i} className="text-lg font-bold text-foreground mt-6 mb-2 first:mt-0">{trimmed.slice(3)}</h2>;
+                }
+                if (trimmed.startsWith('### ')) {
+                  return <h3 key={i} className="text-base font-semibold text-foreground mt-4 mb-1">{trimmed.slice(4)}</h3>;
+                }
+                if (trimmed === '') return <br key={i} />;
+                return <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{trimmed}</p>;
+              })}
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
               {displayContent}
