@@ -845,27 +845,30 @@ All blog articles must:
 
 **Case Studies (3 case studies, each using a DIFFERENT structure and industry):**
 
-1. **STAR (Situation-Task-Action-Result)**: Classic case study. Set the scene, define the challenge, show the implementation with specific product features, quantify the results.
+1. **STAR (Situation-Task-Action-Result)**: Classic case study. Set the scene, define the challenge, describe the solution in business terms (what capabilities were used, what changed), quantify the results.
 
 2. **Before/After Narrative**: Tell the story chronologically. What was life like before? What was the turning point? What does life look like now? Focus on the human experience alongside metrics.
 
 3. **The Unexpected Win**: The client adopted the product for one reason but discovered unexpected benefits. Lead with the surprise. This creates a more authentic, less formulaic narrative.
 
 All case studies must:
+- Be MARKETING-FOCUSED: describe what the product does for the customer, NOT how it works technically
+- NEVER mention specific functions, methods, class names, API endpoints, code patterns, or technical implementation details
+- Talk about CAPABILITIES and OUTCOMES, not code. Example: say "automated their deployment pipeline" NOT "used the deployWithConfig() function"
 - Make companies and scenarios feel authentic and plausible
 - Include 3+ measurable outcomes with realistic metrics (avoid suspiciously round numbers)
-- Reference actual product capabilities from the repository, not generic descriptions
 - Use different industries and company sizes across the 3 studies
 
 === ABSOLUTE RULES ===
 - Base ALL content ONLY on what the repository actually does. NO invented features
-- Every piece of content must mention the product by name AND reference specific functionality
+- Every piece of content must mention the product by name AND reference specific capabilities (described in plain business language, NOT technical/code terms)
 - Make content accessible to non-technical readers
-- Focus on benefits and outcomes, not just features
+- Focus on benefits and outcomes, not features or implementation details
+- NEVER reference specific code constructs: no function names, no class names, no file paths, no API routes, no configuration keys, no CLI flags
 - Use concrete examples and scenarios grounded in the repo's actual capabilities
 - For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts.
 - Generate exactly 2 blog articles, each approximately 800 words, marketing-focused with markdown H2 headers (## Header), each with a different structure from the pool above. NO code snippets or technical deep-dives.
-- Generate exactly 3 case studies, each with a different structure, industry, and company size.
+- Generate exactly 3 case studies, each with a different structure, industry, and company size. Marketing-focused, NO code references.
 - NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.
 - NEVER use any word or phrase from the BANNED list above.`;
 
