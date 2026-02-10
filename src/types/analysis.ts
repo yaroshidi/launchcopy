@@ -66,10 +66,12 @@ export interface GeneratedContent {
 }
 
 export interface RepoAnalysis {
+  id?: string;
   repoUrl: string;
   summary: ProductSummary;
   content: GeneratedContent;
   scenarios: string[];
   analyzedAt: Date;
   refinedAt?: Date;
+  readmeAccuracy?: any;
 }
