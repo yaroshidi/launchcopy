@@ -6,7 +6,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, History } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function UserMenu() {
   const { profile, user, signOut } = useAuth();
@@ -39,6 +40,12 @@ export function UserMenu() {
         <DropdownMenuItem disabled className="text-muted-foreground">
           <User className="mr-2 h-4 w-4" />
           {user?.email}
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/my-scans" className="flex items-center">
+            <History className="mr-2 h-4 w-4" />
+            My Scans
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />

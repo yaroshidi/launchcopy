@@ -72,11 +72,11 @@ export async function saveAnalysis(
 }
 
 export async function loadUserAnalyses(): Promise<
-  Array<{ id: string; repoUrl: string; summary: ProductSummary; analyzedAt: Date }>
+  Array<{ id: string; repoUrl: string; summary: ProductSummary; content: any; analyzedAt: Date }>
 > {
   const { data, error } = await supabase
     .from('analyses' as any)
-    .select('id, repo_url, summary, analyzed_at')
+    .select('id, repo_url, summary, content, analyzed_at')
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -89,6 +89,7 @@ export async function loadUserAnalyses(): Promise<
     id: row.id,
     repoUrl: row.repo_url,
     summary: row.summary as ProductSummary,
+    content: row.content,
     analyzedAt: new Date(row.analyzed_at),
   }));
 }
