@@ -42,7 +42,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    console.error("Portal error:", error);
+    return new Response(JSON.stringify({ error: "Failed to create portal session" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

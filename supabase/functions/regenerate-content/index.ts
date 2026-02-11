@@ -222,17 +222,67 @@ serve(async (req) => {
   }
 
   try {
-    const { repoUrl, summary, preferences, contentType, itemIndex } = await req.json();
+    // ── Auth check ──
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { createClient } = await import("npm:@supabase/supabase-js@2.57.2");
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userEmail = claimsData.claims.email as string;
 
-    if (!contentType || !summary) {
+    // ── Input validation ──
+    const body = await req.json();
+    const repoUrl = typeof body.repoUrl === 'string' ? body.repoUrl.trim() : '';
+    const summary = body.summary && typeof body.summary === 'object' ? body.summary : null;
+    const preferences = body.preferences && typeof body.preferences === 'object' ? body.preferences : undefined;
+    const contentType = typeof body.contentType === 'string' ? body.contentType : '';
+    const itemIndex = typeof body.itemIndex === 'number' ? body.itemIndex : undefined;
+
+    const validContentTypes = ['social', 'blog', 'casestudies'];
+    if (!contentType || !validContentTypes.includes(contentType)) {
       return new Response(
-        JSON.stringify({ error: 'contentType and summary are required' }),
+        JSON.stringify({ error: 'contentType must be one of: social, blog, casestudies' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    if (!summary || !summary.name || !summary.whatItDoes) {
+      return new Response(
+        JSON.stringify({ error: 'summary with name and whatItDoes is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── Server-side subscription check ──
+    const Stripe = (await import("https://esm.sh/stripe@18.5.0")).default;
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
+
+    let isPro = false;
+    if (userEmail) {
+      const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+      if (customers.data.length > 0) {
+        const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "active", limit: 1 });
+        isPro = subs.data.length > 0;
+      }
+    }
+
+    if (!isPro) {
+      return new Response(
+        JSON.stringify({ error: 'Premium subscription required for content regeneration.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+    if (!LOVABLE_API_KEY) throw new Error('Server configuration error');
 
     console.log(`Regenerating ${contentType}${itemIndex !== undefined ? ` item ${itemIndex}` : ' (all)'} for ${repoUrl}`);
 
@@ -371,7 +421,7 @@ Generate fresh, high-quality ${contentTypeLabel[contentType] || 'content'} with 
     console.error('Error regenerating content:', error);
     const status = error?.status || 500;
     return new Response(
-      JSON.stringify({ error: error?.message || 'Failed to regenerate content' }),
+      JSON.stringify({ error: status === 500 ? 'Failed to regenerate content' : (error?.message || 'Failed to regenerate content') }),
       { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
