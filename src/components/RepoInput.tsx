@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
-import { Github, ArrowRight, Loader2, Key, X } from "lucide-react";
+import { Github, ArrowRight, Loader2, Key, X, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverTrigger,
@@ -41,7 +48,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
       }
     }
   }, [isLoading]);
-  const [showToken, setShowToken] = useState(false);
+  const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [preferences, setPreferences] = useState<PreferencesType>(DEFAULT_PREFERENCES);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -102,60 +109,88 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
         </Button>
       </div>
 
-      {/* Private repo toggle - directly below analyze */}
-      <div className="flex flex-col gap-3 items-center justify-evenly float-right">
+      {/* Private repo button - right-aligned under Analyze */}
+      <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShowToken(!showToken)}
+          onClick={() => setTokenDialogOpen(true)}
           disabled={isLoading}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-          showToken ?
+          githubToken ?
           "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20" :
           "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"}`
           }>
-
           <span className="flex items-center gap-1">
             <Key className="w-3 h-3" />
-            {showToken ? "Hide token" : "Private repo"}
+            Private repo
+            {githubToken && <Check className="w-3 h-3 text-green-500" />}
           </span>
         </button>
+      </div>
 
-        {/* Token input */}
-        {showToken &&
-        <>
-            <div className="w-full flex items-center gap-2 p-2 rounded-xl glass-card border border-border/50">
-              <div className="flex items-center gap-3 pl-4">
+      {/* Token Dialog */}
+      <Dialog open={tokenDialogOpen} onOpenChange={setTokenDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Private Repository Access</DialogTitle>
+            <DialogDescription>
+              Enter a GitHub Personal Access Token to analyze private repositories.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-2 rounded-xl border border-border/50 bg-secondary/30">
+              <div className="flex items-center gap-3 pl-2">
                 <Key className="w-4 h-4 text-muted-foreground" />
               </div>
               <Input
-              type="password"
-              placeholder="GitHub Personal Access Token (optional)"
-              value={githubToken}
-              onChange={(e) => setGithubToken(e.target.value)}
-              className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-foreground placeholder:text-muted-foreground/60"
-              disabled={isLoading} />
-
-              {githubToken &&
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setGithubToken("");
-                localStorage.removeItem("github_token");
-              }}
-              className="text-xs text-muted-foreground">
-
+                type="password"
+                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-foreground placeholder:text-muted-foreground/60"
+              />
+              {githubToken && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setGithubToken("");
+                    localStorage.removeItem("github_token");
+                  }}
+                  className="text-xs text-muted-foreground">
                   Clear
                 </Button>
-            }
+              )}
             </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Token is stored locally and sent securely. Create one at GitHub Settings.
+            <p className="text-xs text-muted-foreground">
+              Token is stored locally and sent securely.{" "}
+              <a
+                href="https://github.com/settings/tokens/new?scopes=repo&description=LaunchCopy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline inline-flex items-center gap-0.5"
+              >
+                Create a token
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
             </p>
-          </>
-        }
-      </div>
+            <Button
+              type="button"
+              variant="gradient"
+              className="w-full"
+              onClick={() => {
+                if (githubToken) {
+                  localStorage.setItem("github_token", githubToken);
+                }
+                setTokenDialogOpen(false);
+              }}
+            >
+              Save & Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Preference chips with dropdowns */}
       <div className="flex flex-wrap gap-1.5">
