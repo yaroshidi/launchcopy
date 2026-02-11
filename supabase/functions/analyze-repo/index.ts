@@ -1005,13 +1005,43 @@ ${repoContext.slice(0, 6000)}`;
     // Merge refined content back, keeping summary and scenarios from pass 1
     const finalContent = refined?.content || draft.content;
 
+    // Server-side content gating: truncate locked content for free users
+    let gatedContent = finalContent;
+    if (!isPro) {
+      const truncate = (text: string, len = 80) =>
+        text.length > len ? text.slice(0, len) + '...' : text;
+
+      if (Array.isArray(gatedContent.socialPosts)) {
+        gatedContent.socialPosts = gatedContent.socialPosts.map((p: any, i: number) =>
+          i === 0 ? p : { ...p, content: truncate(p.content), locked: true }
+        );
+      }
+      if (Array.isArray(gatedContent.blogArticles)) {
+        gatedContent.blogArticles = gatedContent.blogArticles.map((a: any, i: number) =>
+          i === 0 ? a : { ...a, content: truncate(a.content), locked: true }
+        );
+      }
+      if (Array.isArray(gatedContent.caseStudies)) {
+        gatedContent.caseStudies = gatedContent.caseStudies.map((c: any, i: number) =>
+          i === 0 ? c : {
+            ...c,
+            content: truncate(c.content),
+            problem: truncate(c.problem || '', 60),
+            solution: truncate(c.solution || '', 60),
+            outcomes: ['Upgrade to Pro to view outcomes'],
+            locked: true,
+          }
+        );
+      }
+    }
+
     const result = {
       repoUrl,
       analyzedAt: new Date().toISOString(),
       refinedAt: refined ? new Date().toISOString() : undefined,
       summary: draft.summary,
       scenarios: draft.scenarios,
-      content: finalContent,
+      content: gatedContent,
     };
 
     console.log('Analysis complete with refinement and scoring');
