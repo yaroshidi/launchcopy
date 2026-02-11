@@ -194,8 +194,12 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
             )}
           </div>
         </CardHeader>
-        <CardContent className={locked ? 'blur-sm select-none pointer-events-none' : ''}>
-          {isEditing ? (
+        <CardContent>
+          {locked ? (
+            <div className="flex items-center justify-center py-6 text-muted-foreground">
+              <p className="text-sm italic">🔒 Upgrade to Pro to view this content</p>
+            </div>
+          ) : isEditing ? (
             <Textarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
