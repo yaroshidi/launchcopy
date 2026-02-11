@@ -15,29 +15,33 @@ export function Navbar() {
       transition={{ duration: 0.4 }}
       className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-10 bg-background/60 backdrop-blur-xl border-b border-border/40"
     >
-      <span className="text-lg font-bold tracking-tight gradient-text">
+      <Link to="/" className="text-lg font-bold tracking-tight gradient-text hover:opacity-80 transition-opacity">
         LaunchCopy
-      </span>
+      </Link>
 
       <div className="flex items-center gap-4">
-        <a
-          href="#showcase"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
-        >
-          How it works
-        </a>
-        <a
-          href="#pricing"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
-        >
-          Pricing
-        </a>
+        {!user && (
+          <>
+            <a
+              href="#showcase"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+            >
+              How it works
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+            >
+              Pricing
+            </a>
+          </>
+        )}
         {user && (
           <Link
             to="/my-scans"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
           >
-            My Scans
+            Dashboard
           </Link>
         )}
         <a

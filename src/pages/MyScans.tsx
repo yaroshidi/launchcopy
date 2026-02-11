@@ -121,7 +121,12 @@ export default function MyScans() {
       <Navbar />
       <main className="pt-24 pb-16 px-6 md:px-10 max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">My Scans</h1>
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <Button variant="gradient" size="sm" onClick={() => navigate("/")}>
+              New Scan
+            </Button>
+          </div>
           <p className="text-muted-foreground mb-8">All your previously analyzed repositories in one place.</p>
 
           {loading ? (
