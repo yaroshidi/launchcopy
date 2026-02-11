@@ -56,6 +56,7 @@ serve(async (req) => {
 
     const hasActiveSub = subscriptions.data.length > 0;
     let subscriptionEnd = null;
+    let productId = null;
 
     if (hasActiveSub) {
       const sub = subscriptions.data[0];
@@ -70,19 +71,26 @@ serve(async (req) => {
       } catch {
         // ignore date parse errors
       }
-      logStep("Active subscription found", { end: subscriptionEnd });
+      // Extract product_id for tier mapping
+      try {
+        productId = sub.items.data[0]?.price?.product ?? null;
+        if (typeof productId !== 'string') productId = null;
+      } catch {
+        productId = null;
+      }
+      logStep("Active subscription found", { end: subscriptionEnd, productId });
     }
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_end: subscriptionEnd,
+      product_id: productId,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: msg });
-    // Only expose auth-related messages, not internal details
     const safeMsg = msg.includes("Authorization") || msg.includes("Authentication") || msg.includes("authenticated")
       ? msg : "Failed to check subscription status";
     return new Response(JSON.stringify({ error: safeMsg }), {

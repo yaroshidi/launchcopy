@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { getTierByProductId, type SubscriptionTier } from "@/lib/tiers";
 
 interface Profile {
   id: string;
@@ -14,7 +15,10 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  tier: SubscriptionTier;
   isPro: boolean;
+  isStarter: boolean;
+  isPaid: boolean;
   subscriptionLoading: boolean;
   subscriptionEnd: string | null;
   signOut: () => Promise<void>;
@@ -26,7 +30,10 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   profile: null,
   loading: true,
+  tier: 'free',
   isPro: false,
+  isStarter: false,
+  isPaid: false,
   subscriptionLoading: false,
   subscriptionEnd: null,
   signOut: async () => {},
@@ -42,9 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<SubscriptionTier>('free');
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+
+  const isPro = tier === 'pro';
+  const isStarter = tier === 'starter';
+  const isPaid = tier !== 'free';
 
   const fetchProfile = (userId: string) => {
     supabase
@@ -65,7 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Subscription check failed:', error);
         return;
       }
-      setIsPro(data?.subscribed === true);
+      if (data?.subscribed === true) {
+        setTier(getTierByProductId(data?.product_id));
+      } else {
+        setTier('free');
+      }
       setSubscriptionEnd(data?.subscription_end ?? null);
     } catch (e) {
       console.error('Subscription check error:', e);
@@ -92,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }, 0);
       } else {
         setProfile(null);
-        setIsPro(false);
+        setTier('free');
         setSubscriptionEnd(null);
       }
 
@@ -124,12 +139,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
-    setIsPro(false);
+    setTier('free');
     setSubscriptionEnd(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, isPro, subscriptionLoading, subscriptionEnd, signOut, refreshSubscription }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, tier, isPro, isStarter, isPaid, subscriptionLoading, subscriptionEnd, signOut, refreshSubscription }}>
       {children}
     </AuthContext.Provider>
   );
