@@ -73,7 +73,7 @@ export function Hero({
         delay: 0.4
       }} className="flex flex-wrap justify-center gap-2">
           <span className="text-xs text-muted-foreground/60 mr-1 self-center">Try:</span>
-          {EXAMPLE_REPOS.map(repo => <button key={repo.label} type="button" onClick={() => setPrefillUrl(repo.url)} disabled={isLoading} className="px-3 py-1.5 text-xs font-medium text-muted-foreground rounded-full border border-border/50 bg-secondary/40 hover:bg-secondary hover:text-foreground hover:border-border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+          {EXAMPLE_REPOS.map((repo) => <button key={repo.label} type="button" onClick={() => setPrefillUrl(repo.url)} disabled={isLoading} className="px-3 py-1.5 text-xs font-medium text-muted-foreground rounded-full border border-border/50 bg-secondary/40 hover:bg-secondary hover:text-foreground hover:border-border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
               {repo.label}
             </button>)}
         </motion.div>
@@ -86,7 +86,7 @@ export function Hero({
       }} transition={{
         duration: 0.5,
         delay: 0.55
-      }} className="flex items-center justify-center gap-4 pt-2">
+      }} className="text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 mr-5">
           <div className="flex -space-x-2">
             {["AD", "KM", "RS", "JL"].map((initials, i) => <div key={initials} className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold" style={{
             background: `hsl(${199 + i * 40} 60% ${45 + i * 5}%)`,
