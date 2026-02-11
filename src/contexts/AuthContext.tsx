@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -14,7 +14,11 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isPro: boolean;
+  subscriptionLoading: boolean;
+  subscriptionEnd: string | null;
   signOut: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,7 +26,11 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   profile: null,
   loading: true,
+  isPro: false,
+  subscriptionLoading: false,
+  subscriptionEnd: null,
   signOut: async () => {},
+  refreshSubscription: async () => {},
 });
 
 export function useAuth() {
@@ -34,6 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPro, setIsPro] = useState(false);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
   const fetchProfile = (userId: string) => {
     supabase
@@ -46,8 +57,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   };
 
+  const checkSubscription = useCallback(async () => {
+    try {
+      setSubscriptionLoading(true);
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) {
+        console.error('Subscription check failed:', error);
+        return;
+      }
+      setIsPro(data?.subscribed === true);
+      setSubscriptionEnd(data?.subscription_end ?? null);
+    } catch (e) {
+      console.error('Subscription check error:', e);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  }, []);
+
+  const refreshSubscription = useCallback(async () => {
+    await checkSubscription();
+  }, [checkSubscription]);
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -55,39 +86,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // Defer Supabase calls with setTimeout
         setTimeout(() => {
           fetchProfile(session.user.id);
+          checkSubscription();
         }, 0);
       } else {
         setProfile(null);
+        setIsPro(false);
+        setSubscriptionEnd(null);
       }
 
       setLoading(false);
     });
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
         fetchProfile(session.user.id);
+        checkSubscription();
       }
 
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkSubscription]);
+
+  // Auto-refresh subscription every 60s while logged in
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(checkSubscription, 60_000);
+    return () => clearInterval(interval);
+  }, [user, checkSubscription]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    setIsPro(false);
+    setSubscriptionEnd(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, isPro, subscriptionLoading, subscriptionEnd, signOut, refreshSubscription }}>
       {children}
     </AuthContext.Provider>
   );
