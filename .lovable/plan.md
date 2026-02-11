@@ -1,48 +1,51 @@
 
 
-# UI Improvements Plan
+# Fix: "Invalid time value" in check-subscription
 
-## 1. Clickable Logo (Navbar)
-Make the "LaunchCopy" text in `src/components/Navbar.tsx` a `<Link to="/">` so it always navigates home.
+## Root Cause
+Line 62 of `check-subscription/index.ts` does:
+```
+new Date(sub.current_period_end * 1000).toISOString()
+```
+With the Stripe API version `2025-08-27.basil`, the `current_period_end` property may be `null`, `undefined`, or in a different format than expected. Multiplying `undefined * 1000` produces `NaN`, and `new Date(NaN).toISOString()` throws "Invalid time value."
 
-## 2. Pricing Plan Text Update (PricingSection)
-In `src/components/PricingSection.tsx`, update the Pro features list:
-- Change "5 social posts (3 X + 2 LinkedIn)" to "Unlimited social posts"
-- Change "3 blog articles" to "Unlimited blog articles"
-- Change "3 case studies" to "Unlimited case studies"
+Since this function is called every 60 seconds while you're logged in, it produces a constant stream of 500 errors.
 
-## 3. RepoInput Layout Changes
-In `src/components/RepoInput.tsx`:
-- Remove the fallback text "Paste any public GitHub repository URL to get started" (line 239)
-- Move the "Private repo" toggle button to appear directly below the Analyze button (after the main input bar), instead of in the centered controls section
-- Keep the token help text when the token field is visible
+## Fix
+Add a safety check around the date conversion so it gracefully falls back to `null` instead of crashing:
 
-## 4. Navbar: Conditional Links for Logged-In Users
-In `src/components/Navbar.tsx`:
-- When user IS logged in: hide "How it works" and "Pricing" links; show only "Dashboard" (linking to `/my-scans`)
-- When user is NOT logged in: show "How it works", "Pricing", and "Sign In" as today
-- Remove the separate "My Scans" link (replaced by "Dashboard")
+**File: `supabase/functions/check-subscription/index.ts`**
 
-## 5. Dashboard Page Enhancement
-In `src/pages/MyScans.tsx`:
-- Rename the page title from "My Scans" to "Dashboard"
-- Add a "New Scan" button in the header area that navigates to `/` (the home page with the input form)
-- Keep all existing scan list, delete, and open functionality
+- Wrap the `subscriptionEnd` assignment in a try/catch or null-check
+- If `current_period_end` is falsy or produces an invalid date, set `subscriptionEnd` to `null` instead of throwing
+- The function will still correctly return `subscribed: true` even if the end date can't be parsed
 
-## Technical Details
+## Technical Detail
 
-**Navbar.tsx changes:**
-- Wrap logo `<span>` in `<Link to="/">`
-- Conditionally render nav links based on `user` state
-- Replace "My Scans" with "Dashboard"
+Replace the date conversion block (lines 60-64) with:
 
-**PricingSection.tsx changes:**
-- Update 3 strings in `PRO_FEATURES` array
+```text
+if (hasActiveSub) {
+  const sub = subscriptions.data[0];
+  try {
+    const endVal = sub.current_period_end;
+    if (endVal) {
+      const endMs = typeof endVal === 'number' ? endVal * 1000 : Date.parse(String(endVal));
+      if (!isNaN(endMs)) {
+        subscriptionEnd = new Date(endMs).toISOString();
+      }
+    }
+  } catch {
+    // ignore date parse errors
+  }
+  logStep("Active subscription found", { end: subscriptionEnd });
+}
+```
 
-**RepoInput.tsx changes:**
-- Remove the paragraph with "Paste any public GitHub..." text
-- Restructure the "Private repo" button to sit below the main input bar but above the preference chips
+This handles three cases:
+1. `current_period_end` is a Unix timestamp (number) -- multiplies by 1000
+2. `current_period_end` is an ISO date string -- parses it directly
+3. `current_period_end` is null/undefined/unparseable -- gracefully returns null
 
-**MyScans.tsx changes:**
-- Update heading text to "Dashboard"
-- Add a "New Scan" button next to the heading
+Single file change, then redeploy the function.
+
