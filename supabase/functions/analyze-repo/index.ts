@@ -669,33 +669,45 @@ serve(async (req) => {
       );
     }
 
-    // ── Server-side subscription check ──
+    // ── Server-side subscription & tier check ──
     const Stripe = (await import("https://esm.sh/stripe@18.5.0")).default;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
-    // Check scan count for free users
-    let isPro = false;
+    // Determine user's tier based on product_id
+    const TIER_PRODUCTS: Record<string, string> = {
+      'prod_TxaJhMVjMBaTA2': 'starter',
+      'prod_TxMijV21gbwIgp': 'pro',
+    };
+
+    let userTier = 'free';
     if (userEmail) {
       const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
       if (customers.data.length > 0) {
         const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "active", limit: 1 });
-        isPro = subs.data.length > 0;
+        if (subs.data.length > 0) {
+          const productId = subs.data[0].items.data[0]?.price?.product;
+          userTier = (typeof productId === 'string' && TIER_PRODUCTS[productId]) || 'pro';
+        }
       }
     }
+
+    const isPro = userTier === 'pro';
+    const scanLimit = userTier === 'pro' ? Infinity : userTier === 'starter' ? 5 : 1;
 
     if (!isPro) {
       // Check existing scan count using service role
       const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
       const { count } = await adminClient.from('analyses').select('id', { count: 'exact', head: true }).eq('user_id', userId);
-      if ((count ?? 0) >= 1) {
+      if ((count ?? 0) >= scanLimit) {
+        const tierLabel = userTier === 'starter' ? 'Starter' : 'Free';
         return new Response(
-          JSON.stringify({ error: 'Free accounts are limited to 1 scan. Upgrade to Pro for unlimited scans.' }),
+          JSON.stringify({ error: `${tierLabel} accounts are limited to ${scanLimit} scan${scanLimit === 1 ? '' : 's'}. Upgrade for more scans.` }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    console.log(`Analyzing repository: ${repoUrl} (user: ${userId}, pro: ${isPro})`);
+    console.log(`Analyzing repository: ${repoUrl} (user: ${userId}, tier: ${userTier})`);
 
     // Parse GitHub URL
     const urlMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
@@ -1005,30 +1017,35 @@ ${repoContext.slice(0, 6000)}`;
     // Merge refined content back, keeping summary and scenarios from pass 1
     const finalContent = refined?.content || draft.content;
 
-    // Server-side content gating: truncate locked content for free users
+    // Server-side content gating: truncate locked content based on tier
     let gatedContent = finalContent;
-    if (!isPro) {
+    if (userTier !== 'pro') {
       const truncate = (text: string, len = 80) =>
         text.length > len ? text.slice(0, len) + '...' : text;
 
+      // Content limits per tier
+      const limits = userTier === 'starter'
+        ? { social: 3, blog: 2, caseStudy: 2 }
+        : { social: 1, blog: 1, caseStudy: 1 };
+
       if (Array.isArray(gatedContent.socialPosts)) {
         gatedContent.socialPosts = gatedContent.socialPosts.map((p: any, i: number) =>
-          i === 0 ? p : { ...p, content: truncate(p.content), locked: true }
+          i < limits.social ? p : { ...p, content: truncate(p.content), locked: true }
         );
       }
       if (Array.isArray(gatedContent.blogArticles)) {
         gatedContent.blogArticles = gatedContent.blogArticles.map((a: any, i: number) =>
-          i === 0 ? a : { ...a, content: truncate(a.content), locked: true }
+          i < limits.blog ? a : { ...a, content: truncate(a.content), locked: true }
         );
       }
       if (Array.isArray(gatedContent.caseStudies)) {
         gatedContent.caseStudies = gatedContent.caseStudies.map((c: any, i: number) =>
-          i === 0 ? c : {
+          i < limits.caseStudy ? c : {
             ...c,
             content: truncate(c.content),
             problem: truncate(c.problem || '', 60),
             solution: truncate(c.solution || '', 60),
-            outcomes: ['Upgrade to Pro to view outcomes'],
+            outcomes: ['Upgrade to see outcomes'],
             locked: true,
           }
         );

@@ -51,7 +51,7 @@ const Index = () => {
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
   
   const { toast } = useToast();
-  const { user, isPro, refreshSubscription } = useAuth();
+  const { user, tier, isPro, isPaid, refreshSubscription } = useAuth();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
@@ -74,14 +74,17 @@ const Index = () => {
   };
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
-    // Free users (signed in, not pro) limited to 1 scan
+    // Scan limits by tier: free=1, starter=5, pro=unlimited
     if (user && !isPro) {
       try {
         const existing = await loadUserAnalyses();
-        if (existing.length >= 1) {
+        const limit = tier === 'starter' ? 5 : 1;
+        if (existing.length >= limit) {
           toast({
             title: "Scan limit reached",
-            description: "Free accounts are limited to 1 scan. Upgrade to Pro for unlimited scans.",
+            description: tier === 'starter'
+              ? "Starter accounts are limited to 5 scans. Upgrade to Pro for unlimited scans."
+              : "Free accounts are limited to 1 scan. Upgrade to get more scans.",
             variant: "destructive",
           });
           return;
@@ -126,7 +129,7 @@ const Index = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkout') === 'success' && user) {
       window.history.replaceState({}, '', window.location.pathname);
-      toast({ title: "Welcome to Pro!", description: "Your subscription is now active. Enjoy unlimited scans and content!" });
+      toast({ title: "Subscription activated!", description: "Your plan is now active. Enjoy your expanded access!" });
       refreshSubscription();
     }
   }, [user]);
