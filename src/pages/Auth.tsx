@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { z } from "zod";
@@ -45,6 +45,10 @@ export default function Auth() {
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
+
+  useEffect(() => {
+    document.title = isSignUp ? "Sign Up | LaunchCopy" : "Sign In | LaunchCopy";
+  }, [isSignUp]);
 
   if (loading) {
     return (

@@ -6,16 +6,11 @@ export async function analyzeRepository(
   githubToken?: string,
   preferences?: ContentPreferences
 ): Promise<RepoAnalysis> {
-  // ... keep existing code
-  console.log('Calling analyze-repo edge function for:', repoUrl);
-  console.log('With preferences:', preferences);
-
   const { data, error } = await supabase.functions.invoke('analyze-repo', {
     body: { repoUrl, githubToken, preferences }
   });
 
   if (error) {
-    console.error('Edge function error:', error);
     let message = 'Failed to analyze repository';
     try {
       const ctx = (error as any).context;
@@ -32,7 +27,6 @@ export async function analyzeRepository(
   }
 
   if (data?.error) {
-    console.error('Analysis error:', data.error);
     throw new Error(data.error);
   }
 
@@ -65,7 +59,6 @@ export async function saveAnalysis(
     .single();
 
   if (error) {
-    console.error('Failed to save analysis:', error);
     throw new Error('Failed to save analysis');
   }
   return (data as any).id;
@@ -81,7 +74,6 @@ export async function loadUserAnalyses(): Promise<
     .limit(50);
 
   if (error) {
-    console.error('Failed to load analyses:', error);
     return [];
   }
 
@@ -123,7 +115,6 @@ export async function deleteAnalysis(id: string): Promise<void> {
     .eq('id', id);
 
   if (error) {
-    console.error('Failed to delete analysis:', error);
     throw new Error('Failed to delete analysis');
   }
 }
@@ -139,19 +130,15 @@ export interface RegenerateRequest {
 }
 
 export async function regenerateContent(request: RegenerateRequest): Promise<any[]> {
-  console.log('Calling regenerate-content for:', request.contentType, 'itemIndex:', request.itemIndex);
-
   const { data, error } = await supabase.functions.invoke('regenerate-content', {
     body: request,
   });
 
   if (error) {
-    console.error('Regenerate edge function error:', error);
     throw new Error(error.message || 'Failed to regenerate content');
   }
 
   if (data?.error) {
-    console.error('Regeneration error:', data.error);
     throw new Error(data.error);
   }
 
