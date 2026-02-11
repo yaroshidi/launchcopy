@@ -102,6 +102,61 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
         </Button>
       </div>
 
+      {/* Private repo toggle - directly below analyze */}
+      <div className="flex flex-col items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setShowToken(!showToken)}
+          disabled={isLoading}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+            showToken
+              ? "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
+              : "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"
+          }`}
+        >
+          <span className="flex items-center gap-1">
+            <Key className="w-3 h-3" />
+            {showToken ? "Hide token" : "Private repo"}
+          </span>
+        </button>
+
+        {/* Token input */}
+        {showToken && (
+          <>
+            <div className="w-full flex items-center gap-2 p-2 rounded-xl glass-card border border-border/50">
+              <div className="flex items-center gap-3 pl-4">
+                <Key className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <Input
+                type="password"
+                placeholder="GitHub Personal Access Token (optional)"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-foreground placeholder:text-muted-foreground/60"
+                disabled={isLoading}
+              />
+              {githubToken && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setGithubToken("");
+                    localStorage.removeItem("github_token");
+                  }}
+                  className="text-xs text-muted-foreground"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Token is stored locally and sent securely. Create one at GitHub Settings.
+            </p>
+          </>
+        )}
+      </div>
+
       {/* Preference chips with dropdowns */}
       <div className="flex flex-wrap gap-1.5">
         {chips.map((chip) => {
@@ -180,61 +235,6 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
             </Popover>
           );
         })}
-      </div>
-
-      {/* Private repo toggle - below analyze */}
-      <div className="flex flex-col items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setShowToken(!showToken)}
-          disabled={isLoading}
-          className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-            showToken
-              ? "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
-              : "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"
-          }`}
-        >
-          <span className="flex items-center gap-1">
-            <Key className="w-3 h-3" />
-            {showToken ? "Hide token" : "Private repo"}
-          </span>
-        </button>
-
-        {/* Token input */}
-        {showToken && (
-          <>
-            <div className="w-full flex items-center gap-2 p-2 rounded-xl glass-card border border-border/50">
-              <div className="flex items-center gap-3 pl-4">
-                <Key className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <Input
-                type="password"
-                placeholder="GitHub Personal Access Token (optional)"
-                value={githubToken}
-                onChange={(e) => setGithubToken(e.target.value)}
-                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-foreground placeholder:text-muted-foreground/60"
-                disabled={isLoading}
-              />
-              {githubToken && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setGithubToken("");
-                    localStorage.removeItem("github_token");
-                  }}
-                  className="text-xs text-muted-foreground"
-                >
-                  Clear
-                </Button>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Token is stored locally and sent securely. Create one at GitHub Settings.
-            </p>
-          </>
-        )}
       </div>
     </form>
   );
