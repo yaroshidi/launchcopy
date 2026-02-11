@@ -109,91 +109,10 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
         </Button>
       </div>
 
-      {/* Private repo button - right-aligned under Analyze */}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setTokenDialogOpen(true)}
-          disabled={isLoading}
-          className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-          githubToken ?
-          "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20" :
-          "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"}`
-          }>
-          <span className="flex items-center gap-1">
-            <Key className="w-3 h-3" />
-            Private repo
-            {githubToken && <Check className="w-3 h-3 text-green-500" />}
-          </span>
-        </button>
-      </div>
-
-      {/* Token Dialog */}
-      <Dialog open={tokenDialogOpen} onOpenChange={setTokenDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Private Repository Access</DialogTitle>
-            <DialogDescription>
-              Enter a GitHub Personal Access Token to analyze private repositories.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 p-2 rounded-xl border border-border/50 bg-secondary/30">
-              <div className="flex items-center gap-3 pl-2">
-                <Key className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <Input
-                type="password"
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                value={githubToken}
-                onChange={(e) => setGithubToken(e.target.value)}
-                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-foreground placeholder:text-muted-foreground/60"
-              />
-              {githubToken && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setGithubToken("");
-                    localStorage.removeItem("github_token");
-                  }}
-                  className="text-xs text-muted-foreground">
-                  Clear
-                </Button>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Token is stored locally and sent securely.{" "}
-              <a
-                href="https://github.com/settings/tokens/new?scopes=repo&description=LaunchCopy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline inline-flex items-center gap-0.5"
-              >
-                Create a token
-                <ExternalLink className="w-2.5 h-2.5" />
-              </a>
-            </p>
-            <Button
-              type="button"
-              variant="gradient"
-              className="w-full"
-              onClick={() => {
-                if (githubToken) {
-                  localStorage.setItem("github_token", githubToken);
-                }
-                setTokenDialogOpen(false);
-              }}
-            >
-              Save & Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Preference chips with dropdowns */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Preference chips + Private repo in one row */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Preference chips */}
+        <div className="flex flex-wrap gap-1.5">
         {chips.map((chip) => {
           const isDefault = chip.current === DEFAULT_PREFERENCES[chip.key];
           const label = getLabel(chip.current, chip.options);
@@ -270,6 +189,24 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
             </Popover>);
 
         })}
+        </div>
+
+        {/* Private repo button */}
+        <button
+          type="button"
+          onClick={() => setTokenDialogOpen(true)}
+          disabled={isLoading}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
+          githubToken ?
+          "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20" :
+          "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"}`
+          }>
+          <span className="flex items-center gap-1">
+            <Key className="w-3 h-3" />
+            Private repo
+            {githubToken && <Check className="w-3 h-3 text-green-500" />}
+          </span>
+        </button>
       </div>
     </form>);
 
