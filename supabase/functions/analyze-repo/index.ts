@@ -632,16 +632,70 @@ serve(async (req) => {
   }
 
   try {
-    const { repoUrl, githubToken, preferences } = await req.json();
+    // ── Auth check ──
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { createClient } = await import("npm:@supabase/supabase-js@2.57.2");
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = claimsData.claims.sub as string;
+    const userEmail = claimsData.claims.email as string;
 
-    if (!repoUrl) {
+    // ── Input validation ──
+    const body = await req.json();
+    const repoUrl = typeof body.repoUrl === 'string' ? body.repoUrl.trim() : '';
+    const githubToken = typeof body.githubToken === 'string' ? body.githubToken : undefined;
+    const preferences = body.preferences && typeof body.preferences === 'object' ? body.preferences : undefined;
+
+    if (!repoUrl || repoUrl.length > 500) {
       return new Response(
-        JSON.stringify({ error: 'Repository URL is required' }),
+        JSON.stringify({ error: 'Repository URL is required and must be under 500 characters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Analyzing repository: ${repoUrl}`);
+    if (!/^https?:\/\/(www\.)?github\.com\/[^\/]+\/[^\/\s]+/.test(repoUrl)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid GitHub URL format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── Server-side subscription check ──
+    const Stripe = (await import("https://esm.sh/stripe@18.5.0")).default;
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
+
+    // Check scan count for free users
+    let isPro = false;
+    if (userEmail) {
+      const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+      if (customers.data.length > 0) {
+        const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "active", limit: 1 });
+        isPro = subs.data.length > 0;
+      }
+    }
+
+    if (!isPro) {
+      // Check existing scan count using service role
+      const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+      const { count } = await adminClient.from('analyses').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+      if ((count ?? 0) >= 1) {
+        return new Response(
+          JSON.stringify({ error: 'Free accounts are limited to 1 scan. Upgrade to Pro for unlimited scans.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    console.log(`Analyzing repository: ${repoUrl} (user: ${userId}, pro: ${isPro})`);
 
     // Parse GitHub URL
     const urlMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
@@ -970,8 +1024,10 @@ ${repoContext.slice(0, 6000)}`;
   } catch (error: any) {
     console.error('Error analyzing repository:', error);
     const status = error?.status || 500;
+    const safeMessages: Record<number, boolean> = { 400: true, 401: true, 403: true, 422: true, 429: true, 402: true };
+    const message = safeMessages[status] ? (error?.message || 'Failed to analyze repository') : 'Failed to analyze repository';
     return new Response(
-      JSON.stringify({ error: error?.message || error?.toString() || 'Failed to analyze repository' }),
+      JSON.stringify({ error: message }),
       { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
