@@ -86,7 +86,7 @@ export function Hero({
       }} transition={{
         duration: 0.5,
         delay: 0.55
-      }} className="text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 mr-5">
+      }} className="text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 mr-5 flex items-center justify-center gap-[16px]">
           <div className="flex -space-x-2">
             {["AD", "KM", "RS", "JL"].map((initials, i) => <div key={initials} className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold" style={{
             background: `hsl(${199 + i * 40} 60% ${45 + i * 5}%)`,
