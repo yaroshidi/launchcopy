@@ -1,51 +1,53 @@
 
 
-# My Scans Dashboard
+# Fix: Server-Side Content Gating
 
-A new `/my-scans` page where logged-in users can see all their past repository analyses in a clean, organized layout.
+## Problem
+The backend returns ALL generated content to every user. For free users, the frontend only applies CSS blur to hide items beyond the first one per category, but the full text remains in the HTML DOM. Anyone can open browser DevTools and read everything.
 
-## What You'll Get
+## Solution
+Truncate locked content **server-side** before it reaches the browser, so free users only receive the first item per category in full. Remaining items get their content stripped and replaced with a placeholder.
 
-- A dedicated "My Scans" page showing all your previously analyzed repos
-- Each scan displayed as a card with the repo name, a brief description, scan date, and content counts (posts, articles, case studies)
-- Click any scan to open it in the full content dashboard
-- Delete scans you no longer need
-- A "My Scans" link in the navbar and user menu for easy access
-- If you're not logged in, you'll be redirected to sign in
+## Changes
 
-## Layout
+### 1. Backend: `supabase/functions/analyze-repo/index.ts`
+After the final `result` object is built (around line 1008), add content truncation for non-Pro users:
 
-Each scan card will show:
-- Repository name (extracted from the GitHub URL)
-- Product description (from the summary)
-- Date scanned
-- Quick stats: number of social posts, blog articles, and case studies
-- Actions: Open or Delete
+- If `isPro` is false, iterate over `socialPosts`, `blogArticles`, and `caseStudies`
+- Keep the first item in each array intact
+- For all subsequent items, replace `content` with a short truncated preview (first 80 characters + "...") and add a `locked: true` flag
+- For case studies, also redact `problem`, `solution`, and `outcomes` fields
 
----
+This ensures the actual content never leaves the server.
+
+### 2. Frontend: `src/components/ContentCard.tsx`
+- Instead of rendering the full content with CSS blur when `locked` is true, show a placeholder message like "Upgrade to Pro to view this content"
+- Remove the `blur-sm select-none pointer-events-none` CSS approach entirely for locked cards
+- Display only the title/platform and scores (which serve as teasers), but no body text
+
+### 3. Frontend: `src/components/ContentTabs.tsx`
+- No structural changes needed; the existing `locked={!isUnlocked && index > 0}` logic remains correct since it aligns with the server-side truncation at index > 0
 
 ## Technical Details
 
-### 1. New page: `src/pages/MyScans.tsx`
-- Fetches saved analyses using the existing `loadUserAnalyses` API
-- Displays a grid of scan cards
-- Clicking a card calls `loadAnalysisById` and navigates to the dashboard view
-- Delete button calls `deleteAnalysis` with a confirmation
-- Empty state for users with no scans yet
-- Loading skeleton while data loads
+**Server-side truncation logic (analyze-repo):**
+```text
+if (!isPro) {
+  for each category (socialPosts, blogArticles, caseStudies):
+    keep items[0] as-is
+    for items[1+]:
+      replace content with first ~80 chars + "..."
+      set locked = true
+      (for case studies: also truncate problem/solution/outcomes)
+```
 
-### 2. New route in `src/App.tsx`
-- Add `/my-scans` route pointing to the new page
+**ContentCard change:**
+```text
+When locked === true:
+  - Show title, platform icon, scores as normal
+  - Replace CardContent body with a static "Content locked" message
+  - Remove blur-based CSS hiding
+```
 
-### 3. Update `src/components/Navbar.tsx`
-- Add a "My Scans" link visible only to logged-in users
-
-### 4. Update `src/components/UserMenu.tsx`
-- Add a "My Scans" menu item in the dropdown
-
-### 5. Update `src/lib/api.ts` (`loadUserAnalyses`)
-- Extend the select query to also return content counts (or the full content JSON so we can count items client-side) to display stats on each card
-
-### 6. No database changes needed
-- The `analyses` table and RLS policies already support everything required
+This ensures content is never sent to the client, making inspection useless.
 
