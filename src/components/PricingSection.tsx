@@ -25,9 +25,9 @@ const FREE_FEATURES: PlanFeature[] = [
 const PRO_FEATURES: PlanFeature[] = [
   { text: "Unlimited repository scans", included: true },
   { text: "Full product summary", included: true },
-  { text: "5 social posts (3 X + 2 LinkedIn)", included: true },
-  { text: "3 blog articles", included: true },
-  { text: "3 case studies", included: true },
+  { text: "Unlimited social posts", included: true },
+  { text: "Unlimited blog articles", included: true },
+  { text: "Unlimited case studies", included: true },
   { text: "Export & copy content", included: true },
   { text: "Regenerate with preferences", included: true },
   { text: "Priority support", included: true },
