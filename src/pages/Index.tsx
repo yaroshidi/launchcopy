@@ -8,7 +8,7 @@ import { FAQSection } from "@/components/FAQSection";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { PrivateRepoDialog } from "@/components/PrivateRepoDialog";
-import { analyzeRepository, saveAnalysis } from "@/lib/api";
+import { analyzeRepository, saveAnalysis, loadUserAnalyses } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
@@ -51,7 +51,7 @@ const Index = () => {
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
   
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isPro, refreshSubscription } = useAuth();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
@@ -74,6 +74,21 @@ const Index = () => {
   };
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
+    // Free users (signed in, not pro) limited to 1 scan
+    if (user && !isPro) {
+      try {
+        const existing = await loadUserAnalyses();
+        if (existing.length >= 1) {
+          toast({
+            title: "Scan limit reached",
+            description: "Free accounts are limited to 1 scan. Upgrade to Pro for unlimited scans.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch { /* allow scan if check fails */ }
+    }
+
     setIsLoading(true);
     setCurrentRepoUrl(url);
     setLastPreferences(preferences);
@@ -106,8 +121,15 @@ const Index = () => {
       setIsLoading(false);
     }
   };
-
-
+  // Handle checkout success - refresh subscription
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success' && user) {
+      window.history.replaceState({}, '', window.location.pathname);
+      toast({ title: "Welcome to Pro!", description: "Your subscription is now active. Enjoy unlimited scans and content!" });
+      refreshSubscription();
+    }
+  }, [user]);
 
 
   const handleBack = () => {

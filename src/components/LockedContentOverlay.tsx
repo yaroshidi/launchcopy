@@ -2,9 +2,29 @@ import { Lock, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 export function LockedContentOverlay() {
-  const { user } = useAuth();
+  const { user, isPro } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (e) {
+      console.error('Checkout error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isPro) return null;
 
   return (
     <div className="relative my-6 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl p-8 text-center space-y-4">
@@ -18,16 +38,23 @@ export function LockedContentOverlay() {
 
       <p className="text-sm text-muted-foreground max-w-md mx-auto">
         {user
-          ? "Upgrade your plan to access all social posts, blog articles, and case studies."
-          : "Sign up to access all social posts, blog articles, and case studies generated for your repo."}
+          ? "Upgrade to Pro ($40/mo) to access all social posts, blog articles, case studies, and unlimited scans."
+          : "Sign up and subscribe to Pro ($40/mo) to access all content and unlimited scans."}
       </p>
 
-      <Button variant="gradient" size="lg" asChild>
-        <Link to="/auth" className="gap-2">
-          <Sparkles className="w-4 h-4" />
-          {user ? "Upgrade to unlock" : "Sign up to unlock"}
-        </Link>
-      </Button>
+      {user ? (
+        <Button variant="gradient" size="lg" onClick={handleUpgrade} disabled={loading}>
+          <Sparkles className="w-4 h-4 mr-2" />
+          {loading ? "Opening checkout…" : "Upgrade to Pro — $40/mo"}
+        </Button>
+      ) : (
+        <Button variant="gradient" size="lg" asChild>
+          <Link to="/auth" className="gap-2">
+            <Sparkles className="w-4 h-4" />
+            Sign up to get started
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }

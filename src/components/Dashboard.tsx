@@ -18,8 +18,8 @@ interface DashboardProps {
 
 export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: DashboardProps) {
   const [analysis, setAnalysis] = useState<RepoAnalysis>(initialAnalysis);
-  const { user } = useAuth();
-  const isUnlocked = !!user;
+  const { user, isPro } = useAuth();
+  const isUnlocked = isPro;
   const { toast } = useToast();
 
   const handleRegenerateAll = async (contentType: ContentType) => {
