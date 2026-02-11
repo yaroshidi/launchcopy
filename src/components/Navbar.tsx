@@ -1,4 +1,3 @@
-import { Github } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,15 +43,6 @@ export function Navbar() {
             Dashboard
           </Link>
         )}
-        <a
-          href="https://github.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-          aria-label="GitHub"
-        >
-          <Github className="w-5 h-5" />
-        </a>
         {user ? (
           <UserMenu />
         ) : (

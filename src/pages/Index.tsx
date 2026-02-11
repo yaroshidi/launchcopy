@@ -67,8 +67,8 @@ const Index = () => {
       try {
         const id = await saveAnalysis(result, preferences);
         setAnalysis((prev) => prev ? { ...prev, id } : prev);
-      } catch (e) {
-        console.error('Auto-save failed:', e);
+      } catch {
+        // Auto-save is best-effort
       }
     }
   };
@@ -99,7 +99,6 @@ const Index = () => {
     try {
       await runAnalysis(url, githubToken, preferences);
     } catch (error) {
-      console.error('Analysis failed:', error);
       const msg = error instanceof Error ? error.message : "";
       const lowerMsg = msg.toLowerCase();
       const isRepoAccessError =
@@ -111,7 +110,7 @@ const Index = () => {
         lowerMsg.includes("fine-grained");
 
       if (isRepoAccessError) {
-        localStorage.removeItem("github_token");
+        sessionStorage.removeItem("github_token");
         setPrivateRepoOpen(true);
       } else {
         toast({

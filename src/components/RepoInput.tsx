@@ -36,13 +36,13 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
   }, [prefillUrl]);
 
   const [githubToken, setGithubToken] = useState(() => {
-    return localStorage.getItem("github_token") || "";
+    return sessionStorage.getItem("github_token") || "";
   });
 
-  // Re-sync token state when loading finishes (error handler may have cleared localStorage)
+  // Re-sync token state when loading finishes (error handler may have cleared sessionStorage)
   useEffect(() => {
     if (!isLoading) {
-      const stored = localStorage.getItem("github_token") || "";
+      const stored = sessionStorage.getItem("github_token") || "";
       if (stored !== githubToken && !stored) {
         setGithubToken("");
       }
@@ -55,7 +55,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
     e.preventDefault();
     if (url.trim()) {
       if (githubToken) {
-        localStorage.setItem("github_token", githubToken);
+        sessionStorage.setItem("github_token", githubToken);
       }
       onAnalyze(url.trim(), githubToken || undefined, preferences);
     }

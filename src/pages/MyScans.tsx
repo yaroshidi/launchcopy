@@ -67,6 +67,10 @@ export default function MyScans() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    document.title = "Dashboard | LaunchCopy";
+  }, []);
+
+  useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth", { replace: true });
     }
