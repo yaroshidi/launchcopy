@@ -59,7 +59,17 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const sub = subscriptions.data[0];
-      subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
+      try {
+        const endVal = sub.current_period_end;
+        if (endVal) {
+          const endMs = typeof endVal === 'number' ? endVal * 1000 : Date.parse(String(endVal));
+          if (!isNaN(endMs)) {
+            subscriptionEnd = new Date(endMs).toISOString();
+          }
+        }
+      } catch {
+        // ignore date parse errors
+      }
       logStep("Active subscription found", { end: subscriptionEnd });
     }
 
