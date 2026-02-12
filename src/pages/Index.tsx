@@ -52,7 +52,7 @@ const Index = () => {
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
   
   const { toast } = useToast();
-  const { user, tier, isPro, isPaid, refreshSubscription } = useAuth();
+  const { user, tier, isPro, isPaid, refreshSubscription, setGithubToken } = useAuth();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
@@ -112,6 +112,7 @@ const Index = () => {
 
       if (isRepoAccessError) {
         sessionStorage.removeItem("github_token");
+        setGithubToken("");
         setPrivateRepoOpen(true);
       } else {
         toast({
