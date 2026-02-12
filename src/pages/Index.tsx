@@ -5,6 +5,7 @@ import { Hero } from "@/components/Hero";
 import { FeaturesShowcase } from "@/components/FeaturesShowcase";
 import { PricingSection } from "@/components/PricingSection";
 import { FAQSection } from "@/components/FAQSection";
+import { Footer } from "@/components/Footer";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { PrivateRepoDialog } from "@/components/PrivateRepoDialog";
@@ -157,6 +158,7 @@ const Index = () => {
             <FeaturesShowcase />
             <PricingSection />
             <FAQSection />
+            <Footer />
           </motion.div>
         ) : (
           <motion.div
