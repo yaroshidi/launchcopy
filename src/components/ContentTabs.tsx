@@ -5,17 +5,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
 import { LockedContentOverlay } from "@/components/LockedContentOverlay";
+import { TIERS, type SubscriptionTier } from "@/lib/tiers";
 import type { RepoAnalysis } from "@/types/analysis";
 import type { ContentType } from "@/lib/api";
 
 interface ContentTabsProps {
   analysis: RepoAnalysis;
-  isUnlocked: boolean;
+  tier: SubscriptionTier;
   onRegenerateAll: (contentType: ContentType) => Promise<void>;
   onRegenerateItem: (contentType: ContentType, itemIndex: number) => Promise<void>;
 }
 
-export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
+function getLimit(tier: SubscriptionTier, category: 'social' | 'blog' | 'caseStudy'): number {
+  if (tier === 'pro') return Infinity;
+  if (tier === 'starter') return TIERS.starter.contentLimits![category];
+  return 1; // free
+}
+
+export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
   const [activeTab, setActiveTab] = useState("social");
   const [regenerating, setRegenerating] = useState<string | null>(null);
 
@@ -82,7 +89,7 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
                   variant="outline"
                   size="sm"
                   onClick={() => handleRegenerate("social")}
-                  disabled={regenerating === "social" || !isUnlocked}
+                  disabled={regenerating === "social" || tier !== 'pro'}
                 >
                   {regenerating === "social" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -92,19 +99,23 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
                   Regenerate All
                 </Button>
               </div>
-              {analysis.content.socialPosts.map((post, index) => (
-                <ContentCard
-                  key={`social-${index}-${post.content.slice(0, 20)}`}
-                  type="social"
-                  title={post.platform}
-                  content={post.content}
-                  scores={post.scores}
-                  metadata={{ platform: post.platform }}
-                  locked={!isUnlocked && index > 0}
-                  onRegenerate={isUnlocked ? () => onRegenerateItem("social", index) : undefined}
-                />
-              ))}
-              {!isUnlocked && <LockedContentOverlay />}
+              {analysis.content.socialPosts.map((post, index) => {
+                const limit = getLimit(tier, 'social');
+                const locked = index >= limit;
+                return (
+                  <ContentCard
+                    key={`social-${index}-${post.content.slice(0, 20)}`}
+                    type="social"
+                    title={post.platform}
+                    content={post.content}
+                    scores={post.scores}
+                    metadata={{ platform: post.platform }}
+                    locked={locked}
+                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("social", index) : undefined}
+                  />
+                );
+              })}
+              {tier !== 'pro' && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
 
@@ -123,7 +134,7 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
                   variant="outline"
                   size="sm"
                   onClick={() => handleRegenerate("blog")}
-                  disabled={regenerating === "blog" || !isUnlocked}
+                  disabled={regenerating === "blog" || tier !== 'pro'}
                 >
                   {regenerating === "blog" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -133,19 +144,23 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
                   Regenerate All
                 </Button>
               </div>
-              {analysis.content.blogArticles.map((article, index) => (
-                <ContentCard
-                  key={`blog-${index}-${article.title.slice(0, 20)}`}
-                  type="blog"
-                  title={article.title}
-                  content={article.content}
-                  scores={article.scores}
-                  metadata={{ wordCount: article.content.split(" ").length }}
-                  locked={!isUnlocked && index > 0}
-                  onRegenerate={isUnlocked ? () => onRegenerateItem("blog", index) : undefined}
-                />
-              ))}
-              {!isUnlocked && <LockedContentOverlay />}
+              {analysis.content.blogArticles.map((article, index) => {
+                const limit = getLimit(tier, 'blog');
+                const locked = index >= limit;
+                return (
+                  <ContentCard
+                    key={`blog-${index}-${article.title.slice(0, 20)}`}
+                    type="blog"
+                    title={article.title}
+                    content={article.content}
+                    scores={article.scores}
+                    metadata={{ wordCount: article.content.split(" ").length }}
+                    locked={locked}
+                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("blog", index) : undefined}
+                  />
+                );
+              })}
+              {tier !== 'pro' && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
 
@@ -164,7 +179,7 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
                   variant="outline"
                   size="sm"
                   onClick={() => handleRegenerate("casestudies")}
-                  disabled={regenerating === "casestudies" || !isUnlocked}
+                  disabled={regenerating === "casestudies" || tier !== 'pro'}
                 >
                   {regenerating === "casestudies" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -174,22 +189,26 @@ export function ContentTabs({ analysis, isUnlocked, onRegenerateAll, onRegenerat
                   Regenerate All
                 </Button>
               </div>
-              {analysis.content.caseStudies.map((study, index) => (
-                <ContentCard
-                  key={`case-${index}-${study.title.slice(0, 20)}`}
-                  type="casestudy"
-                  title={study.title}
-                  content={study.content}
-                  scores={study.scores}
-                  metadata={{
-                    client: study.client,
-                    industry: study.industry,
-                  }}
-                  locked={!isUnlocked && index > 0}
-                  onRegenerate={isUnlocked ? () => onRegenerateItem("casestudies", index) : undefined}
-                />
-              ))}
-              {!isUnlocked && <LockedContentOverlay />}
+              {analysis.content.caseStudies.map((study, index) => {
+                const limit = getLimit(tier, 'caseStudy');
+                const locked = index >= limit;
+                return (
+                  <ContentCard
+                    key={`case-${index}-${study.title.slice(0, 20)}`}
+                    type="casestudy"
+                    title={study.title}
+                    content={study.content}
+                    scores={study.scores}
+                    metadata={{
+                      client: study.client,
+                      industry: study.industry,
+                    }}
+                    locked={locked}
+                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("casestudies", index) : undefined}
+                  />
+                );
+              })}
+              {tier !== 'pro' && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
         </AnimatePresence>

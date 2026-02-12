@@ -18,8 +18,7 @@ interface DashboardProps {
 
 export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: DashboardProps) {
   const [analysis, setAnalysis] = useState<RepoAnalysis>(initialAnalysis);
-  const { user, isPro } = useAuth();
-  const isUnlocked = isPro;
+  const { user, tier, isPro, isPaid } = useAuth();
   const { toast } = useToast();
 
   const handleRegenerateAll = async (contentType: ContentType) => {
@@ -109,7 +108,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
               </div>
             </div>
             <div className="flex items-center gap-4">
-              {isUnlocked && <ExportMenu analysis={analysis} />}
+              {isPaid && <ExportMenu analysis={analysis} />}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Powered by</span>
                 <span className="gradient-text font-semibold text-sm">LaunchCopy AI</span>
@@ -141,7 +140,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
           >
             <ContentTabs
               analysis={analysis}
-              isUnlocked={isUnlocked}
+              tier={tier}
               onRegenerateAll={handleRegenerateAll}
               onRegenerateItem={handleRegenerateItem}
             />
