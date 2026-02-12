@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Footer() {
+  const { user } = useAuth();
+
   return (
     <footer className="relative px-6 md:px-10 pt-16 pb-8 border-t border-border/40">
       <div className="max-w-5xl mx-auto">
@@ -32,11 +35,19 @@ export function Footer() {
                   Pricing
                 </a>
               </li>
-              <li>
-                <Link to="/my-scans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Dashboard
-                </Link>
-              </li>
+              {user ? (
+                <li>
+                  <Link to="/my-scans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Dashboard
+                  </Link>
+                </li>
+              ) : (
+                <li>
+                  <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Sign In
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
