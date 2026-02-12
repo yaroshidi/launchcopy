@@ -208,6 +208,70 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
           </span>
         </button>
       </div>
+
+      {/* Token entry dialog */}
+      <Dialog open={tokenDialogOpen} onOpenChange={setTokenDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Key className="w-6 h-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">Private Repository Access</DialogTitle>
+            <DialogDescription className="text-center">
+              Enter a GitHub Personal Access Token with <span className="font-mono text-[11px] bg-secondary px-1 py-0.5 rounded text-foreground">repo</span> scope to analyze private repositories.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 mt-2">
+            <Input
+              type="password"
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+              value={githubToken}
+              onChange={(e) => setGithubToken(e.target.value)}
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <ExternalLink className="w-3 h-3 shrink-0" />
+              <a
+                href="https://github.com/settings/tokens/new?scopes=repo&description=LaunchCopy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Create a token on GitHub
+              </a>
+            </p>
+          </div>
+
+          <div className="flex gap-2 mt-2">
+            {githubToken && (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setGithubToken("");
+                  sessionStorage.removeItem("github_token");
+                  setTokenDialogOpen(false);
+                }}
+              >
+                Remove token
+              </Button>
+            )}
+            <Button
+              variant="gradient"
+              className="flex-1"
+              onClick={() => {
+                if (githubToken) {
+                  sessionStorage.setItem("github_token", githubToken);
+                }
+                setTokenDialogOpen(false);
+              }}
+            >
+              {githubToken ? "Save token" : "Close"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </form>);
 
 }
