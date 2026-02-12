@@ -10,7 +10,7 @@ const FAQ_ITEMS = [
   {
     question: "What repos can I analyze?",
     answer:
-      "Any public GitHub repository. Just paste the URL and we'll pull the README, file structure, dependencies, and metadata to understand what the project does.",
+      "Any public GitHub repository. Just paste the URL and we'll pull the README, file structure, dependencies, and metadata to understand what the project does. Private repos are supported too with a GitHub token.",
   },
   {
     question: "How does the AI generate content?",
@@ -20,22 +20,22 @@ const FAQ_ITEMS = [
   {
     question: "Is my code stored or shared?",
     answer:
-      "No. We only read publicly available repository metadata (README, file tree, package info). We never clone, store, or share your source code. Analysis results are kept in your browser session only.",
+      "No. We only read publicly available repository metadata (README, file tree, package info). We never clone, store, or share your source code.",
   },
   {
-    question: "What platforms are the social posts optimized for?",
+    question: "What content formats are supported?",
     answer:
-      "We generate posts specifically formatted for X (formerly Twitter) and LinkedIn. Each post follows the conventions and character limits of its target platform for maximum engagement.",
+      "We generate posts for X (Twitter) and LinkedIn, long-form blog articles, and detailed case studies. Each format follows platform conventions and best practices for maximum engagement.",
   },
   {
-    question: "Can I edit the generated content?",
+    question: "Can I customize the output?",
     answer:
-      "Yes — you can copy any piece and edit it however you like. You can also regenerate content with different preferences (tone, audience, focus areas) to get a fresh set of outputs.",
+      "Yes. You can set tone, target audience, and focus areas before generating. You can also regenerate with different preferences at any time to get a fresh set of outputs.",
   },
   {
-    question: "Do I need to pay anything?",
+    question: "What plans are available?",
     answer:
-      "Nope. Signing up is completely free and unlocks all generated content, export options, and regeneration. No credit card required.",
+      "We offer a free tier with 1 scan, a Starter plan with 5 scans, and a Pro plan with unlimited scans plus priority content generation. Check the pricing section for details.",
   },
 ];
 
@@ -50,10 +50,13 @@ export function FAQSection() {
           transition={{ duration: 0.5 }}
           className="text-center space-y-3"
         >
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+            FAQ
+          </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-            Frequently asked questions
+            Got questions?
           </h2>
-          <p className="text-muted-foreground text-base">
+          <p className="text-muted-foreground text-base max-w-lg mx-auto">
             Everything you need to know about LaunchCopy.
           </p>
         </motion.div>
