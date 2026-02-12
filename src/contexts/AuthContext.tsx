@@ -8,6 +8,7 @@ interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   email: string | null;
+  github_token: string | null;
 }
 
 interface AuthContextType {
@@ -21,6 +22,8 @@ interface AuthContextType {
   isPaid: boolean;
   subscriptionLoading: boolean;
   subscriptionEnd: string | null;
+  githubToken: string;
+  setGithubToken: (token: string) => void;
   signOut: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
 }
@@ -36,6 +39,8 @@ const AuthContext = createContext<AuthContextType>({
   isPaid: false,
   subscriptionLoading: false,
   subscriptionEnd: null,
+  githubToken: '',
+  setGithubToken: () => {},
   signOut: async () => {},
   refreshSubscription: async () => {},
 });
@@ -52,21 +57,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [tier, setTier] = useState<SubscriptionTier>('free');
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [githubToken, setGithubTokenState] = useState(() => sessionStorage.getItem("github_token") || "");
 
   const isPro = tier === 'pro';
   const isStarter = tier === 'starter';
   const isPaid = tier !== 'free';
 
-  const fetchProfile = (userId: string) => {
-    supabase
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
-      .single()
-      .then(({ data }) => {
-        if (data) setProfile(data as Profile);
-      });
+      .single();
+    if (data) {
+      const p = data as any;
+      setProfile(p as Profile);
+      if (p.github_token) {
+        setGithubTokenState(p.github_token);
+        sessionStorage.setItem("github_token", p.github_token);
+      }
+    }
   };
+
+  const setGithubToken = useCallback(async (token: string) => {
+    setGithubTokenState(token);
+    if (token) {
+      sessionStorage.setItem("github_token", token);
+    } else {
+      sessionStorage.removeItem("github_token");
+    }
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({ github_token: token || null } as any)
+        .eq("id", user.id);
+    }
+  }, [user]);
 
   const checkSubscription = useCallback(async () => {
     try {
@@ -141,10 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setTier('free');
     setSubscriptionEnd(null);
+    setGithubTokenState('');
+    sessionStorage.removeItem('github_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, tier, isPro, isStarter, isPaid, subscriptionLoading, subscriptionEnd, signOut, refreshSubscription }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, tier, isPro, isStarter, isPaid, subscriptionLoading, subscriptionEnd, githubToken, setGithubToken, signOut, refreshSubscription }}>
       {children}
     </AuthContext.Provider>
   );

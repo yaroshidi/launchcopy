@@ -17,6 +17,7 @@ import {
 import { TONE_OPTIONS, AUDIENCE_OPTIONS, INDUSTRY_OPTIONS, VOICE_OPTIONS } from "@/components/ContentPreferences";
 import type { ContentPreferences as PreferencesType } from "@/types/analysis";
 import { DEFAULT_PREFERENCES } from "@/types/analysis";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface RepoInputProps {
   onAnalyze: (url: string, githubToken?: string, preferences?: PreferencesType) => void;
@@ -30,33 +31,34 @@ function getLabel(value: string, options: {value: string;label: string;}[]): str
 
 export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) {
   const [url, setUrl] = useState("");
+  const { githubToken, setGithubToken } = useAuth();
+  const [tokenInput, setTokenInput] = useState(githubToken);
 
   useEffect(() => {
     if (prefillUrl) setUrl(prefillUrl);
   }, [prefillUrl]);
 
-  const [githubToken, setGithubToken] = useState(() => {
-    return sessionStorage.getItem("github_token") || "";
-  });
+  // Sync local input when context token changes (e.g. on login)
+  useEffect(() => {
+    setTokenInput(githubToken);
+  }, [githubToken]);
 
   // Re-sync token state when loading finishes (error handler may have cleared sessionStorage)
   useEffect(() => {
     if (!isLoading) {
       const stored = sessionStorage.getItem("github_token") || "";
-      if (stored !== githubToken && !stored) {
+      if (!stored && githubToken) {
         setGithubToken("");
       }
     }
   }, [isLoading]);
+
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [preferences, setPreferences] = useState<PreferencesType>(DEFAULT_PREFERENCES);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
-      if (githubToken) {
-        sessionStorage.setItem("github_token", githubToken);
-      }
       onAnalyze(url.trim(), githubToken || undefined, preferences);
     }
   };
@@ -194,7 +196,10 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
         {/* Private repo button */}
         <button
           type="button"
-          onClick={() => setTokenDialogOpen(true)}
+          onClick={() => {
+            setTokenInput(githubToken);
+            setTokenDialogOpen(true);
+          }}
           disabled={isLoading}
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
           githubToken ?
@@ -218,7 +223,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
             </div>
             <DialogTitle className="text-center">Private Repository Access</DialogTitle>
             <DialogDescription className="text-center">
-              Enter a GitHub Personal Access Token with <span className="font-mono text-[11px] bg-secondary px-1 py-0.5 rounded text-foreground">repo</span> scope to analyze private repositories.
+              Enter a GitHub Personal Access Token with <span className="font-mono text-[11px] bg-secondary px-1 py-0.5 rounded text-foreground">repo</span> scope to analyze private repositories. Your token is saved to your account.
             </DialogDescription>
           </DialogHeader>
 
@@ -226,8 +231,8 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
             <Input
               type="password"
               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              value={githubToken}
-              onChange={(e) => setGithubToken(e.target.value)}
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
               className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -250,7 +255,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
                 className="flex-1"
                 onClick={() => {
                   setGithubToken("");
-                  sessionStorage.removeItem("github_token");
+                  setTokenInput("");
                   setTokenDialogOpen(false);
                 }}
               >
@@ -261,13 +266,11 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
               variant="gradient"
               className="flex-1"
               onClick={() => {
-                if (githubToken) {
-                  sessionStorage.setItem("github_token", githubToken);
-                }
+                setGithubToken(tokenInput);
                 setTokenDialogOpen(false);
               }}
             >
-              {githubToken ? "Save token" : "Close"}
+              {tokenInput ? "Save token" : "Close"}
             </Button>
           </div>
         </DialogContent>
