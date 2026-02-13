@@ -91,9 +91,16 @@ serve(async (req) => {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: msg });
-    const safeMsg = msg.includes("Authorization") || msg.includes("Authentication") || msg.includes("authenticated")
-      ? msg : "Failed to check subscription status";
-    return new Response(JSON.stringify({ error: safeMsg }), {
+
+    // Expired/invalid JWT → gracefully return "not subscribed" instead of 500
+    if (msg.includes("expired") || msg.includes("invalid JWT") || msg.includes("Authentication error")) {
+      return new Response(JSON.stringify({ subscribed: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Failed to check subscription status" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

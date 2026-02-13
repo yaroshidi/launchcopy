@@ -97,9 +97,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkSubscription = useCallback(async () => {
     try {
       setSubscriptionLoading(true);
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      // Always fetch a fresh session to avoid stale/expired tokens
+      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !freshSession) {
+        console.warn('checkSubscription: no valid session, skipping');
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: { Authorization: `Bearer ${freshSession.access_token}` },
+      });
       if (error) {
-        console.error('Subscription check failed:', error);
+        console.warn('Subscription check failed (silenced):', error);
         return;
       }
       if (data?.subscribed === true) {
@@ -109,7 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setSubscriptionEnd(data?.subscription_end ?? null);
     } catch (e) {
-      console.error('Subscription check error:', e);
+      // Silently swallow – never surface token errors to the user
+      console.warn('Subscription check error (silenced):', e);
     } finally {
       setSubscriptionLoading(false);
     }
@@ -146,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (session?.user) {
         fetchProfile(session.user.id);
-        checkSubscription();
+        // Don't call checkSubscription here – onAuthStateChange already fires on initial load
       }
 
       setLoading(false);
