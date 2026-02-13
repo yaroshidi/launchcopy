@@ -52,7 +52,7 @@ const Index = () => {
   const [privateRepoOpen, setPrivateRepoOpen] = useState(false);
   
   const { toast } = useToast();
-  const { user, tier, isPro, isPaid, refreshSubscription, setGithubToken } = useAuth();
+  const { user, tier, isPro, isPaid, refreshSubscription } = useAuth();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
@@ -111,8 +111,7 @@ const Index = () => {
         lowerMsg.includes("fine-grained");
 
       if (isRepoAccessError) {
-        sessionStorage.removeItem("github_token");
-        setGithubToken("");
+        // Don't clear the saved token – just prompt the user to check/update it
         setPrivateRepoOpen(true);
       } else {
         toast({

@@ -43,15 +43,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
     setTokenInput(githubToken);
   }, [githubToken]);
 
-  // Re-sync token state when loading finishes (error handler may have cleared sessionStorage)
-  useEffect(() => {
-    if (!isLoading) {
-      const stored = sessionStorage.getItem("github_token") || "";
-      if (!stored && githubToken) {
-        setGithubToken("");
-      }
-    }
-  }, [isLoading]);
+  // Removed: aggressive token sync that could race and clear saved tokens
 
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [preferences, setPreferences] = useState<PreferencesType>(DEFAULT_PREFERENCES);
