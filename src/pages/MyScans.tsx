@@ -15,8 +15,8 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle } from
+"@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadUserAnalyses, deleteAnalysis, loadAnalysisById } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -52,8 +52,8 @@ function ScanCardSkeleton() {
           <Skeleton className="h-4 w-16" />
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 }
 
 export default function MyScans() {
@@ -82,7 +82,7 @@ export default function MyScans() {
       setScans(
         data.map((d) => ({
           ...d,
-          content: (d as any).content as GeneratedContent,
+          content: (d as any).content as GeneratedContent
         }))
       );
       setLoading(false);
@@ -126,21 +126,21 @@ export default function MyScans() {
       <main className="pt-24 pb-16 px-6 md:px-10 max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Dashboard</h1>
             <Button variant="gradient" size="sm" onClick={() => navigate("/")}>
               New Scan
             </Button>
           </div>
           <p className="text-muted-foreground mb-8">All your previously analyzed repositories in one place.</p>
 
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <ScanCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : scans.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
+          {loading ?
+          <div className="grid gap-4 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, i) =>
+            <ScanCardSkeleton key={i} />
+            )}
+            </div> :
+          scans.length === 0 ?
+          <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
               </div>
@@ -151,21 +151,21 @@ export default function MyScans() {
               <Button variant="gradient" onClick={() => navigate("/")}>
                 Analyze a repo
               </Button>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {scans.map((scan, i) => {
-                const posts = scan.content?.socialPosts?.length ?? 0;
-                const articles = scan.content?.blogArticles?.length ?? 0;
-                const cases = scan.content?.caseStudies?.length ?? 0;
+            </div> :
 
-                return (
-                  <motion.div
-                    key={scan.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.3 }}
-                  >
+          <div className="grid gap-4 sm:grid-cols-2">
+              {scans.map((scan, i) => {
+              const posts = scan.content?.socialPosts?.length ?? 0;
+              const articles = scan.content?.blogArticles?.length ?? 0;
+              const cases = scan.content?.caseStudies?.length ?? 0;
+
+              return (
+                <motion.div
+                  key={scan.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05, duration: 0.3 }}>
+
                     <Card className="group border-border/50 hover:border-primary/40 transition-colors h-full flex flex-col">
                       <CardContent className="p-5 flex flex-col flex-1">
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -198,21 +198,21 @@ export default function MyScans() {
                             <ExternalLink className="w-3.5 h-3.5 mr-1" /> Open
                           </Button>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteId(scan.id)}
-                          >
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteId(scan.id)}>
+
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
-                );
-              })}
+                  </motion.div>);
+
+            })}
             </div>
-          )}
+          }
         </motion.div>
       </main>
 
@@ -232,6 +232,6 @@ export default function MyScans() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>);
+
 }
