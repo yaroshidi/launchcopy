@@ -144,7 +144,7 @@ export default function MyScans() {
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h2 className="text-xl font-semibold mb-2">No scans yet</h2>
+              <h2 className="text-xl font-semibold mb-2 text-zinc-50">No scans yet</h2>
               <p className="text-muted-foreground max-w-md mb-6">
                 Analyze a GitHub repository on the home page and your results will show up here.
               </p>
