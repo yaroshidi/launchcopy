@@ -43,9 +43,13 @@ export async function saveAnalysis(
   analysis: RepoAnalysis,
   preferences?: ContentPreferences
 ): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
   const { data, error } = await supabase
     .from('analyses' as any)
     .insert({
+      user_id: user.id,
       repo_url: analysis.repoUrl,
       summary: analysis.summary as any,
       content: analysis.content as any,
