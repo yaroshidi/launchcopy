@@ -155,9 +155,9 @@ export default function MyScans() {
 
           <div className="grid gap-4 sm:grid-cols-2">
               {scans.map((scan, i) => {
-              const posts = scan.content?.socialPosts?.length ?? 0;
-              const articles = scan.content?.blogArticles?.length ?? 0;
-              const cases = scan.content?.caseStudies?.length ?? 0;
+              const posts = scan.content?.socialPosts?.filter((p: any) => !p.locked)?.length ?? 0;
+              const articles = scan.content?.blogArticles?.filter((a: any) => !a.locked)?.length ?? 0;
+              const cases = scan.content?.caseStudies?.filter((c: any) => !c.locked)?.length ?? 0;
 
               return (
                 <motion.div
