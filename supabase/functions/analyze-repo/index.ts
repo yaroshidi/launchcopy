@@ -694,6 +694,16 @@ serve(async (req) => {
     const isPro = userTier === 'pro';
     const scanLimit = userTier === 'pro' ? Infinity : userTier === 'starter' ? 5 : 1;
 
+    // Tier-aware content counts – only generate what the user is entitled to
+    const contentCounts = {
+      social: isPro ? 5 : userTier === 'starter' ? 3 : 1,
+      blog: isPro ? 2 : userTier === 'starter' ? 2 : 1,
+      caseStudy: isPro ? 3 : userTier === 'starter' ? 2 : 1,
+    };
+    // X / LinkedIn split for social posts
+    const xCount = isPro ? 3 : userTier === 'starter' ? 2 : 1;
+    const linkedInCount = contentCounts.social - xCount;
+
     if (!isPro) {
       // Check existing scan count using service role
       const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
@@ -932,9 +942,9 @@ All case studies must:
 - Focus on benefits and outcomes, not features or implementation details
 - NEVER reference specific code constructs: no function names, no class names, no file paths, no API routes, no configuration keys, no CLI flags
 - Use concrete examples and scenarios grounded in the repo's actual capabilities
-- For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts.
-- Generate exactly 2 blog articles, each approximately 800 words, marketing-focused with markdown H2 headers (## Header), each with a different structure from the pool above. NO code snippets or technical deep-dives.
-- Generate exactly 3 case studies, each with a different structure, industry, and company size. Marketing-focused, NO code references.
+- For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly ${contentCounts.social} social post${contentCounts.social === 1 ? '' : 's'}: ${xCount} X post${xCount === 1 ? '' : 's'}${linkedInCount > 0 ? ` and ${linkedInCount} LinkedIn post${linkedInCount === 1 ? '' : 's'}` : ''}.
+- Generate exactly ${contentCounts.blog} blog article${contentCounts.blog === 1 ? '' : 's'}, each approximately 800 words, marketing-focused with markdown H2 headers (## Header), each with a different structure from the pool above. NO code snippets or technical deep-dives.
+- Generate exactly ${contentCounts.caseStudy} case stud${contentCounts.caseStudy === 1 ? 'y' : 'ies'}, each with a different structure, industry, and company size. Marketing-focused, NO code references.
 - NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.
 - NEVER use any word or phrase from the BANNED list above.`;
 
