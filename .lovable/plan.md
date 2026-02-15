@@ -1,42 +1,60 @@
 
-## Fix: Scans Not Saving to Your Account
+## Fix: Generate Only What the Tier Allows (Save AI Credits + Fix Counts)
 
-### Root Cause
-The function that saves scan results to the database is missing the required `user_id` field. Since the column is NOT NULL, every save attempt silently fails. The scan you see on the home page lives only in temporary browser storage (sessionStorage), which is why the Dashboard page shows "No scans yet."
+### Problem
 
-### The Fix
+Two related issues:
 
-**File: `src/lib/api.ts` -- `saveAnalysis` function**
+1. **Wasted AI credits**: The edge function always asks the AI to generate the maximum content (5 social posts, 2 blog articles, 3 case studies) regardless of the user's tier. It then truncates/locks the excess items. For a free user, this means 80% of generated content is thrown away.
 
-Add the authenticated user's ID to the database insert:
+2. **Misleading counts on Dashboard**: The scan card shows "5 posts, 2 articles, 3 studies" because all items (including locked ones) are stored and counted. A free-tier user sees numbers that don't match what they can actually access.
 
-```typescript
-export async function saveAnalysis(
-  analysis: RepoAnalysis,
-  preferences?: ContentPreferences
-): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+### Solution
 
-  const { data, error } = await supabase
-    .from('analyses')
-    .insert({
-      user_id: user.id,          // <-- THE MISSING FIELD
-      repo_url: analysis.repoUrl,
-      summary: analysis.summary,
-      content: analysis.content,
-      // ... rest unchanged
-    })
-    .select('id')
-    .single();
-  // ...
-}
-```
+**Part 1 -- Edge Function (`analyze-repo/index.ts`): Tier-aware generation**
 
-### What This Fixes
-- Scans will actually persist to the database under your user account.
-- The Dashboard (/my-scans) will correctly list all your past scans.
-- Scans will survive browser restarts and work across devices.
+Instead of hardcoding "Generate exactly 5 social posts, 2 blog articles, 3 case studies" in the AI prompt, dynamically set these numbers based on the user's tier:
 
-### No Database Changes Needed
-The table schema and RLS policies are already correct -- the bug is purely in the frontend code missing the `user_id` value on insert.
+| Tier | Social Posts | Blog Articles | Case Studies |
+|------|-------------|---------------|-------------|
+| Free | 1 | 1 | 1 |
+| Starter | 3 | 2 | 2 |
+| Pro | 5 | 2 | 3 |
+
+This means the AI only generates what the user is entitled to, saving significant token costs. The content gating code (lines 1021-1053) becomes a safety net rather than the primary mechanism.
+
+Update the prompt lines that currently say:
+- "Generate exactly 5 social posts: 3 X posts and 2 LinkedIn posts" -> dynamic based on tier
+- "Generate exactly 2 blog articles" -> dynamic
+- "Generate exactly 3 case studies" -> dynamic
+
+For free tier with 1 social post, it will be 1 X post. For starter with 3, it will be 2 X + 1 LinkedIn. Pro stays at 3 X + 2 LinkedIn.
+
+**Part 2 -- Dashboard card (`MyScans.tsx`): Filter locked items from counts**
+
+Update the scan card to only count unlocked items. Items with `locked: true` should be excluded from the displayed counts, so the numbers match what the user can actually use.
+
+### Technical Details
+
+**`supabase/functions/analyze-repo/index.ts` changes:**
+- After determining `userTier` (around line 694), compute content counts:
+  ```
+  const contentCounts = {
+    social: userTier === 'pro' ? 5 : userTier === 'starter' ? 3 : 1,
+    blog: userTier === 'pro' ? 2 : userTier === 'starter' ? 2 : 1,
+    caseStudy: userTier === 'pro' ? 3 : userTier === 'starter' ? 2 : 1,
+  };
+  ```
+- Replace the hardcoded counts in the generation prompt (lines 935-937) with dynamic values using these counts
+- Adjust the X/LinkedIn split for social posts based on the total count
+- The content gating block (lines 1021-1053) can remain as a safety fallback but will rarely trigger since the AI now only generates the right amount
+
+**`src/pages/MyScans.tsx` changes:**
+- Update the count logic to filter out locked items:
+  ```
+  const posts = scan.content?.socialPosts?.filter(p => !p.locked)?.length ?? 0;
+  const articles = scan.content?.blogArticles?.filter(a => !a.locked)?.length ?? 0;
+  const cases = scan.content?.caseStudies?.filter(c => !c.locked)?.length ?? 0;
+  ```
+
+This ensures consistency: the user sees the same number of items they can actually access, and the AI only generates what's needed.
