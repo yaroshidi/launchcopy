@@ -392,7 +392,7 @@ Generate fresh, high-quality ${contentTypeLabel[contentType] || 'content'} with 
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error('Content generation failed. Please try again.');
     }
 
     const aiResponse = await response.json();

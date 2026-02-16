@@ -743,16 +743,13 @@ serve(async (req) => {
         if (!tokenInfo.valid) {
           errorMsg = 'The GitHub token you provided is invalid or expired. Please generate a new Personal Access Token (classic) with the "repo" scope and try again.';
         } else if (tokenInfo.scopes !== undefined && tokenInfo.scopes !== '' && !tokenInfo.scopes.includes('repo')) {
-          // Classic token without repo scope
-          errorMsg = `Your token is valid (authenticated as @${tokenInfo.user}) but is missing the "repo" scope. Please create a new Classic token with the "repo" scope enabled.`;
+          errorMsg = 'Your token is missing the "repo" scope. Please create a new Classic token with the "repo" scope enabled.';
         } else if (tokenInfo.scopes === '' && repoAccessStatus === 404) {
-          // Fine-grained PAT (empty scopes) that can't access this repo
-          errorMsg = `Your token is valid (authenticated as @${tokenInfo.user}) but it appears to be a fine-grained token that does not have access to this repository. Please create a Classic Personal Access Token instead:\n\n1. Go to GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)\n2. Click "Generate new token (classic)"\n3. Check the "repo" scope\n4. Generate and paste the new token here`;
+          errorMsg = 'Your token does not have access to this repository. Please create a Classic Personal Access Token with the "repo" scope instead of a fine-grained token.';
         } else if (repoAccessStatus === 404) {
-          // Classic token with repo scope but still 404 — user might not be a collaborator
-          errorMsg = `Your token is valid (authenticated as @${tokenInfo.user}) but cannot access ${owner}/${repoName}. Please verify:\n• The repository URL is correct\n• Your GitHub account has access to this repository\n• If using a fine-grained token, switch to a Classic token with the "repo" scope`;
+          errorMsg = 'Your token cannot access this repository. Please verify the URL is correct and your GitHub account has access.';
         } else {
-          errorMsg = `Your token is valid (authenticated as @${tokenInfo.user}) but something went wrong accessing ${owner}/${repoName} (HTTP ${repoAccessStatus || 'unknown'}). Please try again or use a different token.`;
+          errorMsg = 'Something went wrong accessing this repository. Please try again or use a different token.';
         }
       } else if (!hasAccess) {
         errorMsg = 'Could not access this repository. It may be private — please provide a GitHub Personal Access Token using the "Private repo" option below the input.';
