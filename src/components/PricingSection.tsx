@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Check, X, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, X, Loader2, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -59,6 +60,8 @@ function FeatureRow({ feature }: { feature: PlanFeature }) {
 export function PricingSection() {
   const { user, tier } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
 
   const handleCheckout = async (planTier: 'starter' | 'pro') => {
     setLoading(planTier);
@@ -163,17 +166,47 @@ export function PricingSection() {
                 <FeatureRow key={f.text} feature={f} />
               ))}
             </ul>
-            <div className="mt-8">
+            <div className="mt-8 space-y-3">
               {tier === 'starter' ? (
                 <Button variant="outline" className="w-full" onClick={handleManage} disabled={loading === 'manage'}>
                   {loading === 'manage' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   Manage subscription
                 </Button>
               ) : tier === 'pro' ? null : user ? (
-                <Button variant="gradient" className="w-full" onClick={() => handleCheckout('starter')} disabled={!!loading}>
-                  {loading === 'starter' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                  Get Starter
-                </Button>
+                <>
+                  <Button variant="gradient" className="w-full" onClick={() => handleCheckout('starter')} disabled={!!loading}>
+                    {loading === 'starter' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Get Starter
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPromo(!showPromo)}
+                    className="flex items-center gap-1.5 mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Tag className="w-3 h-3" />
+                    {showPromo ? "Hide promo code" : "Have a promo code?"}
+                  </button>
+                  <AnimatePresence>
+                    {showPromo && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Input
+                          placeholder="Enter code"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Code will be applied at checkout
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
               ) : (
                 <Button variant="gradient" className="w-full" asChild>
                   <Link to="/auth">Sign up & upgrade</Link>
