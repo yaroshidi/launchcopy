@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -6,11 +7,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, History } from "lucide-react";
+import { LogOut, User, History, CreditCard, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export function UserMenu() {
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, signOut, isPaid } = useAuth();
+  const [billingLoading, setBillingLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleManageBilling = async () => {
+    try {
+      setBillingLoading(true);
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch {
+      toast({ title: "Unable to open billing portal", description: "Please try again later.", variant: "destructive" });
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   const displayName =
     profile?.display_name || user?.email?.split("@")[0] || "User";
@@ -47,6 +67,12 @@ export function UserMenu() {
             My Scans
           </Link>
         </DropdownMenuItem>
+        {isPaid && (
+          <DropdownMenuItem onClick={handleManageBilling} disabled={billingLoading}>
+            {billingLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
+            Manage Billing
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
           Sign out
