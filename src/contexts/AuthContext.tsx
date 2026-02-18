@@ -20,6 +20,7 @@ interface AuthContextType {
   isPro: boolean;
   isStarter: boolean;
   isPaid: boolean;
+  hasActiveSubscription: boolean;
   subscriptionLoading: boolean;
   subscriptionEnd: string | null;
   githubToken: string;
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   isPro: false,
   isStarter: false,
   isPaid: false,
+  hasActiveSubscription: false,
   subscriptionLoading: false,
   subscriptionEnd: null,
   githubToken: '',
@@ -55,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [githubToken, setGithubTokenState] = useState(() => sessionStorage.getItem("github_token") || "");
@@ -112,8 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (data?.subscribed === true) {
         setTier(getTierByProductId(data?.product_id));
+        setHasActiveSubscription(true);
       } else {
         setTier('free');
+        setHasActiveSubscription(false);
       }
       setSubscriptionEnd(data?.subscription_end ?? null);
     } catch (e) {
@@ -143,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
         setTier('free');
+        setHasActiveSubscription(false);
         setSubscriptionEnd(null);
       }
 
@@ -175,13 +181,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setProfile(null);
     setTier('free');
+    setHasActiveSubscription(false);
     setSubscriptionEnd(null);
     setGithubTokenState('');
     sessionStorage.removeItem('github_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, tier, isPro, isStarter, isPaid, subscriptionLoading, subscriptionEnd, githubToken, setGithubToken, signOut, refreshSubscription }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, tier, isPro, isStarter, isPaid, hasActiveSubscription, subscriptionLoading, subscriptionEnd, githubToken, setGithubToken, signOut, refreshSubscription }}>
       {children}
     </AuthContext.Provider>
   );
