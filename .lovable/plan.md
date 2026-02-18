@@ -1,32 +1,83 @@
 
 
-## Add Promo Code Support for the Starter Plan
+## Full Color Rebrand: #80ed99 Green Identity
 
-### What You'll Get
-A "Have a promo code?" toggle on the Starter plan card. When clicked, it reveals a small input field where users can type their code before checking out. Stripe handles all the validation and discount application on the checkout page.
+### Overview
+Replace all blue (#0EA5E9 / hsl 199 89% 48%) and purple (#7C3AED / hsl 262 83% 58%) with a cohesive color palette built around #80ed99 (a fresh mint green).
 
-### How It Works
+`#80ed99` in HSL is approximately `140 80% 71%`. The palette will use this as the base, with a deeper green for accents and a darker shade for gradient endpoints -- no purple, no blue.
 
-1. **Frontend (PricingSection.tsx)**: Add a collapsible promo code input under the Starter plan's "Get Starter" button. The entered code is passed along when starting checkout.
+### New Color Palette
 
-2. **Backend (create-checkout edge function)**: When a promo code is provided for the Starter tier, the checkout session is created with `allow_promotion_codes: true`, which shows a pre-filled or editable promo code field on Stripe's checkout page. This way Stripe validates the code -- no custom validation logic needed.
+| Role | Old HSL | New HSL | Hex |
+|------|---------|---------|-----|
+| Primary | 199 89% 48% (cyan-blue) | 150 84% 40% (rich green) | ~#10B981 |
+| Accent | 262 83% 58% (purple) | 140 80% 71% (mint green) | #80ed99 |
+| Ring | 199 89% 48% | 150 84% 40% | same as primary |
+| Gradient start | hsl(199 89% 48%) | hsl(150 84% 40%) | emerald |
+| Gradient end | hsl(262 83% 58%) | hsl(140 80% 71%) | mint |
+| Glow | blue-based | green-based | -- |
+| Sidebar primary (dark) | 199 89% 48% | 150 84% 40% | -- |
+| Sidebar ring | 217 91% 60% / 199 89% 48% | 150 84% 40% | -- |
 
-3. **Stripe Dashboard**: You'll create your promo codes directly in Stripe (Coupons section). For example, create a coupon for X% off, then generate a promotion code like "LAUNCH20" tied to that coupon. You can restrict it to the Starter product only if desired.
+### Files to Change
 
-### Technical Details
+**1. `src/index.css` -- Central theme (biggest change)**
 
-**`src/components/PricingSection.tsx`**:
-- Add `promoCode` state (string) and `showPromo` toggle (boolean)
-- Below the "Get Starter" button, add a small "Have a promo code?" text button
-- When toggled, show a compact input field
-- Pass `promoCode` to `handleCheckout`
-- Update `handleCheckout` to accept and forward the promo code
+Light mode `:root`:
+- `--primary`: 199 89% 48% -> 150 84% 40%
+- `--accent`: 262 83% 58% -> 140 80% 71%
+- `--ring`: 199 89% 48% -> 150 84% 40%
+- `--gradient-primary`: both color stops change to green palette
+- `--shadow-glow`: blue glow -> green glow
+- `--sidebar-ring`: 217.2 91.2% 59.8% -> 150 84% 40%
 
-**`supabase/functions/create-checkout/index.ts`**:
-- Parse optional `promoCode` from the request body
-- When creating the Stripe checkout session, add `allow_promotion_codes: true` so the promo code field appears on Stripe's checkout page
-- This lets Stripe handle all validation (expired codes, wrong product, usage limits, etc.)
+Dark mode `.dark`:
+- Same variable swaps as light mode
+- `--primary`: 199 89% 48% -> 150 84% 40%
+- `--accent`: 262 83% 58% -> 140 80% 71%
+- `--ring`: same
+- `--gradient-primary`: green stops
+- `--shadow-glow`: green glow
+- `--sidebar-primary`: 199 89% 48% -> 150 84% 40%
+- `--sidebar-ring`: same
 
-### No Database Changes Needed
-Promo codes are managed entirely through Stripe. No new tables or migrations required.
+Hardcoded HSL values in animations/utilities:
+- `pulse-glow` keyframes: replace `hsl(199 89% 48%)` with `hsl(150 84% 40%)`
+- `hero-glow` radial gradient: replace both blue and purple HSL values with green palette equivalents
+
+**2. `src/components/Hero.tsx` -- Social proof avatar colors**
+
+Line 92: inline `style` uses `hsl(${199 + i * 40} ...)` to generate avatar colors. Change the base hue from 199 to 140 so the avatars cycle through greens/teals instead of blue/purple.
+
+**3. `src/components/showcase/TweetCard.tsx` -- Verified badge color**
+
+Line 13: `text-blue-400` on the verified badge SVG -> change to `text-primary` so it follows the theme.
+
+**4. `src/components/ui/button.tsx` -- Gradient variant**
+
+Line 17: `bg-gradient-to-r from-primary to-accent` -- this will automatically pick up the new primary/accent colors from CSS variables, so no code change needed here. The gradient will go from emerald to mint green.
+
+**5. `src/components/ContentShowcase.tsx` -- Accent glow orb**
+
+Line 56: `bg-accent/8` -- already uses the CSS variable, will auto-update. No change needed.
+
+### What Does NOT Need to Change
+
+Most components use Tailwind classes like `text-primary`, `bg-primary/10`, `text-accent`, `bg-accent/20` etc., which all derive from the CSS variables. Once the CSS variables are updated, these ~460 usages across 39 files automatically inherit the new green palette.
+
+The only manual fixes are:
+- 2 hardcoded HSL values in CSS animations (`pulse-glow`, `hero-glow`)
+- 1 inline style in Hero.tsx (avatar hue base)
+- 1 hardcoded `text-blue-400` in TweetCard.tsx
+
+### Summary of Changes
+
+| File | Change |
+|------|--------|
+| `src/index.css` | Swap all CSS custom property values from blue/purple to green palette; update hardcoded HSL in keyframes and hero-glow |
+| `src/components/Hero.tsx` | Change avatar hue base from 199 to 140 |
+| `src/components/showcase/TweetCard.tsx` | Change `text-blue-400` to `text-primary` |
+
+That's it -- 3 files, full site-wide color rebrand.
 
