@@ -57,9 +57,11 @@ export function UserMenu() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem disabled className="text-muted-foreground">
-          <User className="mr-2 h-4 w-4" />
-          {user?.email}
+        <DropdownMenuItem asChild>
+          <Link to="/profile" className="flex items-center">
+            <User className="mr-2 h-4 w-4" />
+            Profile
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/my-scans" className="flex items-center">
