@@ -44,13 +44,13 @@ export function ProductSummary({ analysis }: ProductSummaryProps) {
           <Code className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-foreground">{analysis.summary.name}</h2>
+          <h2 className="text-lg font-display text-foreground">{analysis.summary.name}</h2>
           <p className="text-xs text-muted-foreground">Product Analysis</p>
         </div>
       </div>
 
       {/* Tech Stack */}
-      <Card className="glass-card border-border/50">
+      <Card className="bg-card border-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium text-foreground/70">Tech Stack</CardTitle>
         </CardHeader>
@@ -72,10 +72,10 @@ export function ProductSummary({ analysis }: ProductSummaryProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className="glass-card border-border/50">
+          <Card className="bg-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
-                <section.icon className="w-4 h-4 text-primary" />
+                <section.icon className="w-4 h-4 accent-text" />
                 {section.title}
               </CardTitle>
             </CardHeader>

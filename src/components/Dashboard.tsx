@@ -91,7 +91,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -109,10 +109,9 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
             </div>
             <div className="flex items-center gap-4">
               {isPaid && <ExportMenu analysis={analysis} />}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Powered by</span>
-                <span className="gradient-text font-semibold text-sm">LaunchCopy AI</span>
-              </div>
+              <span className="text-xs text-muted-foreground">
+                Powered by <span className="accent-text font-semibold">LaunchCopy</span>
+              </span>
             </div>
           </div>
         </div>

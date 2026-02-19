@@ -101,8 +101,11 @@ export function PricingSection() {
           transition={{ duration: 0.5 }}
           className="text-center space-y-3"
         >
-          <h2 className="text-3xl md:text-4xl font-bold gradient-text">
-            Simple, transparent pricing
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+            Pricing
+          </p>
+          <h2 className="text-3xl md:text-4xl font-display text-foreground">
+            Simple, <span className="accent-text">transparent</span> pricing
           </h2>
           <p className="text-muted-foreground text-base max-w-lg mx-auto">
             Start for free, upgrade when you need more scans and content.
@@ -116,10 +119,10 @@ export function PricingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
-            className="glass-card rounded-2xl border border-border/50 p-6 flex flex-col"
+            className="rounded-2xl bg-card border border-border p-6 flex flex-col"
           >
             <div className="space-y-1 mb-6">
-              <h3 className="text-lg font-bold text-foreground">Free</h3>
+              <h3 className="text-lg font-semibold text-foreground">Free</h3>
               <p className="text-2xl font-bold text-foreground">$0<span className="text-sm font-normal text-muted-foreground">/month</span></p>
               <p className="text-sm text-muted-foreground">Try it out with one scan</p>
             </div>
@@ -145,13 +148,11 @@ export function PricingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.05 }}
-            className="relative glass-card rounded-2xl border border-primary/30 p-6 flex flex-col overflow-hidden"
+            className="relative rounded-2xl bg-card border border-border p-6 flex flex-col"
           >
-            <div className="absolute -top-16 -right-16 w-32 h-32 bg-primary/8 rounded-full blur-[50px] pointer-events-none" />
-
             <div className="space-y-1 mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-foreground">Starter</h3>
+                <h3 className="text-lg font-semibold text-foreground">Starter</h3>
                 {tier === 'starter' && (
                   <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
                     Your plan
@@ -174,7 +175,7 @@ export function PricingSection() {
                 </Button>
               ) : tier === 'pro' ? null : user ? (
                 <>
-                  <Button variant="gradient" className="w-full" onClick={() => handleCheckout('starter')} disabled={!!loading}>
+                  <Button className="w-full" onClick={() => handleCheckout('starter')} disabled={!!loading}>
                     {loading === 'starter' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                     Get Starter
                   </Button>
@@ -208,7 +209,7 @@ export function PricingSection() {
                   </AnimatePresence>
                 </>
               ) : (
-                <Button variant="gradient" className="w-full" asChild>
+                <Button className="w-full" asChild>
                   <Link to="/auth">Sign up & upgrade</Link>
                 </Button>
               )}
@@ -221,14 +222,11 @@ export function PricingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="relative glass-card rounded-2xl border border-primary/40 p-6 flex flex-col overflow-hidden"
+            className="relative rounded-2xl bg-card border-l-2 border border-border border-l-primary p-6 flex flex-col"
           >
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-[60px] pointer-events-none" />
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-
             <div className="space-y-1 mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-foreground">Pro</h3>
+                <h3 className="text-lg font-semibold text-foreground">Pro</h3>
                 {tier === 'pro' && (
                   <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
                     Your plan
@@ -250,12 +248,12 @@ export function PricingSection() {
                   Manage subscription
                 </Button>
               ) : user ? (
-                <Button variant="gradient" className="w-full" onClick={() => handleCheckout('pro')} disabled={!!loading}>
+                <Button className="w-full" onClick={() => handleCheckout('pro')} disabled={!!loading}>
                   {loading === 'pro' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   Upgrade to Pro
                 </Button>
               ) : (
-                <Button variant="gradient" className="w-full" asChild>
+                <Button className="w-full" asChild>
                   <Link to="/auth">Sign up & upgrade</Link>
                 </Button>
               )}
@@ -270,7 +268,7 @@ export function PricingSection() {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="text-center text-sm text-muted-foreground"
         >
-          Join <span className="text-foreground font-semibold">2,400+</span>{" "}
+          Join <span className="accent-text font-semibold">2,400+</span>{" "}
           developers already generating content
         </motion.p>
       </div>

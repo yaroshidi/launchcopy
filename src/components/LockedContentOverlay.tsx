@@ -55,13 +55,13 @@ export function LockedContentOverlay() {
               Starter — $10/mo
             </Button>
           )}
-          <Button variant="gradient" size="lg" onClick={() => handleUpgrade('pro')} disabled={loading}>
+          <Button size="lg" onClick={() => handleUpgrade('pro')} disabled={loading}>
             <Sparkles className="w-4 h-4 mr-2" />
             {loading ? "Opening checkout…" : "Pro — $40/mo"}
           </Button>
         </div>
       ) : (
-        <Button variant="gradient" size="lg" asChild>
+        <Button size="lg" asChild>
           <Link to="/auth" className="gap-2">
             <Sparkles className="w-4 h-4" />
             Sign up to get started

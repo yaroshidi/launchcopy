@@ -21,11 +21,8 @@ export function Hero({
   isLoading
 }: HeroProps) {
   const [prefillUrl, setPrefillUrl] = useState("");
-  return <section className="relative md:px-10 flex flex-col items-center overflow-hidden px-6 pt-[180px] pb-20">
-      {/* Radial glow behind heading */}
-      <div className="hero-glow" />
-
-      <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center text-center space-y-8">
+  return <section className="relative md:px-10 flex flex-col items-center lg:items-start overflow-hidden px-6 pt-[180px] pb-20">
+      <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
         {/* Headline */}
         <motion.div initial={{
         opacity: 0,
@@ -37,17 +34,21 @@ export function Hero({
         duration: 0.5,
         delay: 0.1
       }} className="space-y-4">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.15] tracking-[-0.03em] text-foreground">
-            Your repo already has a <span className="gradient-text">story.</span>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display leading-[1.1] tracking-[-0.01em] text-foreground">
+            Your repo already has a{" "}
+            <span className="accent-text">story.</span>
             <br />
             <span className="text-muted-foreground">We help you tell it.</span>
           </h1>
 
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed max-lg:max-w-[500px]">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed max-lg:max-w-[500px]">
             Paste a GitHub URL and let our AI turn your codebase into
             ready-to-publish social posts, blog articles, and case studies.
           </p>
         </motion.div>
+
+        {/* Accent line */}
+        <div className="accent-line w-24" />
 
         {/* Repo input */}
         <motion.div initial={{
@@ -71,9 +72,9 @@ export function Hero({
       }} transition={{
         duration: 0.5,
         delay: 0.4
-      }} className="flex flex-wrap justify-center gap-2">
+      }} className="flex flex-wrap justify-center lg:justify-start gap-2">
           <span className="text-xs text-muted-foreground/60 mr-1 self-center">Try:</span>
-          {EXAMPLE_REPOS.map((repo) => <button key={repo.label} type="button" onClick={() => setPrefillUrl(repo.url)} disabled={isLoading} className="px-3 py-1.5 text-xs font-medium text-muted-foreground rounded-full border border-border/50 bg-secondary/40 hover:bg-secondary hover:text-foreground hover:border-border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+          {EXAMPLE_REPOS.map((repo) => <button key={repo.label} type="button" onClick={() => setPrefillUrl(repo.url)} disabled={isLoading} className="px-3 py-1.5 text-xs font-medium text-muted-foreground rounded-full border border-border bg-secondary/40 hover:bg-secondary hover:text-foreground hover:border-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
               {repo.label}
             </button>)}
         </motion.div>
@@ -86,17 +87,9 @@ export function Hero({
       }} transition={{
         duration: 0.5,
         delay: 0.55
-      }} className="text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 mr-5 flex items-center justify-center gap-[16px]">
-          <div className="flex -space-x-2">
-            {["AD", "KM", "RS", "JL"].map((initials, i) => <div key={initials} className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold" style={{
-            background: `hsl(${140 + i * 40} 60% ${45 + i * 5}%)`,
-            color: "hsl(0 0% 100%)"
-          }}>
-                {initials}
-              </div>)}
-          </div>
+      }} className="flex items-center gap-3">
           <p className="text-xs text-muted-foreground">
-            <span className="text-foreground font-medium">2,400+</span> repos analyzed this month
+            <span className="accent-text font-semibold">2,400+</span> repos analyzed this month
           </p>
         </motion.div>
       </div>

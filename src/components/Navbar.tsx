@@ -12,9 +12,9 @@ export function Navbar() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-10 bg-background/60 backdrop-blur-xl border-b border-border/40"
+      className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-10 bg-background/90 backdrop-blur-sm border-b border-border"
     >
-      <Link to="/" className="text-lg font-bold tracking-tight gradient-text hover:opacity-80 transition-opacity">
+      <Link to="/" className="text-xl font-display text-foreground hover:opacity-80 transition-opacity">
         LaunchCopy
       </Link>
 

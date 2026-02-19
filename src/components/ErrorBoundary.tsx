@@ -28,7 +28,6 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-background dark flex items-center justify-center px-4">
-          <div className="hero-glow" />
           <div className="relative z-10 text-center max-w-md">
             <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
               <AlertTriangle className="w-8 h-8 text-destructive" />
@@ -38,7 +37,6 @@ export class ErrorBoundary extends Component<Props, State> {
               An unexpected error occurred. Please try refreshing the page.
             </p>
             <Button
-              variant="gradient"
               size="lg"
               onClick={() => {
                 this.setState({ hasError: false });

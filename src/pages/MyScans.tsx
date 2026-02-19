@@ -41,7 +41,7 @@ function extractRepoName(url: string) {
 
 function ScanCardSkeleton() {
   return (
-    <Card className="border-border/50">
+    <Card className="border-border">
       <CardContent className="p-5">
         <Skeleton className="h-5 w-3/4 mb-3" />
         <Skeleton className="h-4 w-full mb-2" />
@@ -126,12 +126,15 @@ export default function MyScans() {
       <main className="pt-24 pb-16 px-6 md:px-10 max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Dashboard</h1>
-            <Button variant="gradient" size="sm" onClick={() => navigate("/")}>
+            <h1 className="text-3xl font-display tracking-tight text-foreground">Dashboard</h1>
+            <Button size="sm" onClick={() => navigate("/")}>
               New Scan
             </Button>
           </div>
           <p className="text-muted-foreground mb-8">All your previously analyzed repositories in one place.</p>
+
+          {/* Accent line */}
+          <div className="accent-line mb-8" />
 
           {loading ?
           <div className="grid gap-4 sm:grid-cols-2">
@@ -144,11 +147,11 @@ export default function MyScans() {
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h2 className="text-xl font-semibold mb-2 text-zinc-50">No scans yet</h2>
+              <h2 className="text-xl font-display mb-2 text-foreground">No scans yet</h2>
               <p className="text-muted-foreground max-w-md mb-6">
                 Analyze a GitHub repository on the home page and your results will show up here.
               </p>
-              <Button variant="gradient" onClick={() => navigate("/")}>
+              <Button onClick={() => navigate("/")}>
                 Analyze a repo
               </Button>
             </div> :
@@ -166,7 +169,7 @@ export default function MyScans() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.3 }}>
 
-                    <Card className="group border-border/50 hover:border-primary/40 transition-colors h-full flex flex-col">
+                    <Card className="group border-border hover:border-primary/40 transition-colors h-full flex flex-col">
                       <CardContent className="p-5 flex flex-col flex-1">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <h3 className="font-semibold text-sm font-mono truncate text-foreground">
@@ -227,7 +230,7 @@ export default function MyScans() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

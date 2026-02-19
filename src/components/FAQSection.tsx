@@ -53,7 +53,7 @@ export function FAQSection() {
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">
             FAQ
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+          <h2 className="text-3xl md:text-4xl font-display text-foreground">
             Got questions?
           </h2>
           <p className="text-muted-foreground text-base max-w-lg mx-auto">
@@ -70,7 +70,7 @@ export function FAQSection() {
           <Accordion
             type="single"
             collapsible
-            className="glass-card rounded-2xl border border-border/50 px-6 divide-y divide-border/30"
+            className="rounded-2xl bg-card border border-border px-6 divide-y divide-border"
           >
             {FAQ_ITEMS.map((item, i) => (
               <AccordionItem

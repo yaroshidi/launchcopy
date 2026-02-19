@@ -43,8 +43,6 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
     setTokenInput(githubToken);
   }, [githubToken]);
 
-  // Removed: aggressive token sync that could race and clear saved tokens
-
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [preferences, setPreferences] = useState<PreferencesType>(DEFAULT_PREFERENCES);
 
@@ -70,7 +68,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3">
-      <div className="relative flex items-center gap-2 p-2 rounded-2xl glass-card border border-border/50 focus-within:border-primary/50 focus-within:shadow-glow transition-all duration-300">
+      <div className="relative flex items-center gap-2 p-2 rounded-2xl bg-card border border-border focus-within:border-primary/50 transition-all duration-300">
         <div className="flex items-center gap-3 pl-4">
           <Github className="w-5 h-5 text-muted-foreground" />
         </div>
@@ -84,7 +82,6 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
 
         <Button
           type="submit"
-          variant="gradient"
           size="lg"
           disabled={isLoading || !url.trim() || !isValidGithubUrl(url)}
           className="rounded-xl">
@@ -122,7 +119,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
                   disabled={isLoading}
                   className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
                   isDefault ?
-                  "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10" :
+                  "bg-secondary/60 text-muted-foreground border-border hover:border-primary/50 hover:bg-primary/10" :
                   "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`
                   }>
 
@@ -196,12 +193,12 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
           className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
           githubToken ?
           "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20" :
-          "bg-secondary/60 text-muted-foreground border-border/30 hover:border-primary/50 hover:bg-primary/10"}`
+          "bg-secondary/60 text-muted-foreground border-border hover:border-primary/50 hover:bg-primary/10"}`
           }>
           <span className="flex items-center gap-1">
             <Key className="w-3 h-3" />
             Private repo
-            {githubToken && <Check className="w-3 h-3 text-green-500" />}
+            {githubToken && <Check className="w-3 h-3 text-primary" />}
           </span>
         </button>
       </div>
@@ -255,7 +252,6 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
               </Button>
             )}
             <Button
-              variant="gradient"
               className="flex-1"
               onClick={() => {
                 setGithubToken(tokenInput);

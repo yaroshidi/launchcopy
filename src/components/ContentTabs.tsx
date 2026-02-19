@@ -41,7 +41,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Generated Content</h2>
+          <h2 className="text-2xl font-display text-foreground">Generated Content</h2>
           <p className="text-sm text-muted-foreground">
             AI-generated marketing content with two-pass refinement & quality scoring
           </p>
@@ -52,21 +52,21 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
         <TabsList className="w-full justify-start bg-secondary/50 p-1 rounded-xl">
           <TabsTrigger
             value="social"
-            className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-soft"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
             <MessageSquare className="w-4 h-4 mr-2" />
             Social Posts
           </TabsTrigger>
           <TabsTrigger
             value="blog"
-            className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-soft"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
             <FileText className="w-4 h-4 mr-2" />
             Blog Articles
           </TabsTrigger>
           <TabsTrigger
             value="casestudies"
-            className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-soft"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
             <BookOpen className="w-4 h-4 mr-2" />
             Case Studies

@@ -155,25 +155,25 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-background dark flex items-center justify-center px-4">
-      {/* Background glow */}
-      <div className="hero-glow" />
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-md"
       >
-        <div className="glass-card rounded-2xl border border-border/50 p-8 space-y-6">
+        <div className="rounded-2xl bg-card border border-border p-8 space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold gradient-text">
+            <h1 className="text-2xl font-display accent-text">
               LaunchCopy
             </h1>
             <p className="text-sm text-muted-foreground">
               {isSignUp ? "Create your account" : "Welcome back"}
             </p>
           </div>
+
+          {/* Accent line */}
+          <div className="accent-line" />
 
           {/* Google sign-in */}
           <Button
@@ -268,7 +268,6 @@ export default function Auth() {
 
               <Button
                 type="submit"
-                variant="gradient"
                 size="lg"
                 className="w-full"
                 disabled={isSubmitting}
@@ -293,7 +292,7 @@ export default function Auth() {
                 setIsSignUp(!isSignUp);
                 form.reset();
               }}
-              className="text-primary hover:underline font-medium"
+              className="accent-text hover:underline font-medium"
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>

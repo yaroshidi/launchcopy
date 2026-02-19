@@ -6,12 +6,12 @@ export function Footer() {
   const { user } = useAuth();
 
   return (
-    <footer className="relative px-6 md:px-10 pt-16 pb-8 border-t border-border/40">
+    <footer className="relative px-6 md:px-10 pt-16 pb-8 border-t border-border">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 space-y-3">
-            <Link to="/" className="text-lg font-bold tracking-tight gradient-text">
+            <Link to="/" className="text-lg font-display text-foreground">
               LaunchCopy
             </Link>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px]">
@@ -100,7 +100,7 @@ export function Footer() {
           </div>
         </div>
 
-        <Separator className="bg-border/40" />
+        <Separator className="bg-border" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6">
           <p className="text-xs text-muted-foreground">

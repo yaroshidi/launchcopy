@@ -263,7 +263,7 @@ export default function Profile() {
                       {subDetails.canceled_at && ` (canceled ${format(new Date(subDetails.canceled_at), "MMM d, yyyy")})`}
                     </p>
                   )}
-                  <Button variant="gradient" size="sm" onClick={() => window.location.href = "/#pricing"}>
+                  <Button size="sm" onClick={() => window.location.href = "/#pricing"}>
                     View Plans
                   </Button>
                 </div>

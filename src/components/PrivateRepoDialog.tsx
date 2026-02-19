@@ -76,7 +76,6 @@ export function PrivateRepoDialog({
         </div>
 
         <Button
-          variant="gradient"
           className="w-full mt-2"
           onClick={() => onOpenChange(false)}
         >

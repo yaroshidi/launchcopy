@@ -4,7 +4,7 @@ export function TweetCard() {
   return (
     <div className="p-5 space-y-4">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
+        <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold accent-text">
           JD
         </div>
         <div className="flex-1">
@@ -19,7 +19,7 @@ export function TweetCard() {
         </svg>
       </div>
       <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
-        {"spent 3 hours writing marketing copy for my side project.\n\npasted the github link into this tool and got better posts in 90 seconds.\n\nthe X posts actually sound human. i'm mass-deleting my drafts 🚀"}
+        {"spent 3 hours writing marketing copy for my side project.\n\npasted the github link into this tool and got better posts in 90 seconds.\n\nthe X posts actually sound human. i'm mass-deleting my drafts"}
       </p>
       <div className="flex items-center gap-6 text-muted-foreground">
         <span className="flex items-center gap-1.5 text-xs hover:text-primary transition-colors cursor-pointer">

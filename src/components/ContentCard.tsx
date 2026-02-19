@@ -33,9 +33,9 @@ const platformIcons: Record<string, React.ReactNode> = {
 
 function ScoreBadge({ label, value }: { label: string; value: number }) {
   const color =
-    value >= 8 ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
-    value >= 5 ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
-    "bg-red-500/15 text-red-400 border-red-500/30";
+    value >= 8 ? "bg-primary/15 text-primary border-primary/30" :
+    value >= 5 ? "bg-accent/15 text-accent border-accent/30" :
+    "bg-destructive/15 text-destructive border-destructive/30";
 
   return (
     <TooltipProvider>
@@ -114,12 +114,12 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
       animate={{ opacity: 1, y: 0 }}
       layout
     >
-      <Card className={`glass-card border-border/50 overflow-hidden group hover:border-primary/30 transition-all duration-300 ${locked ? 'relative' : ''}`}>
+      <Card className={`bg-card border-border overflow-hidden group hover:border-primary/30 transition-all duration-300 ${locked ? 'relative' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {type === "social" && metadata?.platform && (
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center accent-text">
                   {getPlatformIcon(metadata.platform)}
                 </div>
               )}
@@ -197,7 +197,7 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
         <CardContent>
           {locked ? (
             <div className="flex items-center justify-center py-6 text-muted-foreground">
-              <p className="text-sm italic">🔒 Upgrade to Pro to view this content</p>
+              <p className="text-sm italic">Upgrade to Pro to view this content</p>
             </div>
           ) : isEditing ? (
             <Textarea
@@ -211,13 +211,13 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
               {displayContent.split('\n').map((line, i) => {
                 const trimmed = line.trim();
                 if (trimmed.startsWith('## ')) {
-                  return <h2 key={i} className="text-lg font-bold text-foreground mt-6 mb-2 first:mt-0">{trimmed.slice(3)}</h2>;
+                  return <h2 key={i} className="text-lg font-display text-foreground mt-6 mb-2 first:mt-0">{trimmed.slice(3)}</h2>;
                 }
                 if (trimmed.startsWith('### ')) {
                   return <h3 key={i} className="text-base font-semibold text-foreground mt-4 mb-1">{trimmed.slice(4)}</h3>;
                 }
                 if (trimmed === '') return <br key={i} />;
-                return <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{trimmed}</p>;
+                return <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2 font-display">{trimmed}</p>;
               })}
             </div>
           ) : (
