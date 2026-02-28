@@ -103,7 +103,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
       {/* Preference chips + Private repo in one row */}
       <div className="flex items-center justify-between gap-2">
         {/* Preference chips */}
-        <div className="flex flex-wrap gap-1.5 max-lg:flex-col">
+        <div className="flex-wrap gap-1.5 flex flex-row">
         {chips.map((chip) => {
             const isDefault = chip.current === DEFAULT_PREFERENCES[chip.key];
             const label = getLabel(chip.current, chip.options);
