@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, Edit2, Save, X, Linkedin, MessageCircle, RefreshCw } from "lucide-react";
+import { Copy, Check, Edit2, Save, X, Linkedin, MessageCircle, RefreshCw, Lock, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import type { ContentScores } from "@/types/analysis";
 
 interface ContentCardProps {
@@ -51,6 +54,57 @@ function ScoreBadge({ label, value }: { label: string; value: number }) {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+}
+
+function LockedCardContent() {
+  const { user, tier } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async (planTier: 'starter' | 'pro') => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { tier: planTier },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, '_blank');
+    } catch (e) {
+      console.error('Checkout error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isStarter = tier === 'starter';
+
+  return (
+    <div className="flex flex-col items-center justify-center py-6 gap-3">
+      <Lock className="w-5 h-5 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground italic">
+        {isStarter ? "Upgrade to Pro to unlock" : "Upgrade your plan to unlock"}
+      </p>
+      {user ? (
+        <div className="flex items-center gap-2">
+          {!isStarter && (
+            <Button variant="outline" size="sm" onClick={() => handleUpgrade('starter')} disabled={loading}>
+              Starter — $10/mo
+            </Button>
+          )}
+          <Button size="sm" onClick={() => handleUpgrade('pro')} disabled={loading}>
+            <Sparkles className="w-3 h-3 mr-1" />
+            {loading ? "Opening…" : "Pro — $40/mo"}
+          </Button>
+        </div>
+      ) : (
+        <Button size="sm" asChild>
+          <Link to="/auth" className="gap-1">
+            <Sparkles className="w-3 h-3" />
+            Sign up to unlock
+          </Link>
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -196,9 +250,7 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
         </CardHeader>
         <CardContent>
           {locked ? (
-            <div className="flex items-center justify-center py-6 text-muted-foreground">
-              <p className="text-sm italic">Upgrade to Pro to view this content</p>
-            </div>
+            <LockedCardContent />
           ) : isEditing ? (
             <Textarea
               value={editedContent}
