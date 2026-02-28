@@ -11,10 +11,12 @@ import { LogOut, User, History, CreditCard, Loader2, ArrowUpCircle } from "lucid
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 
 export function UserMenu() {
   const { profile, user, signOut, hasActiveSubscription, isPro } = useAuth();
   const [billingLoading, setBillingLoading] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const { toast } = useToast();
 
   const handleManageBilling = async () => {
@@ -43,49 +45,53 @@ export function UserMenu() {
     .slice(0, 2);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-secondary/60 transition-colors outline-none">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={avatarUrl} alt={displayName} />
-          <AvatarFallback className="text-xs bg-primary/20 text-primary">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <span className="text-sm font-medium text-foreground hidden sm:inline max-w-[120px] truncate">
-          {displayName}
-        </span>
-      </DropdownMenuTrigger>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-secondary/60 transition-colors outline-none">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={avatarUrl} alt={displayName} />
+            <AvatarFallback className="text-xs bg-primary/20 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium text-foreground hidden sm:inline max-w-[120px] truncate">
+            {displayName}
+          </span>
+        </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem asChild>
-          <Link to="/profile" className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/my-scans" className="flex items-center">
-            <History className="mr-2 h-4 w-4" />
-            My Scans
-          </Link>
-        </DropdownMenuItem>
-        {!isPro && (
-          <DropdownMenuItem onClick={() => window.location.href = "/#pricing"}>
-            <ArrowUpCircle className="mr-2 h-4 w-4" />
-            Upgrade Plan
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem asChild>
+            <Link to="/profile" className="flex items-center">
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </Link>
           </DropdownMenuItem>
-        )}
-        {hasActiveSubscription && (
-          <DropdownMenuItem onClick={handleManageBilling} disabled={billingLoading}>
-            {billingLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-            Manage Billing
+          <DropdownMenuItem asChild>
+            <Link to="/my-scans" className="flex items-center">
+              <History className="mr-2 h-4 w-4" />
+              My Scans
+            </Link>
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {!isPro && (
+            <DropdownMenuItem onClick={() => setUpgradeOpen(true)}>
+              <ArrowUpCircle className="mr-2 h-4 w-4" />
+              Upgrade Plan
+            </DropdownMenuItem>
+          )}
+          {hasActiveSubscription && (
+            <DropdownMenuItem onClick={handleManageBilling} disabled={billingLoading}>
+              {billingLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
+              Manage Billing
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} />
+    </>
   );
 }
