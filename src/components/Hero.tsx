@@ -41,7 +41,7 @@ export function Hero({
             <span className="text-muted-foreground">We help you tell it.</span>
           </h1>
 
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed max-lg:max-w-[500px]">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed max-lg:max-w-[500px] max-lg:mx-auto">
             Paste a GitHub URL and let our AI turn your codebase into
             ready-to-publish social posts, blog articles, and case studies.
           </p>
