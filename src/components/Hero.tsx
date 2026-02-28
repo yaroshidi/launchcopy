@@ -34,7 +34,7 @@ export function Hero({
         duration: 0.5,
         delay: 0.1
       }} className="space-y-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display leading-[1.1] tracking-[-0.01em] text-foreground">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display leading-[1.1] tracking-[-0.01em] text-foreground w-[800px]">
             Your repo already has a{" "}
             <span className="accent-text">story.</span>
             <br />
