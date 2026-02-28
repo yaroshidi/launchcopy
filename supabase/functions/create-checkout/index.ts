@@ -36,10 +36,14 @@ serve(async (req) => {
 
     // Parse requested tier from body
     let requestedTier = "starter";
+    let promoCode: string | undefined;
     try {
       const body = await req.json();
       if (body.tier && TIER_PRICES[body.tier]) {
         requestedTier = body.tier;
+      }
+      if (body.promoCode && typeof body.promoCode === "string") {
+        promoCode = body.promoCode.trim();
       }
     } catch {
       // default to starter if no body
@@ -63,8 +67,27 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${origin}/?checkout=success`,
       cancel_url: `${origin}/?checkout=cancel`,
-      allow_promotion_codes: true,
+      allow_promotion_codes: !promoCode, // native Stripe promo UI if no code provided
     };
+
+    // If a specific promo code was provided, look up and apply it
+    if (promoCode) {
+      try {
+        const promoCodes = await stripe.promotionCodes.list({ code: promoCode, active: true, limit: 1 });
+        if (promoCodes.data.length > 0) {
+          sessionParams.discounts = [{ promotion_code: promoCodes.data[0].id }];
+        } else {
+          return new Response(JSON.stringify({ error: "Invalid or expired promo code" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+      } catch (e) {
+        console.error("Promo code lookup error:", e);
+        // Fall back to allowing manual promo entry
+        sessionParams.allow_promotion_codes = true;
+      }
+    }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
