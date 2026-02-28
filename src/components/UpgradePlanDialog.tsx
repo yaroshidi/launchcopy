@@ -38,8 +38,7 @@ export function UpgradePlanDialog({ open, onOpenChange }: UpgradePlanDialogProps
       });
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
-        onOpenChange(false);
+        window.location.href = data.url;
       }
     } catch {
       toast({
