@@ -7,8 +7,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  DialogDescription } from
+"@/components/ui/dialog";
 import {
   Popover,
   PopoverTrigger,
@@ -103,83 +103,83 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
       {/* Preference chips + Private repo in one row */}
       <div className="flex items-center justify-between gap-2">
         {/* Preference chips */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 max-lg:flex-col">
         {chips.map((chip) => {
-          const isDefault = chip.current === DEFAULT_PREFERENCES[chip.key];
-          const label = getLabel(chip.current, chip.options);
-          return (
-            <Popover
-              key={chip.key}
-              open={openChip === chip.key}
-              onOpenChange={(open) => setOpenChip(open ? chip.key : null)}>
+            const isDefault = chip.current === DEFAULT_PREFERENCES[chip.key];
+            const label = getLabel(chip.current, chip.options);
+            return (
+              <Popover
+                key={chip.key}
+                open={openChip === chip.key}
+                onOpenChange={(open) => setOpenChip(open ? chip.key : null)}>
 
               <PopoverTrigger asChild>
                 <button
-                  type="button"
-                  disabled={isLoading}
-                  className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
-                  isDefault ?
-                  "bg-secondary/60 text-muted-foreground border-border hover:border-primary/50 hover:bg-primary/10" :
-                  "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`
-                  }>
+                    type="button"
+                    disabled={isLoading}
+                    className={`text-xs px-2 py-0.5 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
+                    isDefault ?
+                    "bg-secondary/60 text-muted-foreground border-border hover:border-primary/50 hover:bg-primary/10" :
+                    "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`
+                    }>
 
                   <span>{label}</span>
                   {!isDefault &&
-                  <span
-                    role="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPreferences({ ...preferences, [chip.key]: DEFAULT_PREFERENCES[chip.key] });
-                    }}
-                    className="hover:text-destructive">
+                    <span
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreferences({ ...preferences, [chip.key]: DEFAULT_PREFERENCES[chip.key] });
+                      }}
+                      className="hover:text-destructive">
 
                       <X className="w-3 h-3" />
                     </span>
-                  }
+                    }
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-48 p-1" align="start">
                 <div className="flex flex-col">
                   {chip.options.map((option) =>
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      setPreferences({ ...preferences, [chip.key]: option.value });
-                      setOpenChip(null);
-                    }}
-                    className={`text-left text-xs px-3 py-2 rounded-md transition-colors ${
-                    chip.current === option.value ?
-                    "bg-primary/10 text-primary font-medium" :
-                    "text-foreground hover:bg-secondary"}`
-                    }>
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setPreferences({ ...preferences, [chip.key]: option.value });
+                        setOpenChip(null);
+                      }}
+                      className={`text-left text-xs px-3 py-2 rounded-md transition-colors ${
+                      chip.current === option.value ?
+                      "bg-primary/10 text-primary font-medium" :
+                      "text-foreground hover:bg-secondary"}`
+                      }>
 
                       <div>{option.label}</div>
                       {'description' in option &&
-                    <div className="text-[10px] text-muted-foreground mt-0.5">{(option as any).description}</div>
-                    }
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{(option as any).description}</div>
+                      }
                     </button>
-                  )}
+                    )}
                   {!isDefault &&
-                  <>
+                    <>
                       <div className="h-px bg-border my-1" />
                       <button
-                      type="button"
-                      onClick={() => {
-                        setPreferences({ ...preferences, [chip.key]: DEFAULT_PREFERENCES[chip.key] });
-                        setOpenChip(null);
-                      }}
-                      className="text-left text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary transition-colors">
+                        type="button"
+                        onClick={() => {
+                          setPreferences({ ...preferences, [chip.key]: DEFAULT_PREFERENCES[chip.key] });
+                          setOpenChip(null);
+                        }}
+                        className="text-left text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-secondary transition-colors">
 
                         Reset to default
                       </button>
                     </>
-                  }
+                    }
                 </div>
               </PopoverContent>
             </Popover>);
 
-        })}
+          })}
         </div>
 
         {/* Private repo button */}
@@ -222,42 +222,42 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
-              className="font-mono text-sm"
-            />
+              className="font-mono text-sm" />
+
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <ExternalLink className="w-3 h-3 shrink-0" />
               <a
                 href="https://github.com/settings/tokens/new?scopes=repo&description=LaunchCopy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
+                className="text-primary hover:underline">
+
                 Create a token on GitHub
               </a>
             </p>
           </div>
 
           <div className="flex gap-2 mt-2">
-            {githubToken && (
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  setGithubToken("");
-                  setTokenInput("");
-                  setTokenDialogOpen(false);
-                }}
-              >
+            {githubToken &&
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setGithubToken("");
+                setTokenInput("");
+                setTokenDialogOpen(false);
+              }}>
+
                 Remove token
               </Button>
-            )}
+            }
             <Button
               className="flex-1"
               onClick={() => {
                 setGithubToken(tokenInput);
                 setTokenDialogOpen(false);
-              }}
-            >
+              }}>
+
               {tokenInput ? "Save token" : "Close"}
             </Button>
           </div>
