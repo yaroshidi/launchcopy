@@ -7,13 +7,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, History, CreditCard, Loader2 } from "lucide-react";
+import { LogOut, User, History, CreditCard, Loader2, ArrowUpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export function UserMenu() {
-  const { profile, user, signOut, hasActiveSubscription } = useAuth();
+  const { profile, user, signOut, hasActiveSubscription, isPro } = useAuth();
   const [billingLoading, setBillingLoading] = useState(false);
   const { toast } = useToast();
 
@@ -69,6 +69,12 @@ export function UserMenu() {
             My Scans
           </Link>
         </DropdownMenuItem>
+        {!isPro && (
+          <DropdownMenuItem onClick={() => window.location.href = "/#pricing"}>
+            <ArrowUpCircle className="mr-2 h-4 w-4" />
+            Upgrade Plan
+          </DropdownMenuItem>
+        )}
         {hasActiveSubscription && (
           <DropdownMenuItem onClick={handleManageBilling} disabled={billingLoading}>
             {billingLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
