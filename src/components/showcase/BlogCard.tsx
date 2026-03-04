@@ -7,7 +7,7 @@ export function BlogCard() {
         <Clock className="w-3.5 h-3.5" />
         <span>8 min read</span>
         <span className="text-border">·</span>
-        <span className="accent-text font-medium">Developer Tools</span>
+        <span className="text-primary font-medium">Developer Tools</span>
       </div>
       <h3 className="text-lg font-display text-foreground leading-tight">
         10 Features That Make This the Fastest Build Tool in 2025
@@ -18,7 +18,7 @@ export function BlogCard() {
         build infrastructure and never looked back.
       </p>
       <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold accent-text">
+        <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">
           LC
         </div>
         <span className="text-xs text-muted-foreground">by LaunchCopy AI</span>

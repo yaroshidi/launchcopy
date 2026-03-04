@@ -133,13 +133,9 @@ html::-webkit-scrollbar {
 }
 
 @layer utilities {
-  .accent-text {
-    color: hsl(38 90% 55%);
-  }
-
   .accent-line {
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(38 90% 55% / 0.5), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent);
   }
 
   .animate-fade-up {

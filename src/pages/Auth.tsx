@@ -167,7 +167,7 @@ export default function Auth() {
         <div className="rounded-2xl bg-card border border-border p-8 space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-display accent-text">
+            <h1 className="text-2xl font-display text-primary">
               LaunchCopy
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -301,7 +301,7 @@ export default function Auth() {
                 setSignedUpEmail(null);
                 form.reset();
               }}
-              className="accent-text hover:underline font-medium"
+              className="text-primary hover:underline font-medium"
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>

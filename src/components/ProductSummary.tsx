@@ -75,7 +75,7 @@ export function ProductSummary({ analysis }: ProductSummaryProps) {
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
-                <section.icon className="w-4 h-4 accent-text" />
+                <section.icon className="w-4 h-4 text-primary" />
                 {section.title}
               </CardTitle>
             </CardHeader>

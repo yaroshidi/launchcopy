@@ -30,7 +30,7 @@ const FEATURES: Feature[] = [
 
 export function FeaturesShowcase() {
   return (
-    <section id="showcase" className="relative px-6 md:px-10 pb-24">
+    <section id="showcase" className="relative px-6 md:px-10 pt-24 pb-24">
       <div className="max-w-5xl mx-auto space-y-16">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -58,7 +58,7 @@ export function FeaturesShowcase() {
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="flex gap-6"
             >
-              <span className="text-3xl font-display accent-text shrink-0 leading-tight">
+              <span className="text-3xl font-display text-primary shrink-0 leading-tight">
                 {f.number}
               </span>
               <div className="space-y-2">

@@ -21,7 +21,7 @@ export function Hero({
   isLoading
 }: HeroProps) {
   const [prefillUrl, setPrefillUrl] = useState("");
-  return <section className="relative md:px-10 flex flex-col items-center lg:items-start overflow-hidden px-6 pt-[180px] pb-20">
+  return <section className="relative md:px-10 flex flex-col items-center lg:items-start overflow-hidden px-6 pt-32 md:pt-40 pb-20">
       <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
         {/* Headline */}
         <motion.div initial={{
@@ -34,9 +34,9 @@ export function Hero({
         duration: 0.5,
         delay: 0.1
       }} className="space-y-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display leading-[1.1] tracking-[-0.01em] text-foreground w-[800px]">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display leading-[1.1] tracking-[-0.01em] text-foreground max-w-[800px] w-full">
             Your repo already has a{" "}
-            <span className="accent-text">story.</span>
+            <span className="text-primary">story.</span>
             <br />
             <span className="text-muted-foreground">We help you tell it.</span>
           </h1>
@@ -89,7 +89,7 @@ export function Hero({
         delay: 0.55
       }} className="flex items-center gap-3">
           <p className="text-xs text-muted-foreground">
-            <span className="accent-text font-semibold">2,400+</span> repos analyzed this month
+            <span className="text-primary font-semibold">2,400+</span> repos analyzed this month
           </p>
         </motion.div>
       </div>

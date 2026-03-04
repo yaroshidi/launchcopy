@@ -105,7 +105,7 @@ export function PricingSection() {
             Pricing
           </p>
           <h2 className="text-3xl md:text-4xl font-display text-foreground">
-            Simple, <span className="accent-text">transparent</span> pricing
+            Simple, <span className="text-primary">transparent</span> pricing
           </h2>
           <p className="text-muted-foreground text-base max-w-lg mx-auto">
             Start for free, upgrade when you need more scans and content.
@@ -268,7 +268,7 @@ export function PricingSection() {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="text-center text-sm text-muted-foreground"
         >
-          Join <span className="accent-text font-semibold">2,400+</span>{" "}
+          Join <span className="text-primary font-semibold">2,400+</span>{" "}
           developers already generating content
         </motion.p>
       </div>

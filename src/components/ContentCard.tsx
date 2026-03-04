@@ -173,7 +173,7 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {type === "social" && metadata?.platform && (
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center accent-text">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                   {getPlatformIcon(metadata.platform)}
                 </div>
               )}
@@ -269,7 +269,7 @@ export function ContentCard({ type, title, content, scores, metadata, locked, on
                   return <h3 key={i} className="text-base font-semibold text-foreground mt-4 mb-1">{trimmed.slice(4)}</h3>;
                 }
                 if (trimmed === '') return <br key={i} />;
-                return <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2 font-display">{trimmed}</p>;
+                return <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{trimmed}</p>;
               })}
             </div>
           ) : (

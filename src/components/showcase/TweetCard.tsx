@@ -4,7 +4,7 @@ export function TweetCard() {
   return (
     <div className="p-5 space-y-4">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold accent-text">
+        <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary">
           JD
         </div>
         <div className="flex-1">

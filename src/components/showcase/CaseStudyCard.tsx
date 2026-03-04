@@ -4,8 +4,8 @@ export function CaseStudyCard() {
   return (
     <div className="p-5 space-y-4">
       <div className="flex items-center gap-2">
-        <Building2 className="w-4 h-4 accent-text" />
-        <span className="text-xs font-semibold uppercase tracking-wider accent-text">
+        <Building2 className="w-4 h-4 text-primary" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-primary">
           Case Study
         </span>
       </div>
@@ -14,15 +14,15 @@ export function CaseStudyCard() {
       </h3>
       <div className="grid grid-cols-3 gap-3">
         <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <p className="text-xl font-bold accent-text">60%</p>
+          <p className="text-xl font-bold text-primary">60%</p>
           <p className="text-[11px] text-muted-foreground">Faster Builds</p>
         </div>
         <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <p className="text-xl font-bold accent-text">10x</p>
+          <p className="text-xl font-bold text-primary">10x</p>
           <p className="text-[11px] text-muted-foreground">Throughput</p>
         </div>
         <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <p className="text-xl font-bold accent-text">$240k</p>
+          <p className="text-xl font-bold text-primary">$240k</p>
           <p className="text-[11px] text-muted-foreground">Saved/Year</p>
         </div>
       </div>

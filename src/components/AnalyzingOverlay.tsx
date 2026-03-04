@@ -92,7 +92,7 @@
            className="text-center mb-8"
          >
            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border text-sm font-mono text-muted-foreground">
-             <Github className="w-4 h-4 accent-text" />
+             <Github className="w-4 h-4 text-primary" />
              {repoName}
            </div>
          </motion.div>

@@ -92,7 +92,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={onBack}>
@@ -110,7 +110,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
             <div className="flex items-center gap-4">
               {isPaid && <ExportMenu analysis={analysis} />}
               <span className="text-xs text-muted-foreground">
-                Powered by <span className="accent-text font-semibold">LaunchCopy</span>
+                Powered by <span className="text-primary font-semibold">LaunchCopy</span>
               </span>
             </div>
           </div>
@@ -118,7 +118,7 @@ export function Dashboard({ analysis: initialAnalysis, preferences, onBack }: Da
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-5xl mx-auto px-6 md:px-10 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Product Summary */}
           <motion.div

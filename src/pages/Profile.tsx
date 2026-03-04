@@ -117,7 +117,7 @@ export default function Profile() {
       <Navbar />
       <main className="pt-24 pb-16 px-6 md:px-10 max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-8">Profile</h1>
+          <h1 className="text-3xl md:text-4xl font-display tracking-tight text-foreground mb-8">Profile</h1>
 
           {/* Account Info */}
           <Card className="border-border/50 mb-6">
