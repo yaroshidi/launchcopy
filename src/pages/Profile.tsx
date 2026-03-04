@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ViewPlansDialog } from "@/components/ViewPlansDialog";
 
 interface SubscriptionDetails {
   has_subscription: boolean;
@@ -55,6 +56,7 @@ export default function Profile() {
   const [subDetails, setSubDetails] = useState<SubscriptionDetails | null>(null);
   const [subLoading, setSubLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Profile | LaunchCopy";
@@ -263,7 +265,7 @@ export default function Profile() {
                       {subDetails.canceled_at && ` (canceled ${format(new Date(subDetails.canceled_at), "MMM d, yyyy")})`}
                     </p>
                   )}
-                  <Button size="sm" onClick={() => window.location.href = "/#pricing"}>
+                  <Button size="sm" onClick={() => setPlansOpen(true)}>
                     View Plans
                   </Button>
                 </div>
@@ -285,6 +287,8 @@ export default function Profile() {
           </Card>
         </motion.div>
       </main>
+
+      <ViewPlansDialog open={plansOpen} onOpenChange={setPlansOpen} />
     </div>
   );
 }
