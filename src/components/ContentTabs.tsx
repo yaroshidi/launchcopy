@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
 import { LockedContentOverlay } from "@/components/LockedContentOverlay";
-import { TIERS, type SubscriptionTier } from "@/lib/tiers";
+import type { SubscriptionTier } from "@/lib/tiers";
 import type { RepoAnalysis } from "@/types/analysis";
 import type { ContentType } from "@/lib/api";
 
@@ -16,9 +16,8 @@ interface ContentTabsProps {
   onRegenerateItem: (contentType: ContentType, itemIndex: number) => Promise<void>;
 }
 
-function getLimit(tier: SubscriptionTier, category: 'social' | 'blog' | 'caseStudy'): number {
-  if (tier === 'pro') return Infinity;
-  if (tier === 'starter') return TIERS.starter.contentLimits![category];
+function getLimit(tier: SubscriptionTier): number {
+  if (tier === 'pro' || tier === 'starter') return Infinity;
   return 1; // free
 }
 
@@ -100,7 +99,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 </Button>
               </div>
               {analysis.content.socialPosts.map((post, index) => {
-                const limit = getLimit(tier, 'social');
+                const limit = getLimit(tier);
                 const locked = index >= limit;
                 return (
                   <ContentCard
@@ -115,7 +114,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                   />
                 );
               })}
-              {tier !== 'pro' && <LockedContentOverlay />}
+              {tier === 'free' && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
 
@@ -145,7 +144,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 </Button>
               </div>
               {analysis.content.blogArticles.map((article, index) => {
-                const limit = getLimit(tier, 'blog');
+                const limit = getLimit(tier);
                 const locked = index >= limit;
                 return (
                   <ContentCard
@@ -160,7 +159,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                   />
                 );
               })}
-              {tier !== 'pro' && <LockedContentOverlay />}
+              {tier === 'free' && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
 
@@ -190,7 +189,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 </Button>
               </div>
               {analysis.content.caseStudies.map((study, index) => {
-                const limit = getLimit(tier, 'caseStudy');
+                const limit = getLimit(tier);
                 const locked = index >= limit;
                 return (
                   <ContentCard
@@ -208,7 +207,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                   />
                 );
               })}
-              {tier !== 'pro' && <LockedContentOverlay />}
+              {tier === 'free' && <LockedContentOverlay />}
             </motion.div>
           </TabsContent>
         </AnimatePresence>

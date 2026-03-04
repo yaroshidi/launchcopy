@@ -54,7 +54,7 @@ export function UpgradePlanDialog({ open, onOpenChange }: UpgradePlanDialogProps
   const features = [
     "Unlimited repository scans",
     "All social posts, blogs & case studies",
-    "Content regeneration with preferences",
+    "Regenerate content with preferences",
     "Export in all formats",
   ];
 
@@ -143,7 +143,7 @@ export function UpgradePlanDialog({ open, onOpenChange }: UpgradePlanDialogProps
                 <p className="text-lg font-bold text-foreground">
                   $10<span className="text-xs font-normal text-muted-foreground">/mo</span>
                 </p>
-                <p className="text-xs text-muted-foreground">5 scans, more content</p>
+                <p className="text-xs text-muted-foreground">1 full scan/day, all content</p>
               </div>
               <Button
                 variant="outline"

@@ -43,9 +43,7 @@ export function LockedContentOverlay() {
       <p className="text-sm text-muted-foreground max-w-md mx-auto">
         {!user
           ? "Sign up and subscribe to access all social posts, blog articles, case studies, and more scans."
-          : isStarter
-          ? "Upgrade to Pro ($40/mo) for unlimited scans, all content, and regeneration with preferences."
-          : "Upgrade to Starter ($10/mo) for 5 scans and more content, or Pro ($40/mo) for unlimited everything."}
+          : "Upgrade to Starter ($10/mo) for full scans, or Pro ($40/mo) for unlimited scans and regeneration."}
       </p>
 
       {user ? (
