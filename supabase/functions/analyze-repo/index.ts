@@ -580,6 +580,123 @@ Apply this persona consistently across ALL generated content. Every piece should
 `;
 }
 
+// ── Post-generation validation ──────────────────────────
+
+const BANNED_WORDS_REGEX = /\b(leverage|harness|streamline|robust|cutting[- ]edge|seamlessly|utilize|empower|elevate|foster|spearhead|groundbreaking|revolutionary|comprehensive|holistic|synergy|paradigm|delve|realm|landscape|navigate|unlock|supercharge|turbocharge|pivotal|myriad|plethora|moreover|furthermore|hence|thus|transformative|next[- ]level|game[- ]changing|best[- ]in[- ]class|world[- ]class|state[- ]of[- ]the[- ]art|mission[- ]critical|end[- ]to[- ]end|turnkey|bleeding[- ]edge)\b/gi;
+
+const BANNED_OPENINGS_REGEX = /^(In today'?s|In the ever[- ]evolving|In a world where|Whether you'?re a|Are you tired of|Let'?s face it|It'?s no secret that|When it comes to)/i;
+
+function validateAndFixContent(content: any): { content: any; hadBannedWords: boolean } {
+  let hadBannedWords = false;
+
+  function fixText(text: string): string {
+    // Em dash replacement
+    text = text.replace(/\u2014/g, '; ');
+    // Platform name fix
+    text = text.replace(/\bTwitter\b/g, 'X');
+    return text;
+  }
+
+  function checkBanned(text: string): boolean {
+    return BANNED_WORDS_REGEX.test(text);
+  }
+
+  function checkBannedOpening(text: string): boolean {
+    const firstLine = text.split('\n')[0].trim();
+    return BANNED_OPENINGS_REGEX.test(firstLine);
+  }
+
+  function capScore(scores: any, field: string, max: number) {
+    if (scores && typeof scores[field] === 'number' && scores[field] > max) {
+      scores[field] = max;
+    }
+  }
+
+  // Process social posts
+  if (Array.isArray(content.socialPosts)) {
+    content.socialPosts = content.socialPosts.map((post: any) => {
+      if (typeof post.content === 'string') {
+        post.content = fixText(post.content);
+
+        // X post char limit: truncate at last sentence break before 277 chars
+        if (post.platform?.toLowerCase() === 'x' && post.content.length > 280) {
+          const truncated = post.content.slice(0, 277);
+          const lastBreak = Math.max(
+            truncated.lastIndexOf('. '),
+            truncated.lastIndexOf('.\n'),
+            truncated.lastIndexOf('!\n'),
+            truncated.lastIndexOf('! '),
+            truncated.lastIndexOf('\n')
+          );
+          post.content = lastBreak > 100 ? truncated.slice(0, lastBreak + 1).trim() : truncated.trim();
+          capScore(post.scores, 'clarity', 6);
+        }
+
+        if (checkBanned(post.content)) {
+          hadBannedWords = true;
+          capScore(post.scores, 'humanness', 4);
+          console.warn('Banned word detected in social post');
+        }
+        if (checkBannedOpening(post.content)) {
+          hadBannedWords = true;
+          capScore(post.scores, 'humanness', 4);
+          console.warn('Banned opening detected in social post');
+        }
+      }
+      return post;
+    });
+  }
+
+  // Process blog articles
+  if (Array.isArray(content.blogArticles)) {
+    content.blogArticles = content.blogArticles.map((article: any) => {
+      if (typeof article.content === 'string') {
+        article.content = fixText(article.content);
+        if (typeof article.title === 'string') article.title = fixText(article.title);
+
+        if (checkBanned(article.content) || checkBanned(article.title || '')) {
+          hadBannedWords = true;
+          capScore(article.scores, 'humanness', 4);
+          console.warn('Banned word detected in blog article');
+        }
+        if (checkBannedOpening(article.content)) {
+          hadBannedWords = true;
+          capScore(article.scores, 'humanness', 4);
+          console.warn('Banned opening detected in blog article');
+        }
+      }
+      return article;
+    });
+  }
+
+  // Process case studies
+  if (Array.isArray(content.caseStudies)) {
+    content.caseStudies = content.caseStudies.map((cs: any) => {
+      for (const field of ['content', 'problem', 'solution'] as const) {
+        if (typeof cs[field] === 'string') {
+          cs[field] = fixText(cs[field]);
+        }
+      }
+      if (typeof cs.title === 'string') cs.title = fixText(cs.title);
+
+      const allText = [cs.content, cs.problem, cs.solution, cs.title].filter(Boolean).join(' ');
+      if (checkBanned(allText)) {
+        hadBannedWords = true;
+        capScore(cs.scores, 'humanness', 4);
+        console.warn('Banned word detected in case study');
+      }
+      if (typeof cs.content === 'string' && checkBannedOpening(cs.content)) {
+        hadBannedWords = true;
+        capScore(cs.scores, 'humanness', 4);
+        console.warn('Banned opening detected in case study');
+      }
+      return cs;
+    });
+  }
+
+  return { content, hadBannedWords };
+}
+
 // ── AI call helper ──────────────────────────────────────
 
 async function callAI(body: Record<string, unknown>): Promise<any> {
@@ -993,33 +1110,65 @@ Your job is to:
    - Blogs: Check that each article uses a different structure. No two should feel like the same template. Ensure proper markdown H2 headers (## Header) are used to break content into sections. Content should be marketing-focused with no code snippets or overly technical language. Each article should be approximately 800 words.
    - Case studies: Each must feel like a different company in a different industry. Metrics should feel plausible, not suspiciously round numbers.
 
-5. SCORE each piece on four dimensions (1-10 scale):
+5. CROSS-CONTENT VARIETY CHECK:
+   - If any two pieces share the same opening structure, hook type, or conclusion pattern, rewrite one to be distinct.
+   - No two social posts should use the same rhetorical device. No two blog articles should open with a similar sentence shape.
+
+6. CONCRETE DETAIL TEST:
+   - For each piece, verify it contains at least one specific detail that could ONLY come from this product (a feature name, a metric, a use case).
+   - If a piece could apply to any generic tool, it fails. Add a specific detail from the repo data.
+
+7. SCORE each piece on four dimensions (1-10 scale). BE CRITICAL — most AI-generated content is a 5-6:
    - **Relevance** (1-10): How accurately it reflects actual repository capabilities. Generic = 1-3, specific features referenced = 7-10.
    - **Engagement** (1-10): How compelling, shareable, and attention-grabbing.
    - **Clarity** (1-10): How easy for the target audience to understand.
    - **Humanness** (1-10): How natural and human the writing sounds. 1 = obvious AI, 10 = indistinguishable from a skilled human writer. Target: 7+. Score below 5 if it uses any banned words or patterns.
+
+   SCORE CALIBRATION: A score of 8+ means content indistinguishable from a top human marketer. 6 is average competent writing. Only give 9+ if it would genuinely go viral or win awards. Be honest — inflated scores help no one.
 
 IMPORTANT: NEVER use em dashes (the long dash character "\u2014"). Replace any with periods, commas, colons, or semicolons.
 
 Return the refined content with scores by calling the provided tool.
 
 Here is the original repository context for fact-checking. Use this to verify every claim and ensure content references REAL features:
-${repoContext.slice(0, 6000)}`;
+${repoContext.slice(0, 15000)}`;
 
-    const pass2Response = await callAI({
-      model: 'google/gemini-3-flash-preview',
-      tools: [buildRefinementToolSchema()],
-      tool_choice: { type: 'function', function: { name: 'refine_content' } },
-      messages: [
-        { role: 'system', content: refinementPrompt },
-        { role: 'user', content: `Please refine and score this draft content. Rewrite any content that is generic or doesn't specifically reference the product's actual features:\n\n${JSON.stringify(draft.content, null, 2)}` },
-      ],
-      temperature: 0.3,
-      max_tokens: 12000,
-    });
+    const MAX_REFINEMENT_RETRIES = 1;
+    const HUMANNESS_THRESHOLD = 5;
+    let refined: any = null;
 
-    const refined = extractToolArgs(pass2Response);
-    console.log('Pass 2 (refinement) complete.');
+    for (let attempt = 0; attempt <= MAX_REFINEMENT_RETRIES; attempt++) {
+      const pass2Response = await callAI({
+        model: 'google/gemini-3-flash-preview',
+        tools: [buildRefinementToolSchema()],
+        tool_choice: { type: 'function', function: { name: 'refine_content' } },
+        messages: [
+          { role: 'system', content: refinementPrompt },
+          { role: 'user', content: `Please refine and score this draft content. Rewrite any content that is generic or doesn't specifically reference the product's actual features:\n\n${JSON.stringify(draft.content, null, 2)}` },
+        ],
+        temperature: 0.3,
+        max_tokens: 12000,
+      });
+
+      refined = extractToolArgs(pass2Response);
+      console.log(`Pass 2 (refinement) attempt ${attempt + 1} complete.`);
+
+      if (!refined?.content) break;
+
+      // Validate and fix content programmatically
+      const validated = validateAndFixContent(refined.content);
+      refined.content = validated.content;
+
+      if (!validated.hadBannedWords) {
+        console.log('Validation passed: no banned words detected.');
+        break;
+      }
+
+      console.warn(`Validation: banned words detected after refinement attempt ${attempt + 1}.`);
+      if (attempt < MAX_REFINEMENT_RETRIES) {
+        console.log('Retrying refinement...');
+      }
+    }
 
     // Merge refined content back, keeping summary and scenarios from pass 1
     const finalContent = refined?.content || draft.content;

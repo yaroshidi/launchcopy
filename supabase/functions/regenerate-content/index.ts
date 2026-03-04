@@ -129,30 +129,170 @@ FORMATS (pick 2 different from this pool, never repeat):
 4. Numbers-First: Open with a surprising metric, explain context, reference product.
 5. The Quiet Win: Describe a small overlooked improvement that compounds into a big deal.`,
     blog: `Each article must use a DIFFERENT structure from this pool:
-1. PAS (Problem-Agitate-Solve): Open with the pain point, amplify the pain with consequences, present the product as the solution with specific features.
-2. How-To Guide: Practical step-by-step walkthrough using the product. Include code snippets where relevant.
-3. Comparison / Before-After: Show a workflow before and after adopting the product. Concrete metrics.
-4. Listicle with Depth: "5 Ways [Product] Changes How You [Task]". Each item goes deep with examples.
-5. The Deep Dive: Pick one feature and explore it thoroughly. How it works, why, and real-world impact.
+1. PAS (Problem-Agitate-Solve): Open with the pain point, amplify the pain with consequences, present the product as the solution. Focus on business outcomes, not code.
+2. Comparison / Before-After: Show a specific workflow or task before and after adopting the product. Be concrete about what changes. Include real metrics or realistic estimates.
+3. Listicle with Depth: "5 Ways [Product] Changes How You [Specific Task]". Each item goes deep with examples and specifics, not surface-level bullet points.
+4. The Deep Dive: Pick one core benefit and explore it thoroughly. How it impacts teams, workflows, and outcomes. Focus on the "why it matters" not the "how it works technically."
 
 All articles must:
-- Be minimum 500 words
-- Include practical examples and code snippets where relevant
-- Reference actual features from the product
-- Use headers and scannable formatting
-- NEVER open with "In today's..." or any cliche opening`,
+- Be approximately 800 words each (aim for 750-850 words)
+- Use markdown H2 headers (## Header) to break content into 3-5 clearly titled sections
+- Be written for a MARKETING audience, not a technical one. Focus on benefits, outcomes, and value, not code details or architecture
+- Avoid code snippets, technical jargon, or implementation details. If referencing a technical feature, explain what it DOES for the user, not HOW it works
+- Use concrete examples, customer scenarios, and business impact
+- NEVER open with "In today's..." or any banned opening pattern
+- Each article must use a different structure from the pool above`,
     casestudies: `Each case study must use a DIFFERENT structure from this pool:
-1. STAR (Situation-Task-Action-Result): Classic case study. Set the scene, define the challenge, show implementation with specific product features, quantify results.
-2. Before/After Narrative: Chronological story. Life before, the turning point, life after. Human experience alongside metrics.
-3. The Unexpected Win: Client adopted the product for one reason but discovered unexpected benefits. Lead with the surprise.
+1. STAR (Situation-Task-Action-Result): Classic case study. Set the scene, define the challenge, describe the solution in business terms (what capabilities were used, what changed), quantify the results.
+2. Before/After Narrative: Tell the story chronologically. What was life like before? What was the turning point? What does life look like now? Focus on the human experience alongside metrics.
+3. The Unexpected Win: The client adopted the product for one reason but discovered unexpected benefits. Lead with the surprise. This creates a more authentic, less formulaic narrative.
 
 All case studies must:
+- Be MARKETING-FOCUSED: describe what the product does for the customer, NOT how it works technically
+- NEVER mention specific functions, methods, class names, API endpoints, code patterns, or technical implementation details
+- Talk about CAPABILITIES and OUTCOMES, not code. Example: say "automated their deployment pipeline" NOT "used the deployWithConfig() function"
 - Make companies and scenarios feel authentic and plausible
 - Include 3+ measurable outcomes with realistic metrics (avoid suspiciously round numbers)
-- Reference actual product capabilities, not generic descriptions
 - Use different industries and company sizes`,
   };
   return frameworks[contentType] || frameworks.social;
+}
+
+// ── AI call helpers ──────────────────────────────────────
+
+async function callRegenAI(body: Record<string, unknown>): Promise<any> {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+
+  const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    console.error('AI Gateway error:', res.status, txt);
+    if (res.status === 429) throw { status: 429, message: 'Rate limit exceeded. Please try again in a moment.' };
+    if (res.status === 402) throw { status: 402, message: 'AI credits exhausted. Please add funds to continue.' };
+    throw new Error(`AI Gateway error: ${res.status}`);
+  }
+  return res.json();
+}
+
+function extractRegenToolArgs(aiResponse: any): any | null {
+  const msg = aiResponse.choices?.[0]?.message;
+  const toolArgs = msg?.tool_calls?.[0]?.function?.arguments ?? (msg as any)?.function_call?.arguments;
+  if (toolArgs) {
+    try {
+      return JSON.parse(typeof toolArgs === 'string' ? toolArgs : JSON.stringify(toolArgs));
+    } catch { /* fall through */ }
+  }
+  const content = msg?.content;
+  if (content) {
+    try {
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+      return JSON.parse(jsonMatch[1].trim());
+    } catch { /* fall through */ }
+  }
+  return null;
+}
+
+// ── Post-generation validation ──────────────────────────
+
+const BANNED_WORDS_REGEX = /\b(leverage|harness|streamline|robust|cutting[- ]edge|seamlessly|utilize|empower|elevate|foster|spearhead|groundbreaking|revolutionary|comprehensive|holistic|synergy|paradigm|delve|realm|landscape|navigate|unlock|supercharge|turbocharge|pivotal|myriad|plethora|moreover|furthermore|hence|thus|transformative|next[- ]level|game[- ]changing|best[- ]in[- ]class|world[- ]class|state[- ]of[- ]the[- ]art|mission[- ]critical|end[- ]to[- ]end|turnkey|bleeding[- ]edge)\b/gi;
+
+const BANNED_OPENINGS_REGEX = /^(In today'?s|In the ever[- ]evolving|In a world where|Whether you'?re a|Are you tired of|Let'?s face it|It'?s no secret that|When it comes to)/i;
+
+function validateAndFixRegenContent(items: any[], contentType: string): { items: any[]; hadBannedWords: boolean } {
+  let hadBannedWords = false;
+
+  function fixText(text: string): string {
+    text = text.replace(/\u2014/g, '; ');
+    text = text.replace(/\bTwitter\b/g, 'X');
+    return text;
+  }
+
+  function checkBanned(text: string): boolean {
+    return BANNED_WORDS_REGEX.test(text);
+  }
+
+  function checkBannedOpening(text: string): boolean {
+    const firstLine = text.split('\n')[0].trim();
+    return BANNED_OPENINGS_REGEX.test(firstLine);
+  }
+
+  function capScore(scores: any, field: string, max: number) {
+    if (scores && typeof scores[field] === 'number' && scores[field] > max) {
+      scores[field] = max;
+    }
+  }
+
+  items = items.map((item: any) => {
+    if (typeof item.content === 'string') {
+      item.content = fixText(item.content);
+
+      // X post char limit
+      if (contentType === 'social' && item.platform?.toLowerCase() === 'x' && item.content.length > 280) {
+        const truncated = item.content.slice(0, 277);
+        const lastBreak = Math.max(
+          truncated.lastIndexOf('. '),
+          truncated.lastIndexOf('.\n'),
+          truncated.lastIndexOf('!\n'),
+          truncated.lastIndexOf('! '),
+          truncated.lastIndexOf('\n')
+        );
+        item.content = lastBreak > 100 ? truncated.slice(0, lastBreak + 1).trim() : truncated.trim();
+        capScore(item.scores, 'clarity', 6);
+      }
+
+      const allText = [item.content, item.title, item.problem, item.solution].filter(Boolean).join(' ');
+      if (checkBanned(allText)) {
+        hadBannedWords = true;
+        capScore(item.scores, 'humanness', 4);
+        console.warn(`Banned word detected in ${contentType} item`);
+      }
+      if (checkBannedOpening(item.content)) {
+        hadBannedWords = true;
+        capScore(item.scores, 'humanness', 4);
+        console.warn(`Banned opening detected in ${contentType} item`);
+      }
+    }
+
+    // Fix text in other fields
+    for (const field of ['title', 'problem', 'solution'] as const) {
+      if (typeof item[field] === 'string') {
+        item[field] = fixText(item[field]);
+      }
+    }
+
+    return item;
+  });
+
+  return { items, hadBannedWords };
+}
+
+// ── Refinement tool schema for regeneration ─────────────
+
+function buildRefinementToolSchemaForRegen(contentType: string) {
+  return {
+    type: 'function',
+    function: {
+      name: 'refine_regen_content',
+      description: `Refine and score regenerated ${contentType} content.`,
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['items'],
+        properties: {
+          items: buildRegenerationToolSchema(contentType).function.parameters.properties.items,
+        },
+      },
+    },
+  };
 }
 
 function buildPreferenceInstructions(preferences?: any): string {
@@ -358,62 +498,116 @@ Tech Stack: ${summary.techStack?.join(', ')}
 
 Generate fresh, high-quality ${contentTypeLabel[contentType] || 'content'} with quality scores.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        tools: [buildRegenerationToolSchema(contentType)],
-        tool_choice: { type: 'function', function: { name: 'regenerate_content' } },
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        temperature: 0.8,
-        max_tokens: 12000,
-      }),
+    // ── Pass 1: Creative generation ──
+    console.log('Pass 1: Generating content...');
+    const pass1Response = await callRegenAI({
+      model: 'google/gemini-3-flash-preview',
+      tools: [buildRegenerationToolSchema(contentType)],
+      tool_choice: { type: 'function', function: { name: 'regenerate_content' } },
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.8,
+      max_tokens: 12000,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add funds to continue.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      throw new Error('Content generation failed. Please try again.');
-    }
-
-    const aiResponse = await response.json();
-    const msg = aiResponse.choices?.[0]?.message;
-    const toolArgs = msg?.tool_calls?.[0]?.function?.arguments ?? (msg as any)?.function_call?.arguments;
-
-    let result: any = null;
-    if (toolArgs) {
-      try {
-        result = JSON.parse(typeof toolArgs === 'string' ? toolArgs : JSON.stringify(toolArgs));
-      } catch { /* fall through */ }
-    }
-
-    if (!result) {
+    const draft = extractRegenToolArgs(pass1Response);
+    if (!draft?.items) {
       throw new Error('Failed to parse regeneration response');
     }
+    console.log(`Pass 1 complete. Generated ${draft.items.length} items.`);
 
-    console.log(`Regeneration complete. Generated ${result.items?.length || 0} items.`);
+    // ── Pass 2: Refinement + scoring ──
+    const productContext = `Product: ${summary.name}\nWhat it does: ${summary.whatItDoes}\nKey Features: ${summary.keyFeatures?.join(', ')}\nValue Props: ${summary.valueProps?.join(', ')}`;
+
+    const refinementPrompt = `You are a senior content editor specializing in detecting and eliminating AI-generated writing patterns. You will receive draft ${contentTypeLabel[contentType] || 'content'} to refine.
+
+Your job is to:
+
+1. DETECT AND ELIMINATE AI WRITING PATTERNS:
+   - Scan every piece for BANNED WORDS and replace ALL instances: leverage, harness, streamline, robust, cutting-edge, seamlessly, utilize, empower, elevate, foster, spearhead, groundbreaking, revolutionary, comprehensive, holistic, synergy, paradigm, delve, realm, landscape (metaphorical), navigate (metaphorical), unlock, supercharge, turbocharge, pivotal, myriad, plethora, moreover, furthermore, hence, thus, transformative, next-level, game-changing, best-in-class, world-class, state-of-the-art, mission-critical, end-to-end, turnkey, bleeding-edge
+   - Check for BANNED OPENINGS: "In today's...", "In the ever-evolving...", "In a world where...", "Whether you're a... or a...", "Are you tired of...", "Let's face it...", "It's no secret that...", "When it comes to..."
+   - Check for three-adjective lists, "Not just X, but Y" constructions, and rhetorical questions answered immediately.
+
+2. PRESERVE HUMANITY:
+   - DO NOT smooth out sentence fragments, casual language, or personality.
+   - DO NOT replace contractions with full forms.
+   - Preserve rhythm variation. If a piece has genuine voice, protect it.
+
+3. ENSURE PRODUCT SPECIFICITY:
+   - Every piece MUST reference SPECIFIC features from the product.
+   - If any content is generic enough to apply to any product, REWRITE it with specific details.
+   - Replace vague praise with concrete descriptions of what the product does.
+
+4. CROSS-CONTENT VARIETY CHECK:
+   - If any two pieces share the same opening structure, hook type, or conclusion pattern, rewrite one to be distinct.
+
+5. CONCRETE DETAIL TEST:
+   - For each piece, verify it contains at least one specific detail that could ONLY come from this product.
+   - If a piece could apply to any generic tool, add a specific detail from the product data.
+
+6. SCORE each piece (1-10). BE CRITICAL — most AI content is a 5-6:
+   - Relevance: Generic = 1-3, specific features referenced = 7-10.
+   - Engagement: How compelling and shareable.
+   - Clarity: How easy to understand.
+   - Humanness: 1 = obvious AI, 10 = indistinguishable from human. Score below 5 if banned words present.
+
+   SCORE CALIBRATION: 8+ means indistinguishable from a top human marketer. Only 9+ if it would genuinely go viral.
+
+IMPORTANT: NEVER use em dashes ("\u2014"). Replace with periods, commas, colons, or semicolons.
+
+Product context for fact-checking:
+${productContext}
+
+Return the refined content with scores by calling the provided tool.`;
+
+    const MAX_REFINEMENT_RETRIES = 1;
+    let finalItems = draft.items;
+
+    for (let attempt = 0; attempt <= MAX_REFINEMENT_RETRIES; attempt++) {
+      console.log(`Pass 2: Refinement attempt ${attempt + 1}...`);
+      try {
+        const pass2Response = await callRegenAI({
+          model: 'google/gemini-3-flash-preview',
+          tools: [buildRefinementToolSchemaForRegen(contentType)],
+          tool_choice: { type: 'function', function: { name: 'refine_regen_content' } },
+          messages: [
+            { role: 'system', content: refinementPrompt },
+            { role: 'user', content: `Please refine and score this draft content:\n\n${JSON.stringify(draft.items, null, 2)}` },
+          ],
+          temperature: 0.3,
+          max_tokens: 12000,
+        });
+
+        const refined = extractRegenToolArgs(pass2Response);
+        if (refined?.items) {
+          finalItems = refined.items;
+        }
+      } catch (e) {
+        console.warn('Refinement pass failed, using draft:', e);
+        break;
+      }
+
+      // Validate and fix
+      const validated = validateAndFixRegenContent(finalItems, contentType);
+      finalItems = validated.items;
+
+      if (!validated.hadBannedWords) {
+        console.log('Validation passed: no banned words detected.');
+        break;
+      }
+
+      console.warn(`Validation: banned words detected after refinement attempt ${attempt + 1}.`);
+      if (attempt < MAX_REFINEMENT_RETRIES) {
+        console.log('Retrying refinement...');
+      }
+    }
+
+    console.log(`Regeneration complete. ${finalItems.length} items.`);
 
     return new Response(
-      JSON.stringify({ items: result.items, contentType }),
+      JSON.stringify({ items: finalItems, contentType }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
