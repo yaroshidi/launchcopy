@@ -37,6 +37,21 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { email: user.email });
 
+    // --- Complimentary plan overrides ---
+    const COMP_PLANS: Record<string, string> = {
+      "yaroshidi@hotmail.com": "prod_TxaJhMVjMBaTA2", // Starter
+    };
+    if (COMP_PLANS[user.email]) {
+      logStep("Complimentary plan override", { email: user.email });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        subscription_end: null,
+        product_id: COMP_PLANS[user.email],
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
