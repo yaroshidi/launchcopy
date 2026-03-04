@@ -15,11 +15,20 @@ serve(async (req) => {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
     const { customer_id, price_id } = await req.json();
 
+    // Cancel any existing incomplete subscriptions first
+    const existing = await stripe.subscriptions.list({ customer: customer_id, status: "incomplete", limit: 10 });
+    for (const sub of existing.data) {
+      await stripe.subscriptions.cancel(sub.id);
+    }
+
+    // Create with a long trial so no payment method is needed
+    const trialEnd = Math.floor(Date.now() / 1000) + (5 * 365 * 24 * 60 * 60); // ~5 years
     const subscription = await stripe.subscriptions.create({
       customer: customer_id,
       items: [{ price: price_id }],
-      payment_behavior: "default_incomplete",
-      payment_settings: { save_default_payment_method: "on_subscription" },
+      trial_end: trialEnd,
+      payment_behavior: "allow_incomplete",
+      trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
     });
 
     return new Response(JSON.stringify({ id: subscription.id, status: subscription.status }), {
