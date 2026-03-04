@@ -9,7 +9,8 @@ import { Footer } from "@/components/Footer";
 import { Dashboard } from "@/components/Dashboard";
 import { AnalyzingOverlay } from "@/components/AnalyzingOverlay";
 import { PrivateRepoDialog } from "@/components/PrivateRepoDialog";
-import { analyzeRepository, saveAnalysis, loadUserAnalyses } from "@/lib/api";
+import { analyzeRepository, saveAnalysis } from "@/lib/api";
+import { getTodayScanCount, logScan } from "@/lib/scanLimits";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import type { RepoAnalysis, ContentPreferences } from "@/types/analysis";
@@ -63,9 +64,10 @@ const Index = () => {
       preferences,
     }));
 
-    // Auto-save to user account if logged in
+    // Auto-save to user account if logged in & log scan for daily limit tracking
     if (user) {
       try {
+        await logScan();
         const id = await saveAnalysis(result, preferences);
         setAnalysis((prev) => prev ? { ...prev, id } : prev);
       } catch {
@@ -75,16 +77,16 @@ const Index = () => {
   };
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
-    // Scan limits by tier: free=1, starter=5, pro=unlimited
+    // Scan limits: free=1 total, starter=1/day, pro=unlimited
     if (user && !isPro) {
       try {
-        const existing = await loadUserAnalyses();
-        const limit = tier === 'starter' ? 5 : 1;
-        if (existing.length >= limit) {
+        const todayCount = await getTodayScanCount();
+        const limit = 1; // both free and starter get 1
+        if (todayCount >= limit) {
           toast({
-            title: "Scan limit reached",
+            title: "Daily scan limit reached",
             description: tier === 'starter'
-              ? "Starter accounts are limited to 5 scans. Upgrade to Pro for unlimited scans."
+              ? "Starter accounts are limited to 1 scan per day. Upgrade to Pro for unlimited scans."
               : "Free accounts are limited to 1 scan. Upgrade to get more scans.",
             variant: "destructive",
           });

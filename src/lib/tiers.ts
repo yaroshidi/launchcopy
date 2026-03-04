@@ -13,8 +13,8 @@ export const TIERS: Record<Exclude<SubscriptionTier, 'free'>, TierConfig> = {
   starter: {
     price_id: 'price_1Szf8SG4j3t2B4Q9tFhJ0DLD',
     product_id: 'prod_TxaJhMVjMBaTA2',
-    scanLimit: 5,
-    contentLimits: { social: 3, blog: 2, caseStudy: 2 },
+    scanLimit: 1, // 1 scan per day
+    contentLimits: null, // full content on each scan
     label: 'Starter',
     price: 10,
   },

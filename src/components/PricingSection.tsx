@@ -23,11 +23,11 @@ const FREE_FEATURES: PlanFeature[] = [
 ];
 
 const STARTER_FEATURES: PlanFeature[] = [
-  { text: "5 repository scans", included: true },
+  { text: "1 complete scan per day", included: true },
   { text: "Full product summary", included: true },
-  { text: "3 social posts per scan", included: true },
-  { text: "2 blog articles per scan", included: true },
-  { text: "2 case studies per scan", included: true },
+  { text: "All social posts", included: true },
+  { text: "All blog articles", included: true },
+  { text: "All case studies", included: true },
   { text: "Export & copy content", included: true },
   { text: "Regenerate with preferences", included: false },
 ];
@@ -160,7 +160,7 @@ export function PricingSection() {
                 )}
               </div>
               <p className="text-2xl font-bold text-foreground">$10<span className="text-sm font-normal text-muted-foreground">/month</span></p>
-              <p className="text-sm text-muted-foreground">More scans & expanded content</p>
+              <p className="text-sm text-muted-foreground">1 full scan per day, all content</p>
             </div>
             <ul className="space-y-3 flex-1">
               {STARTER_FEATURES.map((f) => (
