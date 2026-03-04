@@ -1,22 +1,19 @@
 project_id = "cizdvetxjuaudafwnlpq"
 
-[functions.analyze-repo]
-verify_jwt = false
-
-[functions.regenerate-content]
-verify_jwt = false
-
-[functions.check-subscription]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.customer-portal]
-verify_jwt = false
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.get-subscription-details]
-verify_jwt = false
+[functions]
+  [functions.analyze-repo]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.check-subscription]
+    verify_jwt = false
+  [functions.create-checkout]
+    verify_jwt = false
+  [functions.customer-portal]
+    verify_jwt = false
+  [functions.get-subscription-details]
+    verify_jwt = false
+  [functions.regenerate-content]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
