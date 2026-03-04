@@ -135,7 +135,7 @@ function PlansContent({ onClose }: { onClose: () => void }) {
   ];
 
   return (
-    <div className="space-y-3 pb-2">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-2">
       {plans.map((plan) => {
         const isCurrent = tier === plan.tier;
         return (
@@ -262,7 +262,7 @@ export function ViewPlansDialog({ open, onOpenChange }: ViewPlansDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Plans & Pricing</DialogTitle>
           <DialogDescription>Choose the plan that works for you.</DialogDescription>
