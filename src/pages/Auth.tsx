@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Mail, Lock, Loader2 } from "lucide-react";
+import ResendVerification from "@/components/ResendVerification";
 
 const loginSchema = z.object({
   email: z
@@ -40,6 +41,7 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [signedUpEmail, setSignedUpEmail] = useState<string | null>(null);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -116,6 +118,7 @@ export default function Auth() {
           return;
         }
 
+        setSignedUpEmail(values.email);
         toast({
           title: "Check your email",
           description: "We sent you a confirmation link. Please verify your email to continue.",
@@ -283,6 +286,11 @@ export default function Auth() {
             </form>
           </Form>
 
+          {/* Resend verification */}
+          {signedUpEmail && isSignUp && (
+            <ResendVerification email={signedUpEmail} />
+          )}
+
           {/* Toggle sign in / sign up */}
           <p className="text-center text-sm text-muted-foreground">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
@@ -290,6 +298,7 @@ export default function Auth() {
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
+                setSignedUpEmail(null);
                 form.reset();
               }}
               className="accent-text hover:underline font-medium"
