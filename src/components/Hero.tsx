@@ -21,8 +21,8 @@ export function Hero({
   isLoading
 }: HeroProps) {
   const [prefillUrl, setPrefillUrl] = useState("");
-  return <section className="relative md:px-10 flex flex-col items-center lg:items-start overflow-hidden px-6 pt-32 md:pt-40 pb-20">
-      <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
+  return <section className="relative md:px-10 flex flex-col items-center overflow-hidden px-6 pt-32 md:pt-40 pb-20">
+      <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center text-center space-y-8">
         {/* Headline */}
         <motion.div initial={{
         opacity: 0,
@@ -41,7 +41,7 @@ export function Hero({
             <span className="text-muted-foreground">We help you tell it.</span>
           </h1>
 
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed max-lg:max-w-[500px] max-lg:mx-auto">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed mx-auto">
             Paste a GitHub URL and let our AI turn your codebase into
             ready-to-publish social posts, blog articles, and case studies.
           </p>
@@ -72,7 +72,7 @@ export function Hero({
       }} transition={{
         duration: 0.5,
         delay: 0.4
-      }} className="flex flex-wrap justify-center lg:justify-start gap-2">
+      }} className="flex flex-wrap justify-center gap-2">
           <span className="text-xs text-muted-foreground/60 mr-1 self-center">Try:</span>
           {EXAMPLE_REPOS.map((repo) => <button key={repo.label} type="button" onClick={() => setPrefillUrl(repo.url)} disabled={isLoading} className="px-3 py-1.5 text-xs font-medium text-muted-foreground rounded-full border border-border bg-secondary/40 hover:bg-secondary hover:text-foreground hover:border-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
               {repo.label}
