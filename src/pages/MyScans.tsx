@@ -182,19 +182,19 @@ export default function MyScans() {
           <div className="accent-line mb-8" />
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="scans" className="gap-1.5">
-                <Search className="w-3.5 h-3.5" /> Scans
-              </TabsTrigger>
-              <TabsTrigger value="trash" className="gap-1.5">
-                <Trash2 className="w-3.5 h-3.5" /> Trash
-                {trashedScans.length > 0 && (
-                  <span className="ml-1 text-xs bg-destructive/20 text-destructive rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+            {trashedScans.length > 0 && (
+              <TabsList className="mb-6">
+                <TabsTrigger value="scans" className="gap-1.5">
+                  Scans
+                </TabsTrigger>
+                <TabsTrigger value="trash" className="gap-1.5 text-muted-foreground">
+                  <Trash2 className="w-3.5 h-3.5" /> Trash
+                  <span className="ml-1 text-[10px] text-muted-foreground">
                     {trashedScans.length}
                   </span>
-                )}
-              </TabsTrigger>
-            </TabsList>
+                </TabsTrigger>
+              </TabsList>
+            )}
 
             <TabsContent value="scans">
               {loading ? (
