@@ -130,7 +130,14 @@ export default function Auth() {
         });
 
         if (error) {
-          if (error.message.includes("Invalid login credentials")) {
+          if (error.message.includes("Email not confirmed")) {
+            setSignedUpEmail(values.email);
+            toast({
+              title: "Email not verified",
+              description: "Please verify your email before signing in.",
+              variant: "destructive",
+            });
+          } else if (error.message.includes("Invalid login credentials")) {
             toast({
               title: "Invalid credentials",
               description: "The email or password you entered is incorrect.",
@@ -287,7 +294,7 @@ export default function Auth() {
           </Form>
 
           {/* Resend verification */}
-          {signedUpEmail && isSignUp && (
+          {signedUpEmail && (
             <ResendVerification email={signedUpEmail} />
           )}
 
