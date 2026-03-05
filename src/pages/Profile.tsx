@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { User, CreditCard, Calendar, Shield, Loader2, ExternalLink } from "lucide-react";
+import { User, CreditCard, Calendar, Shield, Loader2, ExternalLink, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ViewPlansDialog } from "@/components/ViewPlansDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface SubscriptionDetails {
   has_subscription: boolean;
@@ -57,6 +68,7 @@ export default function Profile() {
   const [subLoading, setSubLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     document.title = "Profile | LaunchCopy";
@@ -281,8 +293,55 @@ export default function Profile() {
                 Security
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              <p>Your account is secured via {capitalize(user?.app_metadata?.provider || "email")} authentication. To change your password or manage security settings, use your authentication provider.</p>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">Your account is secured via {capitalize(user?.app_metadata?.provider || "email")} authentication. To change your password or manage security settings, use your authentication provider.</p>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-medium text-destructive mb-1">Danger Zone</h4>
+                <p className="text-xs text-muted-foreground mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={deleteLoading}>
+                      {deleteLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+                      Delete Account
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete your account, all your scans, and generated content. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={async () => {
+                          try {
+                            setDeleteLoading(true);
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session) throw new Error("No session");
+                            const { error } = await supabase.functions.invoke("delete-account", {
+                              headers: { Authorization: `Bearer ${session.access_token}` },
+                            });
+                            if (error) throw error;
+                            await supabase.auth.signOut();
+                            navigate("/", { replace: true });
+                            toast({ title: "Account deleted", description: "Your account has been permanently removed." });
+                          } catch {
+                            toast({ title: "Failed to delete account", description: "Please try again later.", variant: "destructive" });
+                          } finally {
+                            setDeleteLoading(false);
+                          }
+                        }}
+                      >
+                        Delete Account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
