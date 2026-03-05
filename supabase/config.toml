@@ -19,3 +19,5 @@ project_id = "cizdvetxjuaudafwnlpq"
     verify_jwt = false
   [functions.admin-create-subscription]
     verify_jwt = false
+  [functions.delete-account]
+    verify_jwt = false
