@@ -19,6 +19,7 @@ export type Database = {
           analyzed_at: string
           content: Json
           created_at: string
+          deleted_at: string | null
           id: string
           preferences: Json | null
           readme_accuracy: Json | null
@@ -32,6 +33,7 @@ export type Database = {
           analyzed_at?: string
           content: Json
           created_at?: string
+          deleted_at?: string | null
           id?: string
           preferences?: Json | null
           readme_accuracy?: Json | null
@@ -45,6 +47,7 @@ export type Database = {
           analyzed_at?: string
           content?: Json
           created_at?: string
+          deleted_at?: string | null
           id?: string
           preferences?: Json | null
           readme_accuracy?: Json | null
