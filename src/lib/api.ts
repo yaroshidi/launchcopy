@@ -74,6 +74,7 @@ export async function loadUserAnalyses(): Promise<
   const { data, error } = await supabase
     .from('analyses' as any)
     .select('id, repo_url, summary, content, analyzed_at')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -87,6 +88,30 @@ export async function loadUserAnalyses(): Promise<
     summary: row.summary as ProductSummary,
     content: row.content,
     analyzedAt: new Date(row.analyzed_at),
+  }));
+}
+
+export async function loadTrashedAnalyses(): Promise<
+  Array<{ id: string; repoUrl: string; summary: ProductSummary; content: any; analyzedAt: Date; deletedAt: Date }>
+> {
+  const { data, error } = await supabase
+    .from('analyses' as any)
+    .select('id, repo_url, summary, content, analyzed_at, deleted_at')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    return [];
+  }
+
+  return ((data as any[]) || []).map((row: any) => ({
+    id: row.id,
+    repoUrl: row.repo_url,
+    summary: row.summary as ProductSummary,
+    content: row.content,
+    analyzedAt: new Date(row.analyzed_at),
+    deletedAt: new Date(row.deleted_at),
   }));
 }
 
@@ -112,14 +137,39 @@ export async function loadAnalysisById(id: string): Promise<RepoAnalysis | null>
   };
 }
 
+/** Soft-delete: moves to trash */
 export async function deleteAnalysis(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('analyses' as any)
+    .update({ deleted_at: new Date().toISOString() } as any)
+    .eq('id', id);
+
+  if (error) {
+    throw new Error('Failed to delete analysis');
+  }
+}
+
+/** Restore from trash */
+export async function restoreAnalysis(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('analyses' as any)
+    .update({ deleted_at: null } as any)
+    .eq('id', id);
+
+  if (error) {
+    throw new Error('Failed to restore analysis');
+  }
+}
+
+/** Permanently delete */
+export async function permanentlyDeleteAnalysis(id: string): Promise<void> {
   const { error } = await supabase
     .from('analyses' as any)
     .delete()
     .eq('id', id);
 
   if (error) {
-    throw new Error('Failed to delete analysis');
+    throw new Error('Failed to permanently delete analysis');
   }
 }
 
