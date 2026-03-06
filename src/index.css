@@ -1,8 +1,9 @@
 @tailwind base;
 
 /* Hide default scrollbar */
-html {
+html, body {
   scrollbar-width: none; /* Firefox */
+  overscroll-behavior: none;
 }
 html::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
