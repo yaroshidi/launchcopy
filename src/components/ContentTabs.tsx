@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
 import { LockedContentOverlay } from "@/components/LockedContentOverlay";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 import type { SubscriptionTier } from "@/lib/tiers";
 import type { RepoAnalysis } from "@/types/analysis";
 import type { ContentType } from "@/lib/api";
@@ -24,6 +25,17 @@ function getLimit(tier: SubscriptionTier): number {
 export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
   const [activeTab, setActiveTab] = useState("social");
   const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  const isPro = tier === 'pro';
+
+  const handleRegenerateClick = (type: ContentType) => {
+    if (!isPro) {
+      setUpgradeOpen(true);
+      return;
+    }
+    handleRegenerate(type);
+  };
 
   const handleRegenerate = async (type: ContentType) => {
     setRegenerating(type);
