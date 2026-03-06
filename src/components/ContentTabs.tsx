@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
 import { LockedContentOverlay } from "@/components/LockedContentOverlay";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 import type { SubscriptionTier } from "@/lib/tiers";
 import type { RepoAnalysis } from "@/types/analysis";
 import type { ContentType } from "@/lib/api";
@@ -24,6 +25,17 @@ function getLimit(tier: SubscriptionTier): number {
 export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem }: ContentTabsProps) {
   const [activeTab, setActiveTab] = useState("social");
   const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  const isPro = tier === 'pro';
+
+  const handleRegenerateClick = (type: ContentType) => {
+    if (!isPro) {
+      setUpgradeOpen(true);
+      return;
+    }
+    handleRegenerate(type);
+  };
 
   const handleRegenerate = async (type: ContentType) => {
     setRegenerating(type);
@@ -87,8 +99,8 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRegenerate("social")}
-                  disabled={regenerating === "social" || tier !== 'pro'}
+                  onClick={() => handleRegenerateClick("social")}
+                  disabled={regenerating === "social"}
                 >
                   {regenerating === "social" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -110,7 +122,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                     scores={post.scores}
                     metadata={{ platform: post.platform }}
                     locked={locked}
-                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("social", index) : undefined}
+                    onRegenerate={isPro ? () => onRegenerateItem("social", index) : () => { setUpgradeOpen(true); return Promise.resolve(); }}
                   />
                 );
               })}
@@ -132,8 +144,8 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRegenerate("blog")}
-                  disabled={regenerating === "blog" || tier !== 'pro'}
+                  onClick={() => handleRegenerateClick("blog")}
+                  disabled={regenerating === "blog"}
                 >
                   {regenerating === "blog" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -155,7 +167,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                     scores={article.scores}
                     metadata={{ wordCount: article.content.split(" ").length }}
                     locked={locked}
-                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("blog", index) : undefined}
+                    onRegenerate={isPro ? () => onRegenerateItem("blog", index) : () => { setUpgradeOpen(true); return Promise.resolve(); }}
                   />
                 );
               })}
@@ -177,8 +189,8 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRegenerate("casestudies")}
-                  disabled={regenerating === "casestudies" || tier !== 'pro'}
+                  onClick={() => handleRegenerateClick("casestudies")}
+                  disabled={regenerating === "casestudies"}
                 >
                   {regenerating === "casestudies" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -203,7 +215,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                       industry: study.industry,
                     }}
                     locked={locked}
-                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("casestudies", index) : undefined}
+                    onRegenerate={isPro ? () => onRegenerateItem("casestudies", index) : () => { setUpgradeOpen(true); return Promise.resolve(); }}
                   />
                 );
               })}
@@ -212,6 +224,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
           </TabsContent>
         </AnimatePresence>
       </Tabs>
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   );
 }
