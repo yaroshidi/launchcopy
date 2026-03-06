@@ -144,8 +144,8 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRegenerate("blog")}
-                  disabled={regenerating === "blog" || tier !== 'pro'}
+                  onClick={() => handleRegenerateClick("blog")}
+                  disabled={regenerating === "blog"}
                 >
                   {regenerating === "blog" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -167,7 +167,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                     scores={article.scores}
                     metadata={{ wordCount: article.content.split(" ").length }}
                     locked={locked}
-                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("blog", index) : undefined}
+                    onRegenerate={isPro ? () => onRegenerateItem("blog", index) : () => { setUpgradeOpen(true); return Promise.resolve(); }}
                   />
                 );
               })}
@@ -189,8 +189,8 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRegenerate("casestudies")}
-                  disabled={regenerating === "casestudies" || tier !== 'pro'}
+                  onClick={() => handleRegenerateClick("casestudies")}
+                  disabled={regenerating === "casestudies"}
                 >
                   {regenerating === "casestudies" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -215,7 +215,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                       industry: study.industry,
                     }}
                     locked={locked}
-                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("casestudies", index) : undefined}
+                    onRegenerate={isPro ? () => onRegenerateItem("casestudies", index) : () => { setUpgradeOpen(true); return Promise.resolve(); }}
                   />
                 );
               })}
@@ -224,6 +224,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
           </TabsContent>
         </AnimatePresence>
       </Tabs>
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   );
 }
