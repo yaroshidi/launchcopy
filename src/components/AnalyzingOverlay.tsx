@@ -1,7 +1,8 @@
  import { useEffect, useState } from "react";
- import { motion } from "framer-motion";
- import { Github, Code, Brain, FileText, Check, Loader2 } from "lucide-react";
+ import { motion, AnimatePresence } from "framer-motion";
+ import { Github, Code, Brain, FileText, Check, Loader2, Gamepad2 } from "lucide-react";
  import { Progress } from "@/components/ui/progress";
+ import { WaitGame } from "@/components/WaitGame";
 
  interface AnalyzingOverlayProps {
    repoUrl: string;
@@ -27,6 +28,7 @@
    const [messageIndex, setMessageIndex] = useState(0);
    const [progress, setProgress] = useState(0);
    const [elapsedTime, setElapsedTime] = useState(0);
+   const [showGame, setShowGame] = useState(false);
 
    // Progress through steps
    useEffect(() => {
@@ -75,7 +77,7 @@
        initial={{ opacity: 0 }}
        animate={{ opacity: 1 }}
        exit={{ opacity: 0 }}
-       className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm"
+       className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm overflow-y-auto py-8"
      >
        {/* Main content */}
        <motion.div
@@ -164,6 +166,32 @@
              "{MESSAGES[messageIndex]}"
            </p>
          </motion.div>
+
+         {/* Mini game toggle */}
+         <div className="flex justify-center mb-4">
+           <button
+             onClick={() => setShowGame((v) => !v)}
+             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+           >
+             <Gamepad2 className="w-3.5 h-3.5" />
+             {showGame ? "Hide game" : "Play while you wait"}
+           </button>
+         </div>
+
+         {/* Mini game */}
+         <AnimatePresence>
+           {showGame && (
+             <motion.div
+               initial={{ opacity: 0, height: 0 }}
+               animate={{ opacity: 1, height: "auto" }}
+               exit={{ opacity: 0, height: 0 }}
+               transition={{ duration: 0.3 }}
+               className="overflow-hidden mb-4"
+             >
+               <WaitGame />
+             </motion.div>
+           )}
+         </AnimatePresence>
 
          {/* Progress bar */}
          <div className="space-y-2">
