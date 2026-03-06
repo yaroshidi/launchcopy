@@ -99,8 +99,8 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRegenerate("social")}
-                  disabled={regenerating === "social" || tier !== 'pro'}
+                  onClick={() => handleRegenerateClick("social")}
+                  disabled={regenerating === "social"}
                 >
                   {regenerating === "social" ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -122,7 +122,7 @@ export function ContentTabs({ analysis, tier, onRegenerateAll, onRegenerateItem 
                     scores={post.scores}
                     metadata={{ platform: post.platform }}
                     locked={locked}
-                    onRegenerate={tier === 'pro' ? () => onRegenerateItem("social", index) : undefined}
+                    onRegenerate={isPro ? () => onRegenerateItem("social", index) : () => { setUpgradeOpen(true); return Promise.resolve(); }}
                   />
                 );
               })}
