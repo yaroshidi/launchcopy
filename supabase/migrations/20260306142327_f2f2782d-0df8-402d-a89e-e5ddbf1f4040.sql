@@ -1,0 +1,1 @@
+CREATE POLICY "Users can delete own scan logs" ON public.scan_logs FOR DELETE TO authenticated USING (auth.uid() = user_id);
