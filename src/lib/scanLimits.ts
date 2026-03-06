@@ -26,3 +26,14 @@ export async function logScan(): Promise<void> {
     .from('scan_logs' as any)
     .insert({ user_id: user.id } as any);
 }
+
+/** Clear today's scan logs for the current user (used on tier upgrade). */
+export async function clearTodayScans(): Promise<void> {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  await supabase
+    .from('scan_logs' as any)
+    .delete()
+    .gte('scanned_at', today.toISOString());
+}
