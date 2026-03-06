@@ -136,6 +136,15 @@ const Index = () => {
     }
   }, [user]);
 
+  // Handle rescan trigger from MyScans page
+  useEffect(() => {
+    const rescanUrl = sessionStorage.getItem('rescan_url');
+    if (rescanUrl && !isLoading && !analysis) {
+      sessionStorage.removeItem('rescan_url');
+      handleAnalyze(rescanUrl);
+    }
+  }, []);
+
 
   const handleBack = () => {
     sessionStorage.removeItem(STORAGE_KEY);

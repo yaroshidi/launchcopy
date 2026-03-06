@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
-import { Trash2, ExternalLink, MessageSquare, FileText, Briefcase, Search, RotateCcw, Archive, Clock } from "lucide-react";
+import { Trash2, ExternalLink, MessageSquare, FileText, Briefcase, Search, RotateCcw, Archive, Clock, RefreshCw } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ function ScanCardSkeleton() {
 }
 
 export default function MyScans() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isPaid } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -256,6 +256,20 @@ export default function MyScans() {
                               <Button size="sm" variant="outline" className="flex-1" onClick={() => handleOpen(scan.id)}>
                                 <ExternalLink className="w-3.5 h-3.5 mr-1" /> Open
                               </Button>
+                              {isPaid && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-primary hover:text-primary"
+                                  onClick={() => {
+                                    sessionStorage.setItem('rescan_url', scan.repoUrl);
+                                    navigate('/');
+                                  }}
+                                  title="Rescan with current plan"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="ghost"

@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { getTierByProductId, type SubscriptionTier } from "@/lib/tiers";
+import { clearTodayScans } from "@/lib/scanLimits";
 
 interface Profile {
   id: string;
@@ -97,10 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const prevTierRef = useRef<SubscriptionTier>('free');
+
   const checkSubscription = useCallback(async () => {
     try {
       setSubscriptionLoading(true);
-      // Always fetch a fresh session to avoid stale/expired tokens
       const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !freshSession) {
         console.warn('checkSubscription: no valid session, skipping');
@@ -113,16 +115,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('Subscription check failed (silenced):', error);
         return;
       }
+
+      let newTier: SubscriptionTier = 'free';
       if (data?.subscribed === true) {
-        setTier(getTierByProductId(data?.product_id));
+        newTier = getTierByProductId(data?.product_id);
         setHasActiveSubscription(true);
       } else {
-        setTier('free');
         setHasActiveSubscription(false);
       }
+
+      // Detect upgrade from free → paid and reset daily scan counter
+      const prevTier = prevTierRef.current;
+      if (prevTier === 'free' && newTier !== 'free') {
+        console.log(`Tier upgrade detected: ${prevTier} → ${newTier}, clearing today's scans`);
+        clearTodayScans().catch(() => {});
+      }
+
+      prevTierRef.current = newTier;
+      setTier(newTier);
       setSubscriptionEnd(data?.subscription_end ?? null);
     } catch (e) {
-      // Silently swallow – never surface token errors to the user
       console.warn('Subscription check error (silenced):', e);
     } finally {
       setSubscriptionLoading(false);
