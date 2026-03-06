@@ -19,7 +19,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { loadUserAnalyses, deleteAnalysis, loadAnalysisById, loadTrashedAnalyses, restoreAnalysis, permanentlyDeleteAnalysis } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { ProductSummary, GeneratedContent } from "@/types/analysis";
