@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="50%" stop-color="#111111"/>
+      <stop offset="100%" stop-color="#0d0d0d"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#E8870E"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#F5A623" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#F5A623" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur1">
+      <feGaussianBlur stdDeviation="80"/>
+    </filter>
+    <filter id="blur2">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+
+  <!-- Ambient glow blobs -->
+  <ellipse cx="300" cy="200" rx="300" ry="200" fill="#F5A623" opacity="0.06" filter="url(#blur1)"/>
+  <ellipse cx="900" cy="450" rx="250" ry="180" fill="#E8870E" opacity="0.04" filter="url(#blur1)"/>
+
+  <!-- Rocket icon (scaled down from favicon) -->
+  <g transform="translate(135, 200) scale(0.45)">
+    <rect width="512" height="512" rx="96" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+    <g transform="translate(256,256)">
+      <path d="M0-140 C30-140 50-100 50-20 L50 60 C50 80 30 100 0 120 C-30 100 -50 80 -50 60 L-50-20 C-50-100 -30-140 0-140Z" fill="url(#amber)"/>
+      <path d="M0-140 C15-140 28-115 30-80 L-30-80 C-28-115 -15-140 0-140Z" fill="#FFD080" opacity="0.5"/>
+      <circle cx="0" cy="-30" r="18" fill="#111"/>
+      <circle cx="0" cy="-30" r="12" fill="#1a1a2e"/>
+      <path d="M-50 30 L-90 100 L-50 80Z" fill="url(#amber)"/>
+      <path d="M50 30 L90 100 L50 80Z" fill="url(#amber)"/>
+      <path d="M-25 120 Q-15 160 0 190 Q15 160 25 120 Q15 130 0 125 Q-15 130 -25 120Z" fill="#FF6B35"/>
+      <path d="M-15 125 Q-8 155 0 175 Q8 155 15 125 Q8 135 0 132 Q-8 135 -15 125Z" fill="#FFD080"/>
+    </g>
+  </g>
+
+  <!-- Text content -->
+  <text x="420" y="235" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="64" font-weight="700" fill="white" letter-spacing="-1.5">LaunchCopy</text>
+
+  <text x="420" y="300" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="26" fill="#999" letter-spacing="0.3">Paste a GitHub URL. Get marketing content.</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(420, 340)">
+    <rect x="0" y="0" width="130" height="36" rx="18" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <text x="65" y="23" font-family="system-ui, sans-serif" font-size="14" fill="#F5A623" text-anchor="middle" font-weight="500">X Posts</text>
+
+    <rect x="146" y="0" width="130" height="36" rx="18" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <text x="211" y="23" font-family="system-ui, sans-serif" font-size="14" fill="#F5A623" text-anchor="middle" font-weight="500">LinkedIn</text>
+
+    <rect x="292" y="0" width="160" height="36" rx="18" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <text x="372" y="23" font-family="system-ui, sans-serif" font-size="14" fill="#F5A623" text-anchor="middle" font-weight="500">Blog Articles</text>
+
+    <rect x="468" y="0" width="170" height="36" rx="18" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <text x="553" y="23" font-family="system-ui, sans-serif" font-size="14" fill="#F5A623" text-anchor="middle" font-weight="500">Case Studies</text>
+  </g>
+
+  <!-- Divider line -->
+  <line x1="420" y1="415" x2="1100" y2="415" stroke="#F5A623" stroke-width="2" opacity="0.3"/>
+
+  <!-- Bottom tagline -->
+  <text x="420" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#666">Your repo already has a story.</text>
+  <text x="420" y="490" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#888" font-weight="600">We help you tell it.</text>
+</svg>

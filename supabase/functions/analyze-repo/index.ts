@@ -506,6 +506,115 @@ function buildRefinementToolSchema() {
   };
 }
 
+// ── Critic tool schema ──────────────────────────────────
+
+const critiqueItemSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['index', 'pass', 'template_detected', 'template_name', 'generic_score', 'ai_slop_score', 'structural_repetition', 'critique'],
+  properties: {
+    index: { type: 'number' },
+    pass: { type: 'boolean' },
+    template_detected: { type: 'boolean' },
+    template_name: { type: 'string' },
+    generic_score: { type: 'number' },
+    ai_slop_score: { type: 'number' },
+    structural_repetition: { type: 'boolean' },
+    critique: { type: 'string' },
+  },
+};
+
+function buildCriticToolSchema() {
+  return {
+    type: 'function',
+    function: {
+      name: 'critique_content',
+      description: 'Evaluate every content piece for template patterns, genericness, AI slop, and structural repetition.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['socialPosts', 'blogArticles', 'caseStudies'],
+        properties: {
+          socialPosts: { type: 'array', items: critiqueItemSchema },
+          blogArticles: { type: 'array', items: critiqueItemSchema },
+          caseStudies: { type: 'array', items: critiqueItemSchema },
+        },
+      },
+    },
+  };
+}
+
+// ── Rewrite tool schema ─────────────────────────────────
+
+function buildRewriteToolSchema() {
+  return {
+    type: 'function',
+    function: {
+      name: 'rewrite_flagged_content',
+      description: 'Return rewritten content for flagged pieces, maintaining original format.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['content'],
+        properties: {
+          content: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['socialPosts', 'blogArticles', 'caseStudies'],
+            properties: {
+              socialPosts: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['platform', 'content', 'scores'],
+                  properties: {
+                    platform: { type: 'string' },
+                    content: { type: 'string' },
+                    scores: contentScoresSchema,
+                  },
+                },
+              },
+              blogArticles: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['title', 'content', 'scores'],
+                  properties: {
+                    title: { type: 'string' },
+                    content: { type: 'string' },
+                    sections: { type: 'array', items: { type: 'string' } },
+                    scores: contentScoresSchema,
+                  },
+                },
+              },
+              caseStudies: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['title', 'client', 'industry', 'problem', 'solution', 'outcomes', 'content', 'scores'],
+                  properties: {
+                    title: { type: 'string' },
+                    client: { type: 'string' },
+                    industry: { type: 'string' },
+                    problem: { type: 'string' },
+                    solution: { type: 'string' },
+                    outcomes: { type: 'array', items: { type: 'string' } },
+                    content: { type: 'string' },
+                    scores: contentScoresSchema,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
 // ── Preference instruction builder ──────────────────────
 
 function buildPreferenceInstructions(preferences?: any): string {
@@ -956,31 +1065,23 @@ HARD RULES (violating these means the post fails):
 - Never use "Introducing..." or "Excited to announce..." or any corporate phrasing
 - MUST mention a SPECIFIC feature or capability from the actual repo, not generic praise
 
-HIGH-PERFORMING X POST FORMATS (pick 3 different formats from this pool — never repeat a format in the same batch):
+CREATIVE PRINCIPLES (apply all of these — do NOT follow a template):
+- One clear idea per post. Say one thing well, not three things weakly.
+- Tension or surprise in the first line. Make the reader pause.
+- Include a real, specific product detail. Name the actual feature or capability.
+- Earned confidence, not hype. If you claim something is great, show why in the same post.
+- Each post must open with a fundamentally different pattern. If one opens with a question, another with a statement, the third must find a third shape entirely.
+- INVENT your structure. Do not follow any named format or template.
 
-1. **Hot Take / Contrarian**: Bold, slightly controversial opinion referencing a SPECIFIC capability.
-   Example: "unpopular opinion: most CI pipelines are over-engineered.\\nyou don't need 47 yaml files.\\n[product] does it in one command."
-
-2. **Problem then Discovery**: Relatable frustration then solution reveal citing a SPECIFIC feature.
-   Example: "spent 3 hours debugging a build issue.\\nswitched to [product], same build worked first try.\\ni'm not going back."
-
-3. **Concrete Result**: Specific metric or before/after tied to actual capabilities.
-   Example: "deploy time: 4min to 90sec.\\nzero config changes.\\n[product]'s caching is genuinely smart."
-
-4. **The Confession**: Admit a past belief, then show how the product changed your mind.
-   Example: "i used to hand-roll all my auth flows.\\n'it's not that hard,' i said.\\n3 security bugs later, i use [product]."
-
-5. **The List**: A short list of specific things the product enables or eliminates.
-   Example: "3 things i stopped doing after switching to [product]:\\n- writing migration scripts by hand\\n- debugging ORM queries\\n- dreading schema changes"
-
-6. **The Question**: One provocative question, answered in one line.
-   Example: "why are we still writing boilerplate in 2025?\\n[product] auto-generates type-safe APIs from your schema."
-
-7. **The Before/After**: Raw comparison, no editorializing.
-   Example: "before [product]: 200 lines of config.\\nafter: 12.\\nsame result."
-
-8. **The Understatement**: Deliberately downplay something impressive.
-   Example: "[product] saved us maybe 6 hours a week.\\nwhich is fine i guess.\\n(it's not fine. it's absurd.)"
+BANNED OPENING PATTERNS (if your post starts with any of these, rewrite from scratch):
+- "unpopular opinion:"
+- "hot take:"
+- "most people think X. they're wrong."
+- "before [X]: [number]. after: [number]."
+- "I used to [X]. Then I [Y]."
+- "N things I stopped doing..."
+- "nobody talks about..."
+- Any opening commonly seen in AI-generated marketing posts
 
 TONE: Write as a peer sharing a genuine recommendation, not a marketer selling. Sound like someone who actually uses the tool and is impressed. Mild intensity ("genuinely insane", "absurdly good") is fine. Avoid superlatives that feel forced.
 
@@ -993,36 +1094,38 @@ HARD RULES:
 - Use \\n\\n between paragraphs for heavy white space (critical for readability on LinkedIn)
 - First 2 lines MUST hook the reader before the "See more" fold. Open with a bold, counterintuitive claim or a surprising insight.
 - Never start with the product name. Start with the problem or insight.
-- End with an engagement question ("How is your team handling X?" or "What's your approach to Y?")
 - 150-250 words per post
 - MUST reference SPECIFIC capabilities and use cases from the actual repo
 
-HIGH-PERFORMING LINKEDIN FORMATS (pick 2 different formats from this pool — never repeat):
+CREATIVE PRINCIPLES (apply all — do NOT follow a named structure):
+- Curiosity or dissonance in the first 2 lines. The reader should feel compelled to click "See more."
+- Substance that earns the hook. If your opening makes a bold claim, the body must deliver proof.
+- Specificity over abstraction. Name the actual capability, the actual workflow change, the actual result.
+- Genuine conversation ending. If the post ends with a question, it must be one you'd actually want answered. Not all posts need to end with a question.
+- Each post must use a fundamentally different shape. Invent the structure; do not pick from a menu.
 
-1. **Insight then Framework then Product as Proof**: Non-obvious industry insight, mental model, product as example.
-   Structure: Hook line, Insight (2 short paragraphs), Framework/principle, Product mention with specific features, Engagement question
+BANNED PATTERNS (rewrite from scratch if detected):
+- "Most people think X. They're wrong."
+- "Nobody talks about X."
+- Hook-Body-Body-Body-Question shape repeated across posts
+- Generic engagement bait questions ("What do you think?", "Agree?")
+- Any opening commonly seen in AI-generated LinkedIn posts
 
-2. **Story then Lesson then Recommendation**: Brief personal/team story about a pain point, broader lesson, natural product recommendation.
-   Structure: Hook line, Story (2-3 short paragraphs), Lesson learned, Soft product mention with specific features, Engagement question
+**Blog Articles (2 articles, each structurally distinct from the others):**
 
-3. **Myth-Busting**: Challenge a commonly held belief in your industry, then present evidence.
-   Structure: "Most people think X. They're wrong." then Why it is wrong (2 paragraphs), What actually works (with product as example), Engagement question
+EDITORIAL PRINCIPLES (apply all — do NOT follow a named formula):
+- Arguable thesis in the first paragraph. The reader should know what the article believes within the first 3 sentences.
+- Recognizable scenarios. Ground the article in situations the reader has actually experienced.
+- Progressive depth. Start accessible, reward readers who keep going with increasingly specific insight.
+- Reframing ending. The conclusion should make the reader see the problem differently, not just summarize.
+- Each article must use a different organizational principle. Invent the structure; do not pick from a menu.
 
-4. **Numbers-First**: Open with a surprising statistic or metric, then explain what it means.
-   Structure: Bold metric, Context (why this matters), How it was achieved (referencing product), Engagement question
-
-5. **The Quiet Win**: Describe a small, overlooked improvement that compounds into a big deal.
-   Structure: "Nobody talks about X." then Why X matters more than people think, How product addresses X, Engagement question
-
-**Blog Articles (2 articles, each using a DIFFERENT structure from this pool):**
-
-1. **PAS (Problem-Agitate-Solve)**: Open with the pain point, amplify the pain with consequences, present the product as the solution. Focus on business outcomes, not code.
-
-2. **Comparison / Before-After**: Show a specific workflow or task before and after adopting the product. Be concrete about what changes. Include real metrics or realistic estimates.
-
-3. **Listicle with Depth**: "5 Ways [Product] Changes How You [Specific Task]". Each item goes deep with examples and specifics, not surface-level bullet points.
-
-4. **The Deep Dive**: Pick one core benefit and explore it thoroughly. How it impacts teams, workflows, and outcomes. Focus on the "why it matters" not the "how it works technically."
+BANNED PATTERNS (rewrite from scratch if detected):
+- Visible PAS (Problem-Agitate-Solve) structure
+- "5 Ways..." / "N Things..." / any numbered listicle format as the article's backbone
+- Broad industry statement openings ("In today's fast-paced...", "The modern developer...")
+- CTA-style endings ("Ready to get started?", "Try [product] today!")
+- Same section headers appearing across multiple articles
 
 All blog articles must:
 - Be approximately 800 words each (aim for 750-850 words)
@@ -1031,15 +1134,22 @@ All blog articles must:
 - Avoid code snippets, technical jargon, or implementation details. If referencing a technical feature, explain what it DOES for the user, not HOW it works
 - Use concrete examples, customer scenarios, and business impact
 - NEVER open with "In today's..." or any banned opening pattern
-- Each article must use a different structure from the pool above
 
-**Case Studies (3 case studies, each using a DIFFERENT structure and industry):**
+**Case Studies (3 case studies, each structurally distinct with a different industry):**
 
-1. **STAR (Situation-Task-Action-Result)**: Classic case study. Set the scene, define the challenge, describe the solution in business terms (what capabilities were used, what changed), quantify the results.
+NARRATIVE PRINCIPLES (apply all — do NOT follow a named formula):
+- Textured, believable companies. Give them a specific niche, a team size, a recognizable pain. Avoid generic "fast-growing SaaS startup" descriptions.
+- Earned transformation. Show the messy middle: what was hard about adoption, what didn't work at first, what the team had to learn. Instant miracles feel fake.
+- Honest-feeling metrics. Use odd, specific numbers (37% not 40%, 2.3 hours not 2 hours). Round numbers signal fabrication.
+- Human moments. Include at least one detail that feels like a real person said it: a frustrated quote, a surprising reaction, a moment of doubt.
+- Each study must tell its story differently. One might lead with the result and work backward. Another might follow one person's experience. A third might frame it as an industry-wide challenge with this company as the example. Invent the shape; do not follow a template.
 
-2. **Before/After Narrative**: Tell the story chronologically. What was life like before? What was the turning point? What does life look like now? Focus on the human experience alongside metrics.
-
-3. **The Unexpected Win**: The client adopted the product for one reason but discovered unexpected benefits. Lead with the surprise. This creates a more authentic, less formulaic narrative.
+BANNED PATTERNS (rewrite from scratch if detected):
+- Visible STAR (Situation-Task-Action-Result) scaffolding
+- "Before" / "After" as section headers
+- Identical chronological arcs across studies (all starting with "Company X was struggling...")
+- Generic company descriptions that could apply to any business
+- Round metrics (50%, 10x, 100% increase)
 
 All case studies must:
 - Be MARKETING-FOCUSED: describe what the product does for the customer, NOT how it works technically
@@ -1057,7 +1167,7 @@ All case studies must:
 - NEVER reference specific code constructs: no function names, no class names, no file paths, no API routes, no configuration keys, no CLI flags
 - Use concrete examples and scenarios grounded in the repo's actual capabilities
 - For social posts, use "X" as the platform name (NOT "Twitter"). Generate exactly ${contentCounts.social} social post${contentCounts.social === 1 ? '' : 's'}: ${xCount} X post${xCount === 1 ? '' : 's'}${linkedInCount > 0 ? ` and ${linkedInCount} LinkedIn post${linkedInCount === 1 ? '' : 's'}` : ''}.
-- Generate exactly ${contentCounts.blog} blog article${contentCounts.blog === 1 ? '' : 's'}, each approximately 800 words, marketing-focused with markdown H2 headers (## Header), each with a different structure from the pool above. NO code snippets or technical deep-dives.
+- Generate exactly ${contentCounts.blog} blog article${contentCounts.blog === 1 ? '' : 's'}, each approximately 800 words, marketing-focused with markdown H2 headers (## Header), each structurally distinct from the others. NO code snippets or technical deep-dives.
 - Generate exactly ${contentCounts.caseStudy} case stud${contentCounts.caseStudy === 1 ? 'y' : 'ies'}, each with a different structure, industry, and company size. Marketing-focused, NO code references.
 - NEVER use em dashes (the long dash character "\u2014"). Use periods, commas, colons, or semicolons instead.
 - NEVER use any word or phrase from the BANNED list above.`;
@@ -1114,7 +1224,15 @@ Your job is to:
    - If any two pieces share the same opening structure, hook type, or conclusion pattern, rewrite one to be distinct.
    - No two social posts should use the same rhetorical device. No two blog articles should open with a similar sentence shape.
 
-6. CONCRETE DETAIL TEST:
+6. STRUCTURAL TEMPLATE DETECTION:
+   - Can this piece's structure be described with a named formula (PAS, STAR, Hot Take, Listicle, Before/After, Hook-Body-Question, etc.)? If yes, restructure so the formula disappears while keeping the substance.
+   - X posts: check for "unpopular opinion:", "hot take:", "before/after" copy-paste patterns, "N things I stopped doing" lists. If found, rewrite the post completely with a fresh angle.
+   - LinkedIn posts: check if multiple posts follow identical Hook-Body-Question shapes. If so, break at least one into a fundamentally different form (e.g., a single extended metaphor, a short narrative, or a direct argument without a closing question).
+   - Blog articles: check for visible PAS structure, listicle backbones, or identical section header patterns. If found, reorganize the article around a different structural principle.
+   - Case studies: check for transparent STAR scaffolding or "Before/After" section headers. If found, restructure so the narrative shape is invisible.
+   - If a template pattern is detected, humanness score must be ≤4 until the piece is restructured.
+
+7. CONCRETE DETAIL TEST:
    - For each piece, verify it contains at least one specific detail that could ONLY come from this product (a feature name, a metric, a use case).
    - If a piece could apply to any generic tool, it fails. Add a specific detail from the repo data.
 
@@ -1146,7 +1264,7 @@ ${repoContext.slice(0, 15000)}`;
           { role: 'system', content: refinementPrompt },
           { role: 'user', content: `Please refine and score this draft content. Rewrite any content that is generic or doesn't specifically reference the product's actual features:\n\n${JSON.stringify(draft.content, null, 2)}` },
         ],
-        temperature: 0.3,
+        temperature: 0.45,
         max_tokens: 12000,
       });
 
@@ -1170,8 +1288,232 @@ ${repoContext.slice(0, 15000)}`;
       }
     }
 
-    // Merge refined content back, keeping summary and scenarios from pass 1
-    const finalContent = refined?.content || draft.content;
+    // ── Pass 3: Critic ──────────────────────────────────
+    const pass2Content = refined?.content || draft.content;
+    let rewrittenContent = pass2Content;
+
+    try {
+      const criticPrompt = `You are a ruthless content quality critic. You have NOT seen this content before. Evaluate every piece independently on 4 dimensions.
+
+For each piece, assess:
+
+1. TEMPLATE PATTERN DETECTION — Does the piece follow a recognizable formula?
+   Known templates: PAS (Problem-Agitate-Solve), STAR (Situation-Task-Action-Result), listicle, hot take, before/after, hook-body-question, AIDA (Attention-Interest-Desire-Action).
+   If the structure maps to any named formula, template_detected = true and name it.
+
+2. GENERICNESS — Substitution test: replace the product name with "Acme Tool". If the piece still reads plausibly, it is too generic.
+   1 = deeply specific to this exact product, 10 = could describe any product.
+
+3. AI SLOP — Check for: banned buzzwords (leverage, streamline, robust, cutting-edge, etc.), predictable rhythm, three-adjective lists, hedging language ("can help", "may improve"), superlative stacking, suspiciously round metrics (50%, 10x, 100%).
+   1 = indistinguishable from human, 10 = obviously AI-generated.
+
+4. STRUCTURAL REPETITION — Do any two pieces in the same category share an opening shape, rhetorical arc, or conclusion pattern?
+   If yes, mark structural_repetition = true on the LATER piece.
+
+FAIL THRESHOLD: A piece fails if ANY of these are true:
+- template_detected = true
+- generic_score >= 6
+- ai_slop_score >= 6
+- structural_repetition = true
+
+Critiques must be SPECIFIC and ACTIONABLE. Not "too generic" but "paragraph 2 says 'saves time' without naming the feature; replace with [specific capability from the product]."
+If a piece passes, set critique to empty string.
+
+Product context:
+Name: ${draft.summary?.name || 'unknown'}
+What it does: ${draft.summary?.whatItDoes || 'unknown'}
+Key Features: ${draft.summary?.keyFeatures?.join(', ') || 'unknown'}
+
+Evaluate ALL pieces and return critiques by calling the tool.`;
+
+      console.log('Pass 3: Running critic evaluation...');
+      const pass3Response = await callAI({
+        model: 'google/gemini-3-flash-preview',
+        tools: [buildCriticToolSchema()],
+        tool_choice: { type: 'function', function: { name: 'critique_content' } },
+        messages: [
+          { role: 'system', content: criticPrompt },
+          { role: 'user', content: `Evaluate this content:\n\n${JSON.stringify(pass2Content, null, 2)}` },
+        ],
+        temperature: 0.3,
+        max_tokens: 8000,
+      });
+
+      const critiques = extractToolArgs(pass3Response);
+
+      if (critiques) {
+        // Collect all flagged pieces across categories
+        const flaggedSocial: number[] = [];
+        const flaggedBlog: number[] = [];
+        const flaggedCase: number[] = [];
+        const critiqueMap: Record<string, string> = {};
+
+        for (const item of (critiques.socialPosts || [])) {
+          if (!item.pass) {
+            flaggedSocial.push(item.index);
+            critiqueMap[`social_${item.index}`] = item.critique;
+          }
+        }
+        for (const item of (critiques.blogArticles || [])) {
+          if (!item.pass) {
+            flaggedBlog.push(item.index);
+            critiqueMap[`blog_${item.index}`] = item.critique;
+          }
+        }
+        for (const item of (critiques.caseStudies || [])) {
+          if (!item.pass) {
+            flaggedCase.push(item.index);
+            critiqueMap[`case_${item.index}`] = item.critique;
+          }
+        }
+
+        const totalFlagged = flaggedSocial.length + flaggedBlog.length + flaggedCase.length;
+        console.log(`Pass 3: ${totalFlagged} pieces flagged.`);
+
+        // ── Pass 4: Targeted rewrite ──────────────────────
+        if (totalFlagged > 0) {
+          console.log('Pass 4: Rewriting flagged pieces...');
+
+          // Build payload with only flagged pieces + their critiques
+          const flaggedContent: any = { socialPosts: [], blogArticles: [], caseStudies: [] };
+
+          if (Array.isArray(pass2Content.socialPosts)) {
+            flaggedContent.socialPosts = flaggedSocial.map(i => {
+              const piece = pass2Content.socialPosts[i];
+              return piece ? { ...piece, _critique: critiqueMap[`social_${i}`] || '' } : null;
+            }).filter(Boolean);
+          }
+          if (Array.isArray(pass2Content.blogArticles)) {
+            flaggedContent.blogArticles = flaggedBlog.map(i => {
+              const piece = pass2Content.blogArticles[i];
+              return piece ? { ...piece, _critique: critiqueMap[`blog_${i}`] || '' } : null;
+            }).filter(Boolean);
+          }
+          if (Array.isArray(pass2Content.caseStudies)) {
+            flaggedContent.caseStudies = flaggedCase.map(i => {
+              const piece = pass2Content.caseStudies[i];
+              return piece ? { ...piece, _critique: critiqueMap[`case_${i}`] || '' } : null;
+            }).filter(Boolean);
+          }
+
+          const rewritePrompt = `You are a senior rewriter. You receive content pieces that failed quality review, each with a _critique field explaining what is wrong.
+
+Your job:
+1. Address EVERY point in the critique. Do not ignore any feedback.
+2. Do NOT replace one template with another. Invent a fresh structure.
+3. Maintain all format rules (character limits for X posts, markdown headers for blogs, etc.).
+4. Keep the same product details but express them differently.
+5. Remove the _critique field from your output.
+6. Re-score each piece honestly.
+
+NEVER use em dashes ("\u2014"). NEVER use banned words (leverage, harness, streamline, robust, cutting-edge, seamlessly, etc.).
+
+Product context:
+Name: ${draft.summary?.name || 'unknown'}
+What it does: ${draft.summary?.whatItDoes || 'unknown'}
+Key Features: ${draft.summary?.keyFeatures?.join(', ') || 'unknown'}
+Value Props: ${draft.summary?.valueProps?.join(', ') || 'unknown'}
+
+Return the rewritten pieces by calling the tool.`;
+
+          try {
+            const pass4Response = await callAI({
+              model: 'google/gemini-3-flash-preview',
+              tools: [buildRewriteToolSchema()],
+              tool_choice: { type: 'function', function: { name: 'rewrite_flagged_content' } },
+              messages: [
+                { role: 'system', content: rewritePrompt },
+                { role: 'user', content: `Rewrite these flagged pieces:\n\n${JSON.stringify(flaggedContent, null, 2)}` },
+              ],
+              temperature: 0.7,
+              max_tokens: 12000,
+            });
+
+            const rewritten = extractToolArgs(pass4Response);
+
+            if (rewritten?.content) {
+              // Merge rewritten pieces back at original indices
+              rewrittenContent = JSON.parse(JSON.stringify(pass2Content));
+
+              if (Array.isArray(rewritten.content.socialPosts)) {
+                rewritten.content.socialPosts.forEach((piece: any, ri: number) => {
+                  const origIdx = flaggedSocial[ri];
+                  if (origIdx !== undefined && rewrittenContent.socialPosts?.[origIdx]) {
+                    rewrittenContent.socialPosts[origIdx] = piece;
+                  }
+                });
+              }
+              if (Array.isArray(rewritten.content.blogArticles)) {
+                rewritten.content.blogArticles.forEach((piece: any, ri: number) => {
+                  const origIdx = flaggedBlog[ri];
+                  if (origIdx !== undefined && rewrittenContent.blogArticles?.[origIdx]) {
+                    rewrittenContent.blogArticles[origIdx] = piece;
+                  }
+                });
+              }
+              if (Array.isArray(rewritten.content.caseStudies)) {
+                rewritten.content.caseStudies.forEach((piece: any, ri: number) => {
+                  const origIdx = flaggedCase[ri];
+                  if (origIdx !== undefined && rewrittenContent.caseStudies?.[origIdx]) {
+                    rewrittenContent.caseStudies[origIdx] = piece;
+                  }
+                });
+              }
+
+              // Run validation again on rewritten content
+              const revalidated = validateAndFixContent(rewrittenContent);
+              rewrittenContent = revalidated.content;
+              console.log('Pass 4: Rewrite complete, validation applied.');
+            }
+          } catch (e) {
+            console.warn('Pass 4 rewrite failed, keeping Pass 2 output:', e);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Pass 3 critic failed, keeping Pass 2 output:', e);
+    }
+
+    // ── Template opener regex fallback ────────────────────
+    const TEMPLATE_OPENER_REGEX = /^(unpopular opinion|hot take|most people think|before .*:.*after|nobody talks about|\d+ things)/i;
+
+    function applyTemplateOpenerCheck(content: any) {
+      const checkFirst = (text: string) => TEMPLATE_OPENER_REGEX.test(text.split('\n')[0].trim());
+      const cap = (scores: any) => {
+        if (scores && typeof scores.humanness === 'number' && scores.humanness > 4) {
+          scores.humanness = 4;
+        }
+      };
+
+      if (Array.isArray(content.socialPosts)) {
+        for (const p of content.socialPosts) {
+          if (typeof p.content === 'string' && checkFirst(p.content)) {
+            cap(p.scores);
+            console.warn('Template opener detected in social post (post-Pass 4)');
+          }
+        }
+      }
+      if (Array.isArray(content.blogArticles)) {
+        for (const a of content.blogArticles) {
+          if (typeof a.content === 'string' && checkFirst(a.content)) {
+            cap(a.scores);
+            console.warn('Template opener detected in blog article (post-Pass 4)');
+          }
+        }
+      }
+      if (Array.isArray(content.caseStudies)) {
+        for (const c of content.caseStudies) {
+          if (typeof c.content === 'string' && checkFirst(c.content)) {
+            cap(c.scores);
+            console.warn('Template opener detected in case study (post-Pass 4)');
+          }
+        }
+      }
+    }
+
+    applyTemplateOpenerCheck(rewrittenContent);
+
+    const finalContent = rewrittenContent;
 
     // Server-side content gating: truncate locked content based on tier
     let gatedContent = finalContent;

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1270px; height: 760px; background: #0a0a0a; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; position: relative; }
+  .noise { position: absolute; inset: 0; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .glow { position: absolute; width: 500px; height: 400px; border-radius: 50%; filter: blur(120px); }
+  .glow-1 { top: 50px; right: 100px; background: rgba(245,166,35,0.07); }
+
+  .caption-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.9)); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px; }
+  .caption { font-size: 18px; color: #999; letter-spacing: 0.5px; }
+  .caption strong { color: #F5A623; }
+
+  .browser { position: absolute; top: 40px; left: 85px; right: 85px; bottom: 100px; background: #111; border-radius: 12px; border: 1px solid #222; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.6); }
+  .browser-bar { height: 44px; background: #1a1a1a; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 16px; gap: 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .url-bar { flex: 1; margin-left: 12px; height: 28px; background: #111; border-radius: 6px; display: flex; align-items: center; padding: 0 12px; }
+  .url-text { font-size: 13px; color: #666; }
+
+  .page { display: flex; height: calc(100% - 44px); }
+
+  .sidebar { width: 280px; border-right: 1px solid #222; padding: 20px; overflow: hidden; }
+  .sidebar-title { font-size: 13px; font-weight: 600; color: #F5A623; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .sidebar-section { margin-bottom: 16px; }
+  .sidebar-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .sidebar-text { font-size: 13px; color: #ccc; line-height: 1.5; }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; color: #F5A623; background: rgba(245,166,35,0.1); margin: 2px 4px 2px 0; font-family: monospace; }
+
+  .main { flex: 1; padding: 20px 24px; overflow: hidden; }
+  .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid #222; }
+  .tab { padding: 10px 20px; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #F5A623; border-bottom-color: #F5A623; }
+
+  .post-card { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 18px; margin-bottom: 14px; }
+  .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .platform-badge { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 6px; }
+  .badge-x { color: #fff; background: #1a1a1a; border: 1px solid #444; }
+  .badge-li { color: #0a66c2; background: rgba(10,102,194,0.1); border: 1px solid rgba(10,102,194,0.3); }
+  .regen-btn { font-size: 11px; color: #F5A623; border: 1px solid rgba(245,166,35,0.3); padding: 4px 10px; border-radius: 6px; }
+
+  .post-content { font-size: 14px; color: #ddd; line-height: 1.6; margin-bottom: 12px; }
+  .scores { display: flex; gap: 16px; }
+  .score { display: flex; flex-direction: column; align-items: center; }
+  .score-value { font-size: 18px; font-weight: 700; color: #F5A623; }
+  .score-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="glow glow-1"></div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="url-bar"><span class="url-text">launchcopy.com</span></div>
+    </div>
+    <div class="page">
+      <div class="sidebar">
+        <div class="sidebar-title">Product Analysis</div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">What It Does</div>
+          <div class="sidebar-text">A collection of beautifully designed, accessible, and customizable React components built on Radix UI and Tailwind CSS.</div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Key Features</div>
+          <div class="sidebar-text"><span class="tag">Copy/Paste</span><span class="tag">Radix UI</span><span class="tag">Tailwind</span><span class="tag">TypeScript</span><span class="tag">CLI Install</span></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Tech Stack</div>
+          <div class="sidebar-text"><span class="tag">React</span><span class="tag">Next.js</span><span class="tag">TypeScript</span><span class="tag">Tailwind CSS</span></div>
+        </div>
+      </div>
+      <div class="main">
+        <div class="tabs">
+          <div class="tab active">Social Posts</div>
+          <div class="tab">Blog Articles</div>
+          <div class="tab">Case Studies</div>
+        </div>
+
+        <div class="post-card">
+          <div class="post-header">
+            <span class="platform-badge badge-x">X</span>
+            <span class="regen-btn">Regenerate</span>
+          </div>
+          <div class="post-content">unpopular opinion: component libraries shouldn't make you install 47 dependencies.<br><br>shadcn/ui lets you copy the exact code into your project.<br><br>you own it. you modify it. no version lock-in.</div>
+          <div class="scores">
+            <div class="score"><span class="score-value">9</span><span class="score-label">Relevance</span></div>
+            <div class="score"><span class="score-value">8</span><span class="score-label">Engagement</span></div>
+            <div class="score"><span class="score-value">8</span><span class="score-label">Clarity</span></div>
+            <div class="score"><span class="score-value">9</span><span class="score-label">Humanness</span></div>
+          </div>
+        </div>
+
+        <div class="post-card">
+          <div class="post-header">
+            <span class="platform-badge badge-li">LinkedIn</span>
+            <span class="regen-btn">Regenerate</span>
+          </div>
+          <div class="post-content">Most component libraries give you a black box.<br><br>You install a package, import a button, and pray the next update doesn't break your layout. Sound familiar?<br><br>shadcn/ui flips the model entirely...</div>
+          <div class="scores">
+            <div class="score"><span class="score-value">8</span><span class="score-label">Relevance</span></div>
+            <div class="score"><span class="score-value">8</span><span class="score-label">Engagement</span></div>
+            <div class="score"><span class="score-value">9</span><span class="score-label">Clarity</span></div>
+            <div class="score"><span class="score-value">8</span><span class="score-label">Humanness</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption-bar">
+    <div class="caption"><strong>Step 2:</strong> Platform-ready content in 30 seconds. Every piece quality-scored.</div>
+  </div>
+</body></html>
