@@ -103,7 +103,6 @@ const Index = () => {
         }
       } catch { /* allow scan if check fails */ }
     }
-    }
 
     setIsLoading(true);
     setCurrentRepoUrl(url);
