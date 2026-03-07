@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+import { useNavigate } from "react-router-dom";
 import { FeaturesShowcase } from "@/components/FeaturesShowcase";
 import { PricingSection } from "@/components/PricingSection";
 import { FAQSection } from "@/components/FAQSection";
@@ -54,6 +55,7 @@ const Index = () => {
   
   const { toast } = useToast();
   const { user, tier, isPro, isPaid, refreshSubscription } = useAuth();
+  const navigate = useNavigate();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
@@ -77,8 +79,15 @@ const Index = () => {
   };
 
   const handleAnalyze = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
+    // If not signed in, save the pending scan and redirect to auth
+    if (!user) {
+      sessionStorage.setItem('pending_scan', JSON.stringify({ url, preferences }));
+      navigate('/auth');
+      return;
+    }
+
     // Scan limits: free=1 total, starter=1/day, pro=unlimited
-    if (user && !isPro) {
+    if (!isPro) {
       try {
         const todayCount = await getTodayScanCount();
         const limit = 1; // both free and starter get 1
@@ -144,6 +153,21 @@ const Index = () => {
       handleAnalyze(rescanUrl);
     }
   }, []);
+
+  // Handle pending scan after auth redirect
+  const pendingScanHandled = useRef(false);
+  useEffect(() => {
+    if (!user || pendingScanHandled.current) return;
+    const pending = sessionStorage.getItem('pending_scan');
+    if (pending && !isLoading && !analysis) {
+      pendingScanHandled.current = true;
+      sessionStorage.removeItem('pending_scan');
+      try {
+        const { url, preferences } = JSON.parse(pending);
+        if (url) handleAnalyze(url, undefined, preferences);
+      } catch { /* ignore corrupt data */ }
+    }
+  }, [user]);
 
 
   const handleBack = () => {
