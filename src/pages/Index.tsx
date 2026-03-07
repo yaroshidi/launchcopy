@@ -54,6 +54,7 @@ const Index = () => {
   
   const { toast } = useToast();
   const { user, tier, isPro, isPaid, refreshSubscription } = useAuth();
+  const navigate = useNavigate();
 
   const runAnalysis = async (url: string, githubToken?: string, preferences?: ContentPreferences) => {
     const result = await analyzeRepository(url, githubToken, preferences);
