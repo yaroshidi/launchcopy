@@ -1,33 +1,46 @@
+# LaunchCopy Rebuild: Full Redesign and Overhaul
 
+Every part of the app gets rebuilt: look, scan quality, reliability, and plans. The work happens in phases so each one can be checked before the next starts. Accounts, saved scans, and Stripe subscribers stay as they are.
 
-## Problem
+## Design direction (locked)
+- **Palette, Brutalist Pop:** white `#ffffff`, ink `#0a0a0a`, orange `#ff5722`, yellow `#ffeb3b`. This replaces the mint green.
+- **Type:** Syne for headings (big, tight), Plus Jakarta Sans for body text.
+- **Layout:** broken grid with overlapping blocks, off-grid cards, thick 2–3px ink borders, hard offset shadows (no blur), square corners, and loud orange/yellow highlight blocks.
+- **Motion:** one staggered load-in on the home page, snappy hover moves (cards shift onto their shadow). No soft glows or gradients.
 
-The verification email for `yaroshidi@hotmail.com` was processed by the system (the auth hook ran successfully), but Hotmail/Outlook likely filtered or silently dropped it because the email comes from a default system sender with no custom domain reputation. This is a known deliverability issue with Microsoft email providers.
+## Phase 1: Design directions
+Take screenshots of the current home page and generate 3 rendered directions with the locked palette, type, and layout. You pick one before any build work starts.
 
-## Plan
+## Phase 2: Visual rebuild (every page)
+- New design tokens and fonts across the whole site. Light theme by default, with a matching ink-dark version.
+- Rebuild: home page (hero, features, pricing, FAQ, footer), navbar and profile menu, sign-in page, scan-in-progress screen, results screen (summary, social, blog, and case study cards, export), My Scans and trash, profile page, plans popup, upgrade popup, locked-content overlay, and the privacy and terms pages.
+- Mobile layouts get their own composition instead of a stacked desktop layout.
 
-Two changes, matching your selections:
+## Phase 3: Scan quality
+- Review the repo-analysis prompts and pick the best current AI model for them.
+- Better repo reading: README, package files, key source files, and recent commits feed a structured product summary.
+- More specific output: a distinct voice for each platform (X, LinkedIn), blog posts with real structure, and case studies tied to actual features. Stricter output checks so cards never render half-empty.
+- Regenerate (Pro) uses the same improved prompts.
 
-### 1. Add a "Resend verification email" flow on the Auth page
+## Phase 4: Reliability and speed
+- Split the very large analysis function into smaller shared modules.
+- Show scan progress as it streams in, so results appear in steps instead of after one long wait.
+- Enforce scan limits on the server, not only in the browser (right now they can be bypassed).
+- Clean up duplicate access rules on saved scans, add consistent error messages, and remove temporary admin functions and the hardcoded free-plan email override (move it to a proper "complimentary plan" record).
 
-- After a successful signup, show a "Didn't receive the email?" section with a **Resend** button
-- Add a 60-second cooldown timer between resends to prevent abuse
-- Display clear status messages ("Email sent!", "Check your spam folder", cooldown countdown)
-- Implement by calling `supabase.auth.resend({ type: 'signup', email })` on button click
-- Track state with `showResend`, `resendCooldown`, and `resendLoading` in the Auth component
+## Phase 5: Plans and billing
+- Keep the current rules: Free gets 1 scan with preview content, Starter ($10) gets 1 full scan per day, Pro ($40) gets unlimited scans plus regenerate.
+- Map every live Stripe product correctly, including the unmapped `prod_TcCjAlQ1MyrQPG`.
+- One shared plans and upgrade popup, used everywhere (menu, profile, locked content, regenerate), with a promo code field for both plans.
+- The profile page shows usage (scans left today) next to the plan details.
 
-### 2. Set up branded email sending on your custom domain
+## Open questions (to settle along the way)
+- Which plan is `prod_TcCjAlQ1MyrQPG`? Starter or Pro.
+- Should prices or plan limits change, or stay as they are?
 
-Your project already has `trylaunchcopy.com` as a custom domain. We need to configure it as an email sender domain so auth emails come from something like `noreply@trylaunchcopy.com` instead of the default sender. This dramatically improves Hotmail/Outlook deliverability.
-
-**Steps:**
-1. Open the email domain setup dialog to provision DNS records for `trylaunchcopy.com`
-2. You'll add the required DNS records (SPF, DKIM, DMARC) at your domain registrar
-3. Once DNS verifies, I'll scaffold branded email templates matching LaunchCopy's dark theme and deploy them
-
-**To get started with the email domain, click below:**
-
-<lov-actions>
-<lov-open-email-setup>Set up email domain</lov-open-email-setup>
-</lov-actions>
-
+## Technical details
+- Tokens in `src/index.css` and `tailwind.config.ts` (HSL), with fonts loaded in `index.html`. The `rounded` and `shadow` utilities get redefined for the brutalist style.
+- Edge functions: break `analyze-repo` (about 78k chars) into `_shared/` modules (github fetch, summarize, generate, validate). Default to the Lovable AI Gateway.
+- New `complimentary_plans` table (user_id, tier, expires_at) with GRANTs and RLS, read by `check-subscription`. `analyze-repo` checks the `scan_logs` count on the server and inserts the log itself.
+- Remove the duplicate INSERT policy on `analyses`. Remove `admin-create-subscription`.
+- Update the memory note for the color/brand change. Record the architecture rules in `AGENTS.md`.
