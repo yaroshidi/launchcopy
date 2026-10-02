@@ -176,7 +176,8 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="relative min-h-screen bg-background text-foreground dark">
+      <div className="aurora" aria-hidden />
       <Navbar />
       <AnimatePresence mode="wait">
         {!analysis ? (

@@ -93,8 +93,8 @@ html::-webkit-scrollbar {
     --destructive: 0 75% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 100% / 0.09;
-    --input: 0 0% 100% / 0.12;
+    --border: 230 10% 16%;
+    --input: 230 10% 19%;
     --ring: 14 100% 60%;
 
     --glass-bg: 230 15% 14%;
@@ -114,7 +114,7 @@ html::-webkit-scrollbar {
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 230 10% 13%;
     --sidebar-accent-foreground: 220 20% 96%;
-    --sidebar-border: 0 0% 100% / 0.08;
+    --sidebar-border: 230 10% 16%;
     --sidebar-ring: 14 100% 60%;
   }
 }
