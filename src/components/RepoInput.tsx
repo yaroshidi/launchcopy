@@ -84,7 +84,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
           type="submit"
           size="lg"
           disabled={isLoading || !url.trim() || !isValidGithubUrl(url)}
-          className="rounded-xl">
+          className="rounded-full px-6">
 
           {isLoading ?
           <>
