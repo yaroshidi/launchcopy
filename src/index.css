@@ -134,6 +134,14 @@ html::-webkit-scrollbar {
     letter-spacing: -0.025em;
   }
 
+  /* No orphan words anywhere: balance headings, avoid lone last-line words in text */
+  h1, h2, h3, h4, h5, h6, blockquote, figcaption, label, button, th {
+    text-wrap: balance;
+  }
+  p, li, dd, dt, span, a, small, td, div {
+    text-wrap: pretty;
+  }
+
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
