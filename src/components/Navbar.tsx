@@ -22,9 +22,10 @@ export function Navbar() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-10 bg-background/90 backdrop-blur-sm border-b border-border"
+      className="fixed top-3 left-1/2 -translate-x-1/2 z-50 h-14 w-[calc(100%-1.5rem)] max-w-5xl flex items-center justify-between pl-5 pr-2 rounded-full glass"
     >
-      <Link to="/" className="text-xl font-display text-foreground hover:opacity-80 transition-opacity">
+      <Link to="/" className="flex items-center gap-2 text-lg font-display text-foreground hover:opacity-80 transition-opacity">
+        <span className="h-2.5 w-2.5 rounded-full bg-primary" aria-hidden />
         LaunchCopy
       </Link>
 
