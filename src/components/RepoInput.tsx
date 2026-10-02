@@ -68,7 +68,7 @@ export function RepoInput({ onAnalyze, isLoading, prefillUrl }: RepoInputProps) 
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3">
-      <div className="relative flex items-center gap-2 p-2 rounded-2xl bg-card border border-border focus-within:border-primary/50 transition-all duration-300">
+      <div className="glass relative flex items-center gap-2 p-2 rounded-full focus-within:ring-2 focus-within:ring-primary/40 transition-all duration-300">
         <div className="flex items-center gap-3 pl-4">
           <Github className="w-5 h-5 text-muted-foreground" />
         </div>
