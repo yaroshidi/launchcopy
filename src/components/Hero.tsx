@@ -21,34 +21,24 @@ export function Hero({
   isLoading
 }: HeroProps) {
   const [prefillUrl, setPrefillUrl] = useState("");
-  return <section className="relative md:px-10 flex flex-col items-center overflow-hidden px-6 pt-32 md:pt-40 pb-20">
-      <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center text-center space-y-8">
-        {/* Headline */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        duration: 0.5,
-        delay: 0.1
-      }} className="space-y-4">
-          <h1 className="text-4xl sm:text-5xl font-display leading-[1.1] tracking-[-0.01em] text-foreground max-w-[800px] w-full lg:text-5xl">
-            Your repo already has a{" "}
-            <span className="text-primary">story.</span>
-            <br />
-            <span className="text-muted-foreground">We help you tell it.</span>
+  return <section className="relative md:px-10 flex flex-col items-center px-6 pt-36 md:pt-48 pb-24">
+      <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center text-center space-y-10">
+        <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="glass-subtle inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          AI launch copy from your codebase
+        </motion.span>
+
+        <motion.div initial={{ opacity: 0, y: 24, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }} className="space-y-6">
+          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl leading-[1.02] text-gradient">
+            Your repo already has a <span className="text-gradient-accent">story.</span>
+            <br />We help you tell it.
           </h1>
 
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed mx-auto">
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl leading-relaxed mx-auto">
             Paste a GitHub URL and let our AI turn your codebase into
             ready-to-publish social posts, blog articles, and case studies.
           </p>
         </motion.div>
-
-        {/* Accent line */}
-        <div className="accent-line w-24" />
 
         {/* Repo input */}
         <motion.div initial={{
